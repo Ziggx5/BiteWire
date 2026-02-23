@@ -24,6 +24,7 @@ def client_handler(client, address):
     while True:
         try:
             recv_data = client.recv(1024)
+            print(recv_data)
 
             if not recv_data:
                 break

@@ -10,7 +10,6 @@ class ChatHandler:
 
     def receive_messages(self):
         buffer = ""
-
         while self.running:
             try:
                 buffer += self.client.recv(1024).decode("ascii")
@@ -19,11 +18,11 @@ class ChatHandler:
                     print(line, buffer)
                     if not line.strip():
                         continue
-                message = json.loads(line)
-                print(message)
-                complete_message = f"{message['user']}: {message['content']}"
-                self.message_callback(complete_message)
-                print(complete_message)
+                    message = json.loads(line)
+                    print(message)
+                    complete_message = f"{message['user']}: {message['content']}"
+                    self.message_callback(complete_message)
+                    print(complete_message)
             except Exception as e:
                 print(str(e))
     
