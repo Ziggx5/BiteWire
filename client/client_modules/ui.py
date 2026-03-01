@@ -24,12 +24,17 @@ class MainUi(QWidget):
         self.setFixedSize(900, 600)
 
         self.server_frame = QFrame(self)
-        self.server_frame.setGeometry(0, 100, 200, 500)
+        self.server_frame.setGeometry(0, 100, 200, 450)
         self.server_frame.setStyleSheet("background: #1a1a24; border-right: 1px solid #30363d")
 
         self.server_layout = QVBoxLayout(self.server_frame)
         self.server_layout.setAlignment(Qt.AlignTop)
         self.server_layout.setSpacing(3)
+
+        self.user_frame = QFrame(self)
+        self.user_frame.setGeometry(0, 550, 200, 50)
+
+        self.user_frame_layout = QHBoxLayout(self.user_frame)
 
         self.main_frame = QFrame(self)
         self.main_frame.setGeometry(200, 0, 700, 600)
@@ -91,6 +96,17 @@ class MainUi(QWidget):
         self.upper_layout.addWidget(self.add_server_label)
         self.upper_layout.addStretch()
         self.upper_layout.addWidget(self.add_button)
+
+        self.username_label = QLabel("User")
+
+        self.new_user_button = QPushButton("+")
+
+        self.settings_button = QPushButton("Settings")
+
+
+        self.user_frame_layout.addWidget(self.username_label)
+        self.user_frame_layout.addWidget(self.new_user_button)
+        self.user_frame_layout.addWidget(self.settings_button)
 
     def open_add_server(self):
         self.add_server_window.show()
