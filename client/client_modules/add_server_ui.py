@@ -5,7 +5,7 @@ from client_modules.save_server import save_server_data
 from client_modules.load_servers import server_loader
 from client_modules.networking import ChatHandler
 
-class AddServer(QWidget):
+class AddServerUi(QWidget):
     def __init__(self, on_cancel):
         super().__init__()
 

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication
-from client_modules.loading_screen import LoadingScreen
+from client_modules.loading_ui import LoadingScreen
 
 def main():
     app = QApplication()
