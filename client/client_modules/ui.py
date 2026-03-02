@@ -72,12 +72,13 @@ class MainUi(QWidget):
         self.add_server_label.setStyleSheet("color: white; border: none")
 
         self.add_button = QPushButton("+")
-        self.add_button.setFont(QFont("Courier New", 15, QFont.Bold))
+        self.add_button.setFont(QFont("Courier New", 15))
         self.add_button.setStyleSheet("""
             QPushButton {
             color: white;
             background-color: #1f6feb;
             border-radius: 10px;
+            font-weight: 700;
             border: 2px solid #ffffff;
             }
             
@@ -103,6 +104,7 @@ class MainUi(QWidget):
 
         self.new_user_button = QPushButton("+")
         self.new_user_button.setFixedSize(30, 30)
+        self.new_user_button.setStyleSheet("font-weight: 500; font-size: 15px")
 
         self.settings_button = QPushButton()
         self.settings_button.setIcon(QIcon(f"{image_path}/settings.png"))

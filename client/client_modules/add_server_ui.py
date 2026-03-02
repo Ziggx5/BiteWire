@@ -9,58 +9,81 @@ class AddServerUi(QWidget):
     def __init__(self, on_cancel):
         super().__init__()
 
+        self.setWindowTitle("BitWire")
+        self.setStyleSheet("background-color: #161b22")
+        self.setFixedSize(500, 400)
+
         self.on_cancel = on_cancel
         self.stacked = QStackedLayout(self)
         self.chat_handler = ChatHandler(self)
 
-        self.add_page = QWidget()
-        add_layout = QVBoxLayout(self.add_page)
+        self.add_server_page = QWidget()
+        add_server_layout = QVBoxLayout(self.add_server_page)
+        add_server_layout.setSpacing(0)
 
         add_server_title = QLabel("Add server")
         add_server_title.setFont(QFont("Courier New", 20))
-        add_server_title.setStyleSheet("color: #a5a8ad;")
+        add_server_title.setFixedHeight(30)
+        add_server_title.setStyleSheet("color: #a5a8ad")
+
+        add_server_subtitle = QLabel("Enter server details")
+        add_server_subtitle.setFont(QFont("Courier New", 13))
+        add_server_subtitle.setFixedHeight(20)
+        add_server_subtitle.setStyleSheet("color: #a5a8ad")
 
         server_name_title = QLabel("Server name:")
-        server_name_title.setFont(QFont("Courier New", 20))
-        server_name_title.setStyleSheet("color: #a5a8ad;")
+        server_name_title.setFont(QFont("Courier New", 17))
+        server_name_title.setFixedHeight(30)
+        server_name_title.setStyleSheet("color: #a5a8ad")
 
         server_address_title = QLabel("Server address:")
         server_address_title.setFont(QFont("Courier New", 20))
-        server_address_title.setStyleSheet("color: #a5a8ad;")
+        server_address_title.setStyleSheet("color: #a5a8ad")
+
+        add_server_option_buttons = QHBoxLayout()
 
         self.server_name_input = QLineEdit()
         self.ip_address_input = QLineEdit()
 
-        self.cancel_server = QPushButton("Cancel")
-        self.cancel_server.clicked.connect(self.reset)
-        self.confirm_server = QPushButton("Confirm")
-        self.confirm_server.clicked.connect(self.add_server_check_entries)
+        self.cancel_add_server_button = QPushButton("Cancel")
+        self.cancel_add_server_button.setStyleSheet("font-weight: 600")
+        self.cancel_add_server_button.clicked.connect(self.reset)
+        self.cancel_add_server_button.setFixedSize(110, 35)
+        self.confirm_add_server_button = QPushButton("Confirm")
+        self.confirm_add_server_button.setFixedSize(110, 35)
+        self.confirm_add_server_button.setStyleSheet("background-color: #175723; font-weight: 600; color: white")
+        self.confirm_add_server_button.clicked.connect(self.add_server_check_entries)
 
-        add_layout.addWidget(add_server_title)
-        add_layout.addWidget(server_name_title)
-        add_layout.addWidget(self.server_name_input)
-        add_layout.addWidget(server_address_title)
-        add_layout.addWidget(self.ip_address_input)
-        add_layout.addWidget(self.cancel_server)
-        add_layout.addWidget(self.confirm_server)
-        self.stacked.addWidget(self.add_page)
+        add_server_option_buttons.addStretch()
+        add_server_option_buttons.addWidget(self.cancel_add_server_button)
+        add_server_option_buttons.addWidget(self.confirm_add_server_button)
+
+        add_server_layout.addWidget(add_server_title)
+        add_server_layout.addWidget(add_server_subtitle)
+        add_server_layout.addSpacing(20)
+        add_server_layout.addWidget(server_name_title)
+        add_server_layout.addWidget(self.server_name_input)
+        add_server_layout.addWidget(server_address_title)
+        add_server_layout.addWidget(self.ip_address_input)
+        add_server_layout.addLayout(add_server_option_buttons)
+        self.stacked.addWidget(self.add_server_page)
 
         self.register_page = QWidget()
         register_layout = QVBoxLayout(self.register_page)
 
         register_label = QLabel("Register")
         register_label.setFont(QFont("Courier New", 20))
-        register_label.setStyleSheet("color: #a5a8ad;")
+        register_label.setStyleSheet("color: #a5a8ad")
 
         username_label = QLabel("Username")
         username_label.setFont(QFont("Courier New", 20))
-        username_label.setStyleSheet("color: #a5a8ad;")
+        username_label.setStyleSheet("color: #a5a8ad")
 
         self.username_input = QLineEdit()
 
         password_label = QLabel("Password")
         password_label.setFont(QFont("Courier New", 20))
-        password_label.setStyleSheet("color: #a5a8ad;")
+        password_label.setStyleSheet("color: #a5a8ad")
 
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
@@ -109,7 +132,7 @@ class AddServerUi(QWidget):
             if return_message["type"] == "register" and return_message["status"] == "ok":
                 save_server_data(self.name, self.ip_address)
                 self.reset()
-                self.stacked.setCurrentWidget(self.add_page)
+                self.stacked.setCurrentWidget(self.add_server_page)
                 self.close()
             elif return_message["type"] == "register" and return_message["status"] == "fail":
                 QMessageBox.warning(
@@ -131,7 +154,7 @@ class AddServerUi(QWidget):
             )
     
     def reset(self):
-        self.stacked.setCurrentWidget(self.add_page)
+        self.stacked.setCurrentWidget(self.add_server_page)
         self.server_name_input.clear()
         self.ip_address_input.clear()
         self.username_input.clear()
