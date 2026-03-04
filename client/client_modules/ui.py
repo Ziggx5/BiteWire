@@ -13,7 +13,9 @@ class MainUi(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.active_server = None
+        self.setWindowTitle("BitWire")
+        self.setStyleSheet("background-color : #0e1117;")
+        self.showMaximized()
 
         self.add_server_window = AddServerUi(self.add_server_window_show_main_ui)
         self.chat_handler = ChatHandler(self.client_display_message)
@@ -21,45 +23,37 @@ class MainUi(QWidget):
         self.tray = TrayManager(self)
         image_path = file_root()
 
-        self.setWindowTitle("BitWire")
-        self.setStyleSheet("background-color : #0e1117;")
-        self.setFixedSize(900, 600)
+        main_root_layout = QHBoxLayout(self)
+        main_root_layout.setSpacing(0)
 
-        self.server_frame = QFrame(self)
-        self.server_frame.setGeometry(0, 100, 200, 450)
-        self.server_frame.setStyleSheet("background: #1a1a24; border-right: 1px solid #30363d")
+        left_container = QVBoxLayout()
 
-        self.server_layout = QVBoxLayout(self.server_frame)
+        server_frame = QFrame(self)
+        server_frame.setStyleSheet("background: #1a1a24; border-right: 1px solid #30363d")
+
+        self.server_layout = QVBoxLayout(server_frame)
         self.server_layout.setAlignment(Qt.AlignTop)
         self.server_layout.setSpacing(3)
 
-        self.user_frame = QFrame(self)
-        self.user_frame.setGeometry(0, 550, 200, 50)
+        user_frame = QFrame(self)
+        self.user_frame_layout = QHBoxLayout(user_frame)
 
-        self.user_frame_layout = QHBoxLayout(self.user_frame)
+        main_frame = QFrame(self)
+        main_frame.setStyleSheet("background: transparent; border: 1px solid #737373")
 
-        self.main_frame = QFrame(self)
-        self.main_frame.setGeometry(200, 0, 700, 600)
-        self.main_frame.setStyleSheet("background: transparent; border: 1px solid #737373")
-
-        self.main_layout = QVBoxLayout(self.main_frame)
+        self.main_layout = QVBoxLayout(main_frame)
         self.main_layout.setContentsMargins(10, 10, 10, 10)
         self.main_layout.setSpacing(8)
 
-        self.upper_frame = QFrame(self)
-        self.upper_frame.setGeometry(0, 50, 200, 50)
-        self.upper_frame.setStyleSheet("background: #232338; border-right: 1px solid #30363d")
+        upper_frame = QFrame(self)
+        upper_frame.setStyleSheet("background: #232338; border-right: 1px solid #30363d")
 
-        self.upper_layout = QHBoxLayout(self.upper_frame)
+        self.upper_layout = QHBoxLayout(upper_frame)
 
-        self.logo_frame = QFrame(self)
-        self.logo_frame.setGeometry(0, 0, 200, 50)
-        self.logo_frame.setStyleSheet("background: transparent; border-right: 1px solid #30363d")
+        logo_frame = QFrame(self)
+        logo_frame.setStyleSheet("background: transparent; border-right: 1px solid #30363d")
 
-        self.logo_layout = QHBoxLayout(self.logo_frame)
-
-        self.server_button_group = QButtonGroup(self)
-        self.server_button_group.setExclusive(True)
+        self.logo_layout = QHBoxLayout(logo_frame)
 
         self.bitwire_label = QLabel("BitWire")
         self.bitwire_label.setFont(QFont("Courier New", 17))
@@ -121,6 +115,14 @@ class MainUi(QWidget):
         self.user_frame_layout.addWidget(self.username_label)
         self.user_frame_layout.addWidget(self.new_user_button)
         self.user_frame_layout.addWidget(self.settings_button)
+
+        left_container.addWidget(logo_frame)
+        left_container.addWidget(upper_frame)
+        left_container.addWidget(server_frame, 1)
+        left_container.addWidget(user_frame)
+
+        main_root_layout.addLayout(left_container, 1)
+        main_root_layout.addWidget(main_frame, 7)
 
     def open_add_server(self):
         self.add_server_window.show()
@@ -260,7 +262,6 @@ class ServerButton(QFrame):
         layout = QHBoxLayout(self)
 
         self.label = QLabel(name)
-        self.label.setFixedWidth(130)
         self.label.setFont(QFont("Courier New", 13))
         self.label.setStyleSheet("""
             QLabel {
