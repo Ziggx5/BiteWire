@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QFont, QIcon, QPixmap
+from PySide6.QtGui import QFont, QIcon, QPixmap, QFontMetrics
 from client_modules.add_server_ui import AddServerUi
 from client_modules.load_servers import server_loader
 from client_modules.save_server import delete_server
@@ -8,6 +8,7 @@ from client_modules.networking import ChatHandler
 from client_modules.tray_manager import TrayManager
 from client_modules.path_finder import file_root
 from client_modules.login_ui import Login
+from client_modules.identity_ui import AddIdentityUi
 
 class MainUi(QWidget):
     def __init__(self):
@@ -20,6 +21,7 @@ class MainUi(QWidget):
         self.add_server_window = AddServerUi(self.add_server_window_show_main_ui)
         self.chat_handler = ChatHandler(self.client_display_message)
         self.login_server_window = Login(self.login_server_window_show_main_ui, self.on_success_login, self.chat_handler)
+        self.identity_window = AddIdentityUi()
         self.tray = TrayManager(self)
         image_path = file_root()
 
@@ -99,6 +101,7 @@ class MainUi(QWidget):
         self.new_user_button = QPushButton("+")
         self.new_user_button.setFixedSize(30, 30)
         self.new_user_button.setStyleSheet("font-weight: 500; font-size: 15px")
+        self.new_user_button.clicked.connect(self.identity_window_open)
 
         self.settings_button = QPushButton()
         self.settings_button.setIcon(QIcon(f"{image_path}/settings.png"))
@@ -237,6 +240,9 @@ class MainUi(QWidget):
         delete_server(self.server_address)
         self.reload_servers()
 
+    def identity_window_open(self):
+        self.identity_window.show()
+
 class ServerButton(QFrame):
     def __init__(self, name, ip, on_click, on_delete):
         super().__init__()
@@ -261,8 +267,9 @@ class ServerButton(QFrame):
 
         layout = QHBoxLayout(self)
 
-        self.label = QLabel(name)
+        self.label = QLabel()
         self.label.setFont(QFont("Courier New", 13))
+        self.label.setFixedWidth(180)
         self.label.setStyleSheet("""
             QLabel {
                 color: #a5a8ad;
@@ -270,6 +277,8 @@ class ServerButton(QFrame):
                 background: transparent
             }
         """)
+
+        self.resize_server_name()
 
         self.delete_button = QPushButton("X")
         self.delete_button.setFixedSize(20, 20)
@@ -294,6 +303,11 @@ class ServerButton(QFrame):
         self.mousePressEvent = self.frame_clicked
         self.delete_button.clicked.connect(self.delete_button_clicked)
     
+    def resize_server_name(self):
+        metrics = QFontMetrics(self.label.font())
+        resize_name = metrics.elidedText(self.name, Qt.ElideRight, self.label.width())
+        self.label.setText(resize_name)
+
     def frame_clicked(self, event):
         self.on_click(self)
 
