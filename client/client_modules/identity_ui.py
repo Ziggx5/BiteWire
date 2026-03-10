@@ -2,12 +2,14 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPixmap, QPainter, QPainterPath
 from client_modules.path_finder import file_root
+from client_modules.data_manipulation import save_identity_data
 
 class AddIdentityUi(QWidget):
     def __init__(self, on_cancel):
         super().__init__()
 
         self.on_cancel = on_cancel
+        self.rounded = None
         self.picture_path = file_root()
 
         self.setWindowTitle("BitWire")
@@ -115,6 +117,7 @@ class AddIdentityUi(QWidget):
         self.confirm_button = QPushButton("Confirm")
         self.confirm_button.setFixedSize(110, 35)
         self.confirm_button.setCursor(Qt.PointingHandCursor)
+        self.confirm_button.clicked.connect(self.save_identity)
         self.confirm_button.setStyleSheet("""
             QPushButton {
                 background-color: #175723;
@@ -174,10 +177,10 @@ class AddIdentityUi(QWidget):
         
         if file_path:
             pixmap = QPixmap(file_path).scaled(160, 160, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-            rounded = QPixmap(160, 160)
-            rounded.fill(Qt.transparent)
+            self.rounded = QPixmap(160, 160)
+            self.rounded.fill(Qt.transparent)
 
-            painter = QPainter(rounded)
+            painter = QPainter(self.rounded)
             painter.setRenderHint(QPainter.Antialiasing)
             painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
@@ -188,6 +191,19 @@ class AddIdentityUi(QWidget):
             painter.drawPixmap(0, 0, pixmap)
             painter.end()
 
-            self.profile_picture.setPixmap(rounded)
+            self.profile_picture.setPixmap(self.rounded)
             self.profile_picture.setScaledContents(True)
             self.profile_picture_subtitle.hide()
+
+    def save_identity(self):
+        username = self.username_input.text().strip()
+        password = self.password_input.text().strip()
+        
+        if username and password and self.rounded:
+            save_identity_data(username, password)
+        else:
+            QMessageBox.warning(
+                self,
+                "Error",
+                "Please enter username, password and profile picture."
+            )

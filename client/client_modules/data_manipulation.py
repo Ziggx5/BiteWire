@@ -2,24 +2,24 @@ from platformdirs import user_data_dir
 import os
 import json
 
-def save_server_path():
+def local_file_path():
     app_name = "BitWire"
     data_dir = user_data_dir(app_name)
     os.makedirs(data_dir, exist_ok = True)
-    servers_file_path = os.path.join(data_dir, "servers.json")
+    file_path = os.path.join(data_dir, "servers.json")
 
-    return servers_file_path
+    return file_path
 
 def save_server_data(name, ip_address):
-    servers_file_path = save_server_path()
+    file_path = local_file_path()
     data = {
         "name": name,
         "ip_address": ip_address
     }
     servers = []
 
-    if os.path.exists(servers_file_path):
-        with open (servers_file_path, "r", encoding = "utf-8") as f:
+    if os.path.exists(file_path):
+        with open (file_path, "r", encoding = "utf-8") as f:
             try:
                 servers = json.load(f)
             except json.JSONDecodeError:
@@ -27,15 +27,15 @@ def save_server_data(name, ip_address):
 
     servers.append(data)
         
-    with open (servers_file_path, "w", encoding = "utf-8") as f:
+    with open (file_path, "w", encoding = "utf-8") as f:
         json.dump(servers, f, indent = 4)
     
 def delete_server(ip_address):
-    servers_file_path = save_server_path()
+    file_path = local_file_path()
     servers = []
 
-    if os.path.exists(servers_file_path):
-        with open (servers_file_path, "r", encoding = "utf-8") as f:
+    if os.path.exists(file_path):
+        with open (file_path, "r", encoding = "utf-8") as f:
             try:
                 servers = json.load(f)
             except json.JSONDecodeError:
@@ -45,6 +45,9 @@ def delete_server(ip_address):
         if server["ip_address"] == ip_address:
             servers.pop(i)
     
-    with open (servers_file_path, "w", encoding = "utf-8") as f:
+    with open (file_path, "w", encoding = "utf-8") as f:
         json.dump(servers, f, indent = 4)
         
+def save_identity_data(username, password):
+    print(username)
+    print(password)

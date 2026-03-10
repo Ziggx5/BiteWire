@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
-from client_modules.save_server import save_server_data
+from client_modules.data_manipulation import save_server_data
 from client_modules.load_servers import server_loader
 from client_modules.networking import ChatHandler
 

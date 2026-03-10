@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QFont, QIcon, QPixmap, QFontMetrics
 from client_modules.add_server_ui import AddServerUi
 from client_modules.load_servers import server_loader
-from client_modules.save_server import delete_server
+from client_modules.data_manipulation import delete_server
 from client_modules.networking import ChatHandler
 from client_modules.tray_manager import TrayManager
 from client_modules.path_finder import file_root
