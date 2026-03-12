@@ -11,6 +11,7 @@ server.bind((host, port))
 server.listen()
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain(certfile = "/home/ziggx/Documents/BitWire/server/server.crt", keyfile = "/home/ziggx/Documents/BitWire/server/server.key")
 
 clients = []
 users = {}
@@ -25,6 +26,7 @@ def send_message_to_clients(message):
 
 def client_handler(client, address):
     logged_user = None
+    buffer = ""
     while True:
         try:
             recv_data = client.recv(1024)
@@ -32,6 +34,13 @@ def client_handler(client, address):
 
             if not recv_data:
                 break
+
+            buffer += recv_data.decode("utf-8")
+            while "\n" in buffer:
+                line, buffer = buffer.split("\n", 1)
+
+                if not line.strip():
+                    continue
 
             data = json.loads(recv_data.decode("utf-8"))
             if data["type"] == "register":
@@ -69,7 +78,8 @@ def client_handler(client, address):
 def receive_connection():
     while True:
         client, address = server.accept()
-        thread = threading.Thread(target = client_handler, args = (client, address,))
+        tls_connect = context.wrap_socket(client, server_side = True)
+        thread = threading.Thread(target = client_handler, args = (tls_connect, address,))
         thread.start()
 
 def send_json(client, data):
