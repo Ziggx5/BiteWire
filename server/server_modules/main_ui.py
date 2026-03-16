@@ -20,6 +20,12 @@ class MainUi(QWidget):
         database_box = QGroupBox("Database Management")
         database_box_layout = QHBoxLayout()
 
+        server_control_box = QGroupBox("Server Control")
+        server_control_box_layout = QVBoxLayout()
+        server_status_layout = QHBoxLayout()
+        server_uptime_layout = QHBoxLayout()
+        server_buttons_layout = QHBoxLayout()
+
         certificate_file_label = QLabel("Certificate file:")
         certificate_file_input = QLineEdit()
         certificate_file_button = QPushButton("Browse...")
@@ -31,6 +37,15 @@ class MainUi(QWidget):
         import_database_button = QPushButton("Import Database")
         export_database_button = QPushButton("Export Database")
         clear_database_button = QPushButton("Clear Database")
+
+        start_server_button = QPushButton("Start Server")
+        stop_server_button = QPushButton("Stop Server")
+
+        server_status_label = QLabel("Server Status:")
+        server_status_state = QLabel("Stopped")
+
+        server_uptime_label = QLabel("Server Uptime")
+        server_uptime_time = QLabel("Time")
 
         certificate_file_layout.addWidget(certificate_file_label)
         certificate_file_layout.addWidget(certificate_file_input)
@@ -51,6 +66,21 @@ class MainUi(QWidget):
 
         database_box.setLayout(database_box_layout)
 
+        server_status_layout.addWidget(server_status_label)
+        server_status_layout.addWidget(server_status_state)
+
+        server_uptime_layout.addWidget(server_uptime_label)
+        server_uptime_layout.addWidget(server_uptime_time)
+
+        server_buttons_layout.addWidget(start_server_button)
+        server_buttons_layout.addWidget(stop_server_button)
+
+        server_control_box_layout.addLayout(server_status_layout)
+        server_control_box_layout.addLayout(server_uptime_layout)
+        server_control_box_layout.addLayout(server_buttons_layout)
+
+        server_control_box.setLayout(server_control_box_layout)
+
         layout.addWidget(ssl_box)
         layout.addWidget(database_box)
-
+        layout.addWidget(server_control_box)
