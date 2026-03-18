@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
-from client_modules.ui import MainUi
+from client_modules.main_ui import MainUi
 
 class LoadingScreen(QWidget):
     def __init__(self):

@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
+from server_modules.data_manipulation import local_data_file, copy_to_data_dir
 
 class MainUi(QWidget):
     def __init__(self):
@@ -9,6 +10,7 @@ class MainUi(QWidget):
         self.setWindowTitle("Bitwire server")
         self.setStyleSheet("background-color : #0e1117;")
         self.setFixedSize(400, 500)
+        local_data_file()
         
         layout = QVBoxLayout(self)
 
@@ -27,12 +29,14 @@ class MainUi(QWidget):
         server_buttons_layout = QHBoxLayout()
 
         certificate_file_label = QLabel("Certificate file:")
-        certificate_file_input = QLineEdit()
+        self.certificate_file_input = QLineEdit()
         certificate_file_button = QPushButton("Browse...")
+        certificate_file_button.clicked.connect(self.send_file_path)
 
         key_file_label = QLabel("Key file:")
-        key_file_input = QLineEdit()
+        self.key_file_input = QLineEdit()
         key_file_button = QPushButton("Browse...")
+        key_file_button.clicked.connect(self.send_file_path)
 
         import_database_button = QPushButton("Import Database")
         export_database_button = QPushButton("Export Database")
@@ -48,11 +52,11 @@ class MainUi(QWidget):
         server_uptime_time = QLabel("Time")
 
         certificate_file_layout.addWidget(certificate_file_label)
-        certificate_file_layout.addWidget(certificate_file_input)
+        certificate_file_layout.addWidget(self.certificate_file_input)
         certificate_file_layout.addWidget(certificate_file_button)
 
         key_file_layout.addWidget(key_file_label)
-        key_file_layout.addWidget(key_file_input)
+        key_file_layout.addWidget(self.key_file_input)
         key_file_layout.addWidget(key_file_button)
 
         ssl_box_layout.addLayout(certificate_file_layout)
@@ -84,3 +88,13 @@ class MainUi(QWidget):
         layout.addWidget(ssl_box)
         layout.addWidget(database_box)
         layout.addWidget(server_control_box)
+
+    def send_file_path(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select file", "", "SSL files (*.crt *.key)")
+        copied_file_path, extension = copy_to_data_dir(file_path)
+
+        if extension == ".crt":
+            self.certificate_file_input.setText(copied_file_path)
+        elif extension == ".key":
+            self.key_file_input.setText(copied_file_path)
+        
