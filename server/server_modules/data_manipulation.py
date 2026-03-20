@@ -25,3 +25,15 @@ def database_file():
     database_path = os.path.join(data_dir, "users.db")
 
     return database_path
+
+def files_check():
+    data_dir = local_data_file()
+    all_files = os.listdir(data_dir)
+
+    files = []
+
+    for item in all_files:
+        file_path = os.path.join(data_dir, item)
+        files.append(file_path)
+    
+    return files

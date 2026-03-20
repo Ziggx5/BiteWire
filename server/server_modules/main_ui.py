@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
-from server_modules.data_manipulation import local_data_file, copy_to_data_dir
+from server_modules.data_manipulation import local_data_file, copy_to_data_dir, files_check
 
 class MainUi(QWidget):
     def __init__(self):
@@ -11,7 +11,8 @@ class MainUi(QWidget):
         self.setStyleSheet("background-color : #0e1117;")
         self.setFixedSize(400, 500)
         local_data_file()
-        
+        self.files = files_check()
+
         layout = QVBoxLayout(self)
 
         ssl_box = QGroupBox("SSL Certificate Files")
@@ -88,6 +89,15 @@ class MainUi(QWidget):
         layout.addWidget(ssl_box)
         layout.addWidget(database_box)
         layout.addWidget(server_control_box)
+
+        self.fill_certificate_inputs(self.files)
+
+    def fill_certificate_inputs(self, files):
+        for file_path in files:
+            if file_path.endswith(".crt"):
+                self.certificate_file_input.setText(file_path)
+            elif file_path.endswith(".key"):
+                self.key_file_input.setText(file_path)
 
     def send_file_path(self, file_type):
         if file_type == ".crt":
