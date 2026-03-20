@@ -16,7 +16,6 @@ context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(certfile = "/home/ziggx/Documents/BitWire/server/server.crt", keyfile = "/home/ziggx/Documents/BitWire/server/server.key")
 
 clients = []
-users = {}
 
 def init_database():
     database_path = database_file()
@@ -71,11 +70,11 @@ def client_handler(client, address):
                 username = data["username"]
                 password = data["password"]
 
-                if users.get(username) == password:
+                if login_user(username, password):
+                    send_json(client, {"type": "login", "status": "ok"})
                     logged_user = username
                     if client not in clients:
                         clients.append(client)
-                    send_json(client, {"type": "login", "status": "ok"})
                 else:
                     send_json(client, {"type": "login", "status": "fail"})
 
@@ -115,6 +114,28 @@ def register_user(username, password):
         return False
     finally:
         conn.close()
+
+def login_user(username, password):
+    database_path = database_file()
+    conn = sqlite3.connect(database_path)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT password FROM users WHERE username = ?",
+            (username,)
+        )
+    
+        result = cursor.fetchone()
+        conn.close()
+
+        if result[0] == password:
+            return True
+
+        return False
+
+    except Exception as e:
+        print(f"str{e}")
 
 print("server running...")
 init_database()
