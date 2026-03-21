@@ -46,16 +46,17 @@ class MainUi(QWidget):
         export_database_button = QPushButton("Export Database")
         clear_database_button = QPushButton("Clear Database")
 
-        start_server_button = QPushButton("Start Server")
-        start_server_button.clicked.connect(lambda: self.start_server())
-        stop_server_button = QPushButton("Stop Server")
-        stop_server_button.clicked.connect(lambda: self.stop_server())
+        self.start_server_button = QPushButton("Start Server")
+        self.start_server_button.clicked.connect(lambda: self.start_server())
+        self.stop_server_button = QPushButton("Stop Server")
+        self.stop_server_button.clicked.connect(lambda: self.stop_server())
+        self.stop_server_button.setEnabled(False)
 
         server_status_label = QLabel("Server Status:")
-        server_status_state = QLabel("Stopped")
+        self.server_status_state = QLabel("Stopped")
 
         server_uptime_label = QLabel("Server Uptime")
-        server_uptime_time = QLabel("Time")
+        self.server_uptime_time = QLabel("Time")
 
         certificate_file_layout.addWidget(certificate_file_label)
         certificate_file_layout.addWidget(self.certificate_file_input)
@@ -78,13 +79,13 @@ class MainUi(QWidget):
         database_box.setLayout(database_box_layout)
 
         server_status_layout.addWidget(server_status_label)
-        server_status_layout.addWidget(server_status_state)
+        server_status_layout.addWidget(self.server_status_state)
 
         server_uptime_layout.addWidget(server_uptime_label)
-        server_uptime_layout.addWidget(server_uptime_time)
+        server_uptime_layout.addWidget(self.server_uptime_time)
 
-        server_buttons_layout.addWidget(start_server_button)
-        server_buttons_layout.addWidget(stop_server_button)
+        server_buttons_layout.addWidget(self.start_server_button)
+        server_buttons_layout.addWidget(self.stop_server_button)
 
         server_control_box_layout.addLayout(server_status_layout)
         server_control_box_layout.addLayout(server_uptime_layout)
@@ -122,7 +123,16 @@ class MainUi(QWidget):
             self.key_file_input.setText(copied_file_path)
 
     def start_server(self):
-        start_receive_connection_thread()
+        start_receive_connection_thread(self.update_timer)
+        self.server_status_state.setText("Running")
+        self.start_server_button.setEnabled(False)
+        self.stop_server_button.setEnabled(True)
 
     def stop_server(self):
         stop_receive_connection_thread()
+        self.server_status_state.setText("Stopped")
+        self.start_server_button.setEnabled(True)
+        self.stop_server_button.setEnabled(False)
+    
+    def update_timer(self, seconds):
+        self.server_uptime_time.setText(str(seconds))

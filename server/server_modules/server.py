@@ -3,7 +3,8 @@ import threading
 import json
 import ssl
 import sqlite3
-from server_modules.data_manipulation import database_file
+import time
+from server_modules.data_manipulation import database_file, files_check
 
 host = "192.168.1.7"
 port = 50505
@@ -12,8 +13,14 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
 server.listen()
 
+all_files = files_check()
+for file_path in all_files:
+    if file_path.endswith(".crt"):
+        certfile = file_path
+    elif file_path.endswith(".key"):
+        keyfile = file_path
+
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-context.load_cert_chain(certfile = "/home/ziggx/Documents/BitWire/server/server.crt", keyfile = "/home/ziggx/Documents/BitWire/server/server.key")
 
 clients = []
 
@@ -89,8 +96,13 @@ def client_handler(client, address):
         clients.remove(client)
     client.close()
 
-def receive_connection():
+def receive_connection(callback):
+    if not certfile or not keyfile:
+        return
+    stop_event.clear()
+    context.load_cert_chain(certfile = certfile, keyfile = keyfile)
     print("server running...")
+    threading.Thread(target = server_uptime, args = (stop_event, callback,), daemon = True).start()
     init_database()
     while not stop_event.is_set():
         try:
@@ -148,10 +160,20 @@ def login_user(username, password):
     except Exception as e:
         print(f"str{e}")
 
-def start_receive_connection_thread():
-    threading.Thread(target = receive_connection, daemon = True).start()
+def start_receive_connection_thread(callback):
+    threading.Thread(target = receive_connection, args = (callback,), daemon = True).start()
 
 def stop_receive_connection_thread():
     print("Stopping server")
     stop_event.set()
     server.close()
+
+def server_uptime(stop_event, callback):
+    start_time = time.time()
+    while not stop_event.is_set():
+        end_time = time.time()
+        elapsed_time = int(end_time) - int(start_time)
+        print(elapsed_time)
+
+        callback(elapsed_time)
+        time.sleep(1)
