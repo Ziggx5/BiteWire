@@ -17,8 +17,11 @@ openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -sha256 -d
 <img width="530" height="658" alt="image" src="https://github.com/user-attachments/assets/9bcda007-8efb-43c4-9da7-d4d6174b464d" />
 
 ⚠️Disclaimer
+
 This project is in an early stage of developement.
+
 Bugs and missing features may be present.
 
 ⭐ Support
+
 If you like the project, consider giving it a star ⭐
