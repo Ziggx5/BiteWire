@@ -16,7 +16,6 @@ class MainUi(QWidget):
         server_address = server_info_input_fill()
         self.files = files_check()
 
-
         layout = QVBoxLayout(self)
 
         server_info_box = QGroupBox("Server Information")

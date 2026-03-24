@@ -63,14 +63,14 @@ def server_info(ip_address, port):
 
 def server_info_input_fill():
     file_path = server_info_file()
-    server_info_list = []
+
+    if not os.path.exists(file_path):
+        return None
 
     with open (file_path, "r", encoding = "utf-8") as f:
         try:
-            server_info_list = json.load(f)
+            data = json.load(f)
         except json.JSONDecodeError:
-            server_info_list = []
-        
-    server_info = server_info_list["ip_address"]
+            return None
 
-    return server_info
+    return data.get("ip_address")
