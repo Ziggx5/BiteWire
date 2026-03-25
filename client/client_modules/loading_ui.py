@@ -18,8 +18,7 @@ class LoadingScreen(QWidget):
         layout.setSpacing(12)
 
         title = QLabel("BiteWire")
-        title.setFont(QFont("Courier New", 20))
-        title.setStyleSheet("color: #a5a8ad;")
+        title.setStyleSheet("color: #a5a8ad; font: 30px;")
 
         line = QLabel()
         line.setFixedSize(120, 2)
@@ -28,11 +27,11 @@ class LoadingScreen(QWidget):
         self.progress = QProgressBar()
         self.progress.setFixedSize(80, 5)
         self.progress.setRange(0, 100)
+        self.progress.setTextVisible(False)
         self.progress.setStyleSheet("background-color: #1c1f26; border-radius: 4px;")
 
         self.label = QLabel("Loading...")
-        self.label.setFont(QFont("Courier New", 10))
-        self.label.setStyleSheet("color: #a5a8ad;")
+        self.label.setStyleSheet("color: #a5a8ad; font: 12px;")
 
         layout.addWidget(title, alignment = Qt.AlignCenter)
         layout.addWidget(line, alignment = Qt.AlignCenter)
@@ -51,7 +50,9 @@ class LoadingScreen(QWidget):
         else:
             self.timer.stop()
             self.label.setText("Success!")
-            self.close()
-            self.MainUi = MainUi()
-            self.MainUi.show()
-            self.close()
+            QTimer.singleShot(1000, self.open_main_ui)
+
+    def open_main_ui(self):
+        self.close()
+        self.MainUi = MainUi()
+        self.MainUi.show()

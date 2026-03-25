@@ -10,6 +10,7 @@ class TrayManager:
         picture_path = file_root()
 
         self.tray_icon = QSystemTrayIcon(QIcon(f"{picture_path}/tray.png"), parent)
+        self.tray_icon.setToolTip("BiteWire")
 
         tray_menu = QMenu()
         
@@ -23,6 +24,7 @@ class TrayManager:
         exit_action.triggered.connect(self.exit_app)
 
         tray_menu.addAction(github_link_action)
+        tray_menu.addSeparator()
         tray_menu.addAction(open_action)
         tray_menu.addAction(exit_action)
 
