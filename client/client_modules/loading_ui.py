@@ -17,7 +17,7 @@ class LoadingScreen(QWidget):
         layout.setAlignment(Qt.AlignCenter)
         layout.setSpacing(12)
 
-        title = QLabel("BITWARE")
+        title = QLabel("BiteWire")
         title.setFont(QFont("Courier New", 20))
         title.setStyleSheet("color: #a5a8ad;")
 

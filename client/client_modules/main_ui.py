@@ -127,12 +127,21 @@ class MainUi(QWidget):
         main_root_layout.addWidget(main_frame, 7)
 
     def open_add_server(self):
-        self.add_server_window.show()
-        self.hide()
+        self.overlay = QWidget(self)
+        self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
+        self.overlay.setGeometry(0, 0, self.width(), self.height())
+        self.overlay.raise_()
+
+        self.overlay_layout = QVBoxLayout(self.overlay)
+        self.overlay_layout.setAlignment(Qt.AlignCenter)
+
+        self.add_server_window.setFixedSize(500, 300)
+
+        self.overlay_layout.addWidget(self.add_server_window)
+        self.overlay.show()
 
     def add_server_window_show_main_ui(self):
-        self.add_server_window.close()
-        self.show()
+        self.overlay.hide()
         self.reload_servers()
 
     def login_server_window_show_main_ui(self):

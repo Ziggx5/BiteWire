@@ -8,8 +8,11 @@ class AddServerUi(QWidget):
     def __init__(self, on_cancel):
         super().__init__()
 
-        self.setWindowTitle("BiteWire")
-        self.setStyleSheet("background-color: #161b22")
+        self.setStyleSheet("""
+            background-color: #161b22;
+            border-radius: 12px;
+            border: 1px #30363d;
+        """)
         self.setFixedSize(500, 300)
 
         self.on_cancel = on_cancel
@@ -18,6 +21,7 @@ class AddServerUi(QWidget):
 
         self.add_server_page = QWidget()
         add_server_layout = QVBoxLayout(self.add_server_page)
+        add_server_layout.setContentsMargins(15, 15, 15, 15)
         add_server_layout.setSpacing(0)
 
         add_server_option_buttons = QHBoxLayout()
