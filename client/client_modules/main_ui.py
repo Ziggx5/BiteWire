@@ -29,10 +29,6 @@ class MainUi(QWidget):
         self.overlay.setGeometry(0, 0, self.width(), self.height())
 
         self.overlay_layout = QVBoxLayout(self.overlay)
-        self.overlay_layout.setAlignment(Qt.AlignCenter)
-
-        self.overlay_layout.addWidget(self.add_server_window)
-        self.overlay_layout.addWidget(self.identity_window)
 
         popup_background_container = QWidget()
         popup_background_container.setObjectName("container")
@@ -44,7 +40,6 @@ class MainUi(QWidget):
             }
         """)
         self.popup_background_container_layout = QVBoxLayout(popup_background_container)
-        popup_background_container.setContentsMargins(0, 0, 0, 0)
 
         self.overlay_layout.addWidget(popup_background_container, alignment = Qt.AlignCenter)
 
@@ -127,7 +122,7 @@ class MainUi(QWidget):
         self.new_user_button = QPushButton("+")
         self.new_user_button.setFixedSize(30, 30)
         self.new_user_button.setStyleSheet("font-weight: 500; font-size: 15px")
-        self.new_user_button.clicked.connect(self.identity_window_open)
+        self.new_user_button.clicked.connect(lambda: self.show_popup(self.identity_window))
 
         self.settings_button = QPushButton()
         self.settings_button.setIcon(QIcon(f"{image_path}/settings.png"))
@@ -153,21 +148,14 @@ class MainUi(QWidget):
         main_root_layout.addLayout(left_container, 1)
         main_root_layout.addWidget(main_frame, 7)
 
-    def open_add_server(self):
-        self.overlay.raise_()
-        self.overlay.setGeometry(0, 0, self.width(), self.height())
-        self.add_server_window.show()
-        self.overlay.show()
-
     def add_server_window_show_main_ui(self):
         self.add_server_window.hide()
-        self.overlay.lower()
         self.overlay.hide()
         self.reload_servers()
 
     def login_server_window_show_main_ui(self):
-        self.login_server_window.close()
-        self.show()
+        self.login_server_window.hide()
+        self.overlay.hide()
         self.reload_servers()
 
     def reload_servers(self):
@@ -179,7 +167,7 @@ class MainUi(QWidget):
 
         server_list = server_loader()
         for server in server_list:
-            server_button = ServerButton(server["name"], server["ip_address"], self.login_page, self.server_delete_data)
+            server_button = ServerButton(server["name"], server["ip_address"], self.login_page_popup, self.server_delete_data)
             self.server_layout.addWidget(server_button)
 
     def client_display_message(self, message):
@@ -198,11 +186,10 @@ class MainUi(QWidget):
         event.ignore()
         self.hide()
 
-    def login_page(self, item):
+    def login_page_popup(self, item):
         self.server_address = item.ip
         self.login_server_window.get_ip_address(self.server_address)
-        self.login_server_window.show() 
-        self.hide()
+        self.show_popup(self.login_server_window)
     
     def on_success_login(self, username, ip_address):
         self.chat_view = QTextBrowser()
@@ -269,14 +256,7 @@ class MainUi(QWidget):
         delete_server(self.server_address)
         self.reload_servers()
 
-    def identity_window_open(self):
-        self.overlay.raise_()
-        self.overlay.setGeometry(0, 0, self.width(), self.height())
-        self.identity_window.show()
-        self.overlay.show()
-
     def identity_window_show_main_ui(self):
-        self.overlay.lower()
         self.identity_window.hide()
         self.overlay.hide()
 

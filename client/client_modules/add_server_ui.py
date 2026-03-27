@@ -9,7 +9,6 @@ class AddServerUi(QWidget):
         super().__init__()
         
         self.setFixedSize(500, 300)
-
         self.setStyleSheet("background-color: transparent;")
         self.on_cancel = on_cancel
         self.stacked = QStackedLayout(self)
@@ -83,14 +82,12 @@ class AddServerUi(QWidget):
         add_server_subtitle.setStyleSheet("color: #8b949e; font-size: 13px;")
 
         server_name_title = QLabel("Server name")
-        server_name_title.setFont(QFont("Courier New", 12))
         server_name_title.setFixedHeight(30)
-        server_name_title.setStyleSheet("color: #a5a8ad;")
+        server_name_title.setStyleSheet("color: #a5a8ad; font-size: 15px;")
 
         server_address_title = QLabel("Server address")
-        server_address_title.setFont(QFont("Courier New", 12))
         server_address_title.setFixedHeight(30)
-        server_address_title.setStyleSheet("color: #a5a8ad;")
+        server_address_title.setStyleSheet("color: #a5a8ad; font-size: 15px;")
 
         self.server_name_input = QLineEdit()
         self.server_name_input.setFixedHeight(40)

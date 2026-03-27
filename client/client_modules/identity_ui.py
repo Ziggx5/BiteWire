@@ -12,14 +12,9 @@ class AddIdentityUi(QWidget):
         self.on_cancel = on_cancel
         self.rounded = None
         self.picture_path = file_root()
-        self.stacked = QStackedLayout(self)
 
-        self.setStyleSheet("""
-            background-color: #161b22;
-            border-radius: 12px;
-            border: 1px solid #30363d;
-        """)
         self.setFixedSize(500, 300)
+        self.setStyleSheet("background-color: transparent;")
 
         input_style = """
         QLineEdit {
@@ -32,15 +27,9 @@ class AddIdentityUi(QWidget):
         }
         """
 
-        main_title = """
-        QLabel {
-            color: #e6edf3;
-            font-size: 20px;
-            font-weight: 600;
-        }
-        """
-        main_page = QWidget()
-
+        main_page = QWidget(self)
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(main_page)
         add_identity_layout = QVBoxLayout(main_page)
         add_identity_layout.setContentsMargins(10, 10, 10, 10)
         add_identity_layout.setSpacing(0)
@@ -85,20 +74,25 @@ class AddIdentityUi(QWidget):
         profile_picture_layout.addWidget(self.profile_picture_subtitle)
 
         title = QLabel("Add new identity")
-        title.setStyleSheet(main_title)
+        title.setStyleSheet("""
+            QLabel {
+                color: #e6edf3;
+                font-size: 20px;
+                font-weight: 600;
+            }
+        """)
         title.setFixedHeight(30)
 
         username_label = QLabel("Username")
-        username_label.setFont(QFont("Courier New", 12))
-        username_label.setStyleSheet("color: #a5a8ad;")
+        username_label.setStyleSheet("color: #a5a8ad; font-size: 15px;")
         username_label.setFixedHeight(20)
+
         self.username_input = QLineEdit()
         self.username_input.setStyleSheet(input_style)
         self.username_input.setPlaceholderText("Enter username")
 
         password_label = QLabel("Password")
-        password_label.setFont(QFont("Courier New", 12))
-        password_label.setStyleSheet("color: #a5a8ad;")
+        password_label.setStyleSheet("color: #a5a8ad; font-size: 15px;")
         password_label.setFixedHeight(20)
         self.password_input = QLineEdit()
         self.password_input.setStyleSheet(input_style)
@@ -180,8 +174,6 @@ class AddIdentityUi(QWidget):
         add_identity_layout.addLayout(add_identity_lower_layout)
 
         main_page.setLayout(add_identity_layout)
-        self.stacked.addWidget(main_page)
-        self.stacked.setCurrentWidget(main_page)
 
     def select_picture(self, event):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select profile picture", "", "Images (*.png *.jpg *.jpeg)")
