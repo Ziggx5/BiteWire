@@ -34,6 +34,20 @@ class MainUi(QWidget):
         self.overlay_layout.addWidget(self.add_server_window)
         self.overlay_layout.addWidget(self.identity_window)
 
+        popup_background_container = QWidget()
+        popup_background_container.setObjectName("container")
+        popup_background_container.setStyleSheet("""
+            QWidget#container {
+                    background-color: #161b22;
+                    border-radius: 12px;
+                    border: 1px solid #30363d;
+            }
+        """)
+        self.popup_background_container_layout = QVBoxLayout(popup_background_container)
+        popup_background_container.setContentsMargins(0, 0, 0, 0)
+
+        self.overlay_layout.addWidget(popup_background_container, alignment = Qt.AlignCenter)
+
         self.add_server_window.hide()
         self.identity_window.hide()
 
@@ -101,7 +115,7 @@ class MainUi(QWidget):
             
         """)
         self.add_button.setFixedSize(40, 32)
-        self.add_button.clicked.connect(self.open_add_server)
+        self.add_button.clicked.connect(lambda: self.show_popup(self.add_server_window))
         self.reload_servers()
 
         self.upper_layout.addWidget(self.add_server_label)
@@ -265,6 +279,18 @@ class MainUi(QWidget):
         self.overlay.lower()
         self.identity_window.hide()
         self.overlay.hide()
+
+    def show_popup(self, widget):
+        while self.popup_background_container_layout.count():
+            item = self.popup_background_container_layout.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+
+        self.popup_background_container_layout.addWidget(widget)
+        self.overlay.setGeometry(0, 0, self.width(), self.height())
+        self.overlay.raise_()
+        self.overlay.show()
+        widget.show()
 
 class ServerButton(QFrame):
     def __init__(self, name, ip, on_click, on_delete):

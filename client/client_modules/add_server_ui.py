@@ -7,14 +7,10 @@ from client_modules.networking import ChatHandler
 class AddServerUi(QWidget):
     def __init__(self, on_cancel):
         super().__init__()
-
-        self.setStyleSheet("""
-            background-color: #161b22;
-            border-radius: 12px;
-            border: 1px solid #30363d;
-        """)
+        
         self.setFixedSize(500, 300)
 
+        self.setStyleSheet("background-color: transparent;")
         self.on_cancel = on_cancel
         self.stacked = QStackedLayout(self)
         self.chat_handler = ChatHandler(self)
