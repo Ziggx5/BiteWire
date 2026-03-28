@@ -1,5 +1,5 @@
 # 💬 BiteWire
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey)
 ![Downloads](https://img.shields.io/github/downloads/Ziggx5/BiteWire/total)
@@ -32,16 +32,16 @@ openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -sha256 -d
     <th>Red Hat (.rpm)</th>
   </tr>
   <tr>
-    <td>BiteWire 1.1.0</td>
-    <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.1.0/BiteWire.exe">⬇️ BiteWire_1.1.0.exe</a></td>
-    <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.1.0/bitewire_1.1.0-2_amd64.deb">⬇️ BiteWire_1.1.0.deb</a></td>
-      <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.1.0/bitewire-1.1.0-2.x86_64.rpm">⬇️ BiteWire_1.1.0.rpm</a></td>
+    <td>BiteWire 1.2.0</td>
+    <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.2.0/BiteWire.exe">⬇️ Download</a></td>
+    <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.2.0/bitewire_1.2.0-3_amd64.deb">⬇️ Download</a></td>
+      <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.2.0/bitewire-1.2.0-3.x86_64.rpm">⬇️ Download</a></td>
   </tr>
   <tr>
   <td>BiteWire Server 1.0.0</td>
-  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.0.0/BiteWire.Server.exe">⬇️ BiteWire_Server_1.0.0.exe</a></td>
-  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.0.0/bitewire-server_1.0.0_amd64.deb">⬇️ BiteWire_Server_1.0.0.deb</a></td>
-  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.0.0/bitewire-server-1.0.0-1.x86_64.rpm">⬇️ BiteWire_Server_1.0.0.rpm</a></td>
+  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.0.0/BiteWire.Server.exe">⬇️ Download</a></td>
+  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.0.0/bitewire-server_1.0.0_amd64.deb">⬇️ Download</a></td>
+  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/1.0.0/bitewire-server-1.0.0-1.x86_64.rpm">⬇️ Download</a></td>
   </tr>
 </table>
 
