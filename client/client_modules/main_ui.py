@@ -503,6 +503,9 @@ class MainUi(QWidget):
         if picture:
             self.user_widgets[username].set_profile_picture(picture)
 
+        if username == self.username_label.text():
+            self.user_picture.setPixmap(picture)
+
 class ServerButton(QFrame):
     def __init__(self, name, ip, on_click, on_delete):
         super().__init__()
