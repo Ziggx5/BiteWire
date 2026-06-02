@@ -362,27 +362,43 @@ class MainUi(QWidget):
 
         scroll_layout.addWidget(self.scroll)
 
-        self.message_input = QTextEdit()
-        self.message_input.setFixedHeight(50)
-        self.message_input.setPlaceholderText("Type a message...")
-        self.message_input.installEventFilter(self)
-        self.message_input.setStyleSheet("""
+        input_container = QFrame()
+        input_container.setFixedHeight(50)
+        input_container.setStyleSheet("""
             QTextEdit {
-                border-radius: 10px;
-                border: 1px solid #1e293b;
-                background-color: #0f172a;
-                color: #e6edf3;
-                padding: 10px;
-            }
-
-            QTextEdit:focus {
-                border: 1px solid #3b82f6;
+                    border-radius: 10px;
+                    border: 1px solid #1e293b;
+                    background-color: #0f172a;
             }
         """)
 
-        input_layout = QHBoxLayout()
-        input_layout.setContentsMargins(5, 5, 5, 5)
+        input_layout = QHBoxLayout(input_container)
+        input_layout.setSpacing(5)
+
+        self.message_input = QTextEdit()
+        self.message_input.setFixedHeight(40)
+        self.message_input.setPlaceholderText("Type a message...")
+        self.message_input.installEventFilter(self)
+
+        file_button = QPushButton()
+        file_button.setIcon(QIcon(f"{self.image_path}/paperclip.png"))
+        file_button.setFixedSize(30, 30)
+        file_button.setCursor(Qt.PointingHandCursor)
+
+        emoji_button = QPushButton()
+        emoji_button.setIcon(QIcon(f"{self.image_path}/emoji.png"))
+        emoji_button.setFixedSize(30, 30)
+        emoji_button.setCursor(Qt.PointingHandCursor)
+
+        send_button = QPushButton()
+        send_button.setIcon(QIcon(f"{self.image_path}/send.png"))
+        send_button.setFixedSize(30, 30)
+        send_button.setCursor(Qt.PointingHandCursor)
+
         input_layout.addWidget(self.message_input)
+        input_layout.addWidget(file_button)
+        input_layout.addWidget(emoji_button)
+        input_layout.addWidget(send_button)
 
         chat_wrapper = QFrame()
 
@@ -392,7 +408,7 @@ class MainUi(QWidget):
         
         chat_wrapper_layout.addWidget(header)
         chat_wrapper_layout.addWidget(scroll_container)
-        chat_wrapper_layout.addLayout(input_layout)
+        chat_wrapper_layout.addWidget(input_container)
 
         all_users_wrapper = QFrame()
         all_users_wrapper.setObjectName("all_users_wrapper")
@@ -594,8 +610,7 @@ class ServerButton(QFrame):
 
     def connected_server(self):
         self.setProperty("current_server", True)
-        self.style().unpolish(self)
-        self.style().polish(self)
+        self.setEnabled(False)
 
 class MessageWidget(QWidget):
     def __init__(self, username, data, time, image):
