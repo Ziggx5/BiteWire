@@ -10,7 +10,9 @@ class Login(QWidget):
         self.on_cancel = on_cancel
         self.on_success = on_success
         self.chat_handler = chat_handler
-
+        self.ip_address = None
+        self.server_name = None
+        
         self.setFixedSize(500, 300)
         self.setStyleSheet("background-color: transparent;")
 

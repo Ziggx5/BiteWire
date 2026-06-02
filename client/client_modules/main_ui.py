@@ -52,6 +52,7 @@ class MainUi(QWidget):
         self.profile_cache.profile_picture.connect(self.update_profile_pictures)
 
         self.user_widgets = {}
+        self.current_server_ip = None
 
         self.overlay = QWidget(self)
         self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
@@ -241,6 +242,8 @@ class MainUi(QWidget):
         server_list = server_loader()
         for server in server_list:
             server_button = ServerButton(server["name"], server["ip_address"], self.login_page_popup, self.server_delete_data)
+            if server['ip_address'] == self.current_server_ip:
+                server_button.connected_server()
             self.server_layout.addWidget(server_button)
 
     def client_display_message(self, username, content, time):
@@ -275,6 +278,8 @@ class MainUi(QWidget):
     
     def on_success_login(self, username, server_name):
         self.username_label.setText(username)
+        self.current_server_ip = self.login_server_window.ip_address
+        self.reload_servers()
 
         header = QFrame()
         header.setObjectName("header_container")
@@ -527,6 +532,10 @@ class ServerButton(QFrame):
             QFrame:hover {
                 background-color: #333333;
             }
+
+            QFrame[current_server="true"] {
+                background-color: #333333;
+            }
         """)
 
         layout = QHBoxLayout(self)
@@ -582,6 +591,11 @@ class ServerButton(QFrame):
 
     def leaveEvent(self, event):
         self.delete_button.setVisible(False)
+
+    def connected_server(self):
+        self.setProperty("current_server", True)
+        self.style().unpolish(self)
+        self.style().polish(self)
 
 class MessageWidget(QWidget):
     def __init__(self, username, data, time, image):
