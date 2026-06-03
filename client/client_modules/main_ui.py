@@ -363,9 +363,9 @@ class MainUi(QWidget):
         scroll_layout.addWidget(self.scroll)
 
         input_container = QFrame()
-        input_container.setFixedHeight(50)
+        input_container.setFixedHeight(60)
         input_container.setStyleSheet("""
-            QTextEdit {
+            QFrame {
                     border-radius: 10px;
                     border: 1px solid #1e293b;
                     background-color: #0f172a;
@@ -376,26 +376,44 @@ class MainUi(QWidget):
         input_layout.setSpacing(5)
 
         self.message_input = QTextEdit()
-        self.message_input.setFixedHeight(40)
+        self.message_input.setFixedHeight(30)
+        self.message_input.setStyleSheet("""
+        QTextEdit {
+            color: #e6edf3; 
+            border: none;
+        }
+        """)
         self.message_input.setPlaceholderText("Type a message...")
         self.message_input.installEventFilter(self)
 
         file_button = QPushButton()
         file_button.setIcon(QIcon(f"{self.image_path}/paperclip.png"))
-        file_button.setFixedSize(30, 30)
+        file_button.setFixedSize(40, 40)
         file_button.setCursor(Qt.PointingHandCursor)
 
         emoji_button = QPushButton()
         emoji_button.setIcon(QIcon(f"{self.image_path}/emoji.png"))
-        emoji_button.setFixedSize(30, 30)
+        emoji_button.setIconSize(QSize(20, 20))
+        emoji_button.setFixedSize(40, 40)
         emoji_button.setCursor(Qt.PointingHandCursor)
 
         send_button = QPushButton()
         send_button.setIcon(QIcon(f"{self.image_path}/send.png"))
-        send_button.setFixedSize(30, 30)
+        send_button.setFixedSize(40, 40)
+        send_button.clicked.connect(self.client_send_message)
+        send_button.setStyleSheet("""
+            QPushButton {
+                background-color: #3b82f6;
+                border-radius: 8px;
+            }
+
+            QPushButton:hover {
+                background-color: #2563eb;
+            }
+        """)
         send_button.setCursor(Qt.PointingHandCursor)
 
-        input_layout.addWidget(self.message_input)
+        input_layout.addWidget(self.message_input, 1)
         input_layout.addWidget(file_button)
         input_layout.addWidget(emoji_button)
         input_layout.addWidget(send_button)
