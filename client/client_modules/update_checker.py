@@ -11,7 +11,7 @@ class UpdateChecker(QWidget):
 
     def __init__(self, image_path, on_cancel):
         super().__init__()
-        self.current_release = "1.9.0"
+        self.current_release = "2.0.0"
         self.url = "https://api.github.com/repos/Ziggx5/BiteWire/releases"
         self.on_cancel = on_cancel
 

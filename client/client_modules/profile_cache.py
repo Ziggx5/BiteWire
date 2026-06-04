@@ -25,7 +25,6 @@ class ProfileCache(QObject):
                 "message_profile_picture": self.create_picture(pixmap, 35)
             }
             
-
             self.profile_picture.emit(username)
 
     def get(self, username, picture_type):
