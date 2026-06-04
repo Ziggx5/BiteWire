@@ -251,7 +251,6 @@ class ChatUi(QWidget):
                 return True
         return False
 
-    
     def add_users(self, users):
         while self.all_users_layout.count():
             item = self.all_users_layout.takeAt(0)

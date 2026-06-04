@@ -31,6 +31,9 @@ class ProfileCache(QObject):
     def get(self, username, picture_type):
         user_cache = self.cache.get(username)
 
+        if not user_cache:
+            return None
+
         return user_cache.get(picture_type)
 
     def create_picture(self, pixmap, size):
