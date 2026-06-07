@@ -45,7 +45,7 @@ class MainUi(QWidget):
         self.login_server_window = Login(self.login_server_window_show_main_ui, self.on_success_login, self.chat_handler)
         self.tray = TrayManager(self)
         self.update_checker = UpdateChecker(self.image_path, self.update_window_show_main_ui)
-        self.chat_ui = ChatUi(self.image_path, self.chat_handler, self.profile_cache)
+        self.chat_ui = ChatUi(self.image_path, self.chat_handler, self.profile_cache, self.clear_chat_widget)
 
         self.chat_handler.message_received.connect(self.chat_ui.client_display_message)
         self.chat_handler.users_received.connect(self.chat_ui.add_users)
@@ -266,6 +266,7 @@ class MainUi(QWidget):
         self.chat_ui.set_server_name(server_name)
 
         self.main_layout_horizontal.addWidget(self.chat_ui)
+        self.chat_ui.show()
 
     def server_delete_data(self, item):
         self.server_address = item.ip
@@ -297,6 +298,10 @@ class MainUi(QWidget):
         
     def update_own_profile_picture(self, picture):
         self.user_picture.setPixmap(picture)
+    
+    def clear_chat_widget(self):
+        self.chat_ui.hide()
+        self.main_layout_horizontal.removeWidget(self.chat_ui)
 
 class ServerButton(QFrame):
     def __init__(self, name, ip, on_click, on_delete):

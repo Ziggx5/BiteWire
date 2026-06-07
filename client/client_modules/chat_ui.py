@@ -4,13 +4,14 @@ from PySide6.QtGui import *
 
 class ChatUi(QWidget):
     own_profile_picture = Signal(object)
-    def __init__(self, image_path, chat_handler, profile_cache):
+    def __init__(self, image_path, chat_handler, profile_cache, reset):
         super().__init__()
 
         self.image_path = image_path
         self.chat_handler = chat_handler
         self.profile_cache = profile_cache
         self.username = None
+        self.reset = reset
 
         self.user_widgets = {}
 
@@ -213,10 +214,12 @@ class ChatUi(QWidget):
     
     def disconnect_button_handler(self):
         self.chat_handler.handle_disconnect()
-        self.message_input.setEnabled(False)
-        pixmap = QPixmap(f"{self.image_path}/disconnected.png").scaled(20, 20, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-        self.status_icon.setPixmap(pixmap)
-        self.connection_status_label.setText("Disconnected")
+        self.user_widgets.clear()
+        while self.chat_layout.count():
+            item = self.chat_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        self.reset()
 
     def on_scroll(self):
         scrollbar = self.scroll.verticalScrollBar()
@@ -279,7 +282,20 @@ class ChatUi(QWidget):
     
     def set_username(self, username):
         self.username = username
+'''
+    def reset(self):
+        self.user_widgets.clear()
 
+        while self.chat_layout.count():
+            item = self.chat_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        while self.all_users_layout.count():
+            item = self.all_users_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+'''
 class MessageWidget(QWidget):
     def __init__(self, username, data, time, image):
         super().__init__() 

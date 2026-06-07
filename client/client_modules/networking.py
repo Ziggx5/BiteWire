@@ -57,41 +57,45 @@ class ChatHandler(QObject):
 
 
     def receive_messages(self):
-        while self.running:
+        while self.running and self.client:
             try:
                 message = self.receive_json_message()
-                print(message['type'])
 
                 if not message:
                     break
-                    
-                if message['type'] == "message":
+
+                print(message['type'])
+                
+                message_type = message.get("type")
+                if message_type == "message":
                     username = message['user']
                     content = message['content']
                     time = message['time']
                     self.message_received.emit(username, content, time)
                     
-                elif message['type'] == "users_list":
+                elif message_type == "users_list":
                     users = message['content']
                     self.users_received.emit(users)
                         
-                elif message['type'] == "server_status":
+                elif message_type == "server_status":
                     self.server_status.emit(message['status'])
                     self.handle_disconnect()
                     
-                elif message['type'] == "ping":
+                elif message_type == "ping":
                     self.send_json_message({"type": "pong"})
                     
-                elif message['type'] == "message_history":
+                elif message_type == "message_history":
                     for content in message['content']:
                         self.message_received.emit(content['user'], content['content'], content['time'])
                     
-                elif message['type'] == "profile_picture_data":
+                elif message_type == "profile_picture_data":
                     self.profile_cache.save(message['content'])
 
             except socket.timeout:
                 continue
             except Exception as e:
+                if not self.running:
+                    return
                 print(str(e))
                 self.handle_disconnect()
                 break
@@ -160,17 +164,18 @@ class ChatHandler(QObject):
             
         self.running = False
 
-        try:
-            self.client.shutdown(socket.SHUT_RDWR)
-        except:
-            pass
-
-        try:
-            self.client.close()
-        except:
-            pass
-
+        client = self.client
         self.client = None
+
+        try:
+            client.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
+
+        try:
+            client.close()
+        except:
+            pass
 
     def get_profile_pictures(self, username):
         self.send_json_message({"type": "get_profile_picture", "username": username})

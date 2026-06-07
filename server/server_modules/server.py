@@ -192,8 +192,8 @@ class ChatServer(QObject):
                 client.send({"type": "login", "status": "ok"})
                 self.add_client(client)
                 self.send_users_list_all_clients()
-                self.send_message_history(client)
                 self.send_profile_picture(client)
+                self.send_message_history(client)
             else:
                 client.send({"type": "login", "status": "fail"})
         
@@ -224,6 +224,7 @@ class ChatServer(QObject):
 
         else:
             self.remove_client(client)
+            self.safe_client_close(client)
 
     def client_handler(self, client):
         while True:
@@ -243,7 +244,7 @@ class ChatServer(QObject):
                 break
         
         self.remove_client(client)
-        client.conn.close()
+        self.safe_client_close(client)
 
     def start(self):
         if not self.certfile or not self.keyfile:
@@ -384,6 +385,7 @@ class ChatServer(QObject):
 
                 if time.time() - client.last_pong > 30:
                     self.remove_client(client)
+                    self.safe_client_close(client)
 
     def send_message_history(self, client):
         conn = sqlite3.connect(self.messages_database_path)
@@ -422,3 +424,14 @@ class ChatServer(QObject):
             data.append({"username": username, "image_bytes": encoded_image_bytes})
 
         client.send({"type": "profile_picture_data", "content": data})
+
+    def safe_client_close(self, client):
+        try:
+            client.conn.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
+        
+        try:
+            client.conn.close()
+        except:
+            pass
