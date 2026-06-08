@@ -84,7 +84,7 @@ class ChatUi(QWidget):
         self.chat_layout = QVBoxLayout(chat_container)
         self.chat_layout.setSpacing(12)
         self.chat_layout.setContentsMargins(0, 0, 0, 0)
-        self.chat_layout.setAlignment(Qt.AlignmentFlag.AlignBottom)
+        self.chat_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.scroll = QScrollArea()
         self.scroll.setStyleSheet("border: none;")
@@ -214,11 +214,6 @@ class ChatUi(QWidget):
     
     def disconnect_button_handler(self):
         self.chat_handler.handle_disconnect()
-        self.user_widgets.clear()
-        while self.chat_layout.count():
-            item = self.chat_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
         self.reset()
 
     def on_scroll(self):
@@ -245,7 +240,10 @@ class ChatUi(QWidget):
             message_widget = MessageWidget(username, content, time, f"{self.image_path}/user_picture_placeholder.png")
 
         self.chat_layout.addWidget(message_widget)
-        QTimer.singleShot(5, lambda: self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
+        self.chat_layout.update()
+        QApplication.processEvents()
+
+        QTimer.singleShot(0, lambda: self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
 
     def eventFilter(self, obj, event):
         if obj == self.message_input and event.type() == QEvent.KeyPress:
@@ -282,20 +280,7 @@ class ChatUi(QWidget):
     
     def set_username(self, username):
         self.username = username
-'''
-    def reset(self):
-        self.user_widgets.clear()
 
-        while self.chat_layout.count():
-            item = self.chat_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-
-        while self.all_users_layout.count():
-            item = self.all_users_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-'''
 class MessageWidget(QWidget):
     def __init__(self, username, data, time, image):
         super().__init__() 
@@ -339,16 +324,10 @@ class MessageWidget(QWidget):
         time.setAlignment(Qt.AlignmentFlag.AlignCenter)
         time.setStyleSheet("color: #58a6ff; font-weight: 500; font-size: 11px;")
 
-        message = QTextBrowser()
-        message.setReadOnly(True)
-        message.setText(data)
-        message.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        message.setOpenExternalLinks(True)
-        message.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        message.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        message = QLabel(data)
         message.setStyleSheet("color: #e6edf3;")
 
-        QTimer.singleShot(1, lambda: self.adjust_message_height(message))
+        #QTimer.singleShot(1, lambda: self.adjust_message_height(message))
 
         right_layout.addLayout(top_row)
         right_layout.addWidget(message)
