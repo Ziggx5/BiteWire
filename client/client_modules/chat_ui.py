@@ -37,33 +37,12 @@ class ChatUi(QWidget):
             font-weight: 600;
         """)
 
-        self.disconnect_button = QPushButton()
-        self.disconnect_button.setIcon(QIcon(f"{self.image_path}/leave_server.png"))
-        self.disconnect_button.setIconSize(QSize(20, 20))
-        self.disconnect_button.setFixedSize(30, 30)
-        self.disconnect_button.setCursor(Qt.PointingHandCursor)
-        self.disconnect_button.clicked.connect(self.disconnect_button_handler)
-        self.disconnect_button.setStyleSheet("""
-        QPushButton {
-                background-color: transparent;
-                border-radius: 8px;
-            }
-        
-        QPushButton:hover {
-            background-color: #dc2626;
-        }
-
-        QPushButton:pressed {
-            background-color: #991b1b;
-        }
-        """)
-
         self.connection_status_label = QLabel("Connected")
         self.connection_status_label.setStyleSheet("""
             QLabel {
                 color: #e6edf3;
                 font-size: 12px;
-                font-weight: 400;
+                font-weight: 600;
             }
         """)
 
@@ -76,8 +55,6 @@ class ChatUi(QWidget):
         header_layout.addStretch()
         header_layout.addWidget(self.status_icon)
         header_layout.addWidget(self.connection_status_label)
-        header_layout.addSpacing(30)
-        header_layout.addWidget(self.disconnect_button)
 
         chat_container = QFrame()
 
@@ -90,6 +67,7 @@ class ChatUi(QWidget):
         self.scroll.setStyleSheet("border: none;")
         self.scroll.verticalScrollBar().valueChanged.connect(self.on_scroll)
         self.scroll.setWidgetResizable(True)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scroll.setWidget(chat_container)
 
         scroll_container = QWidget()
@@ -212,10 +190,6 @@ class ChatUi(QWidget):
     def set_server_name(self, server_name):
         self.server_name_label.setText(server_name)
     
-    def disconnect_button_handler(self):
-        self.chat_handler.handle_disconnect()
-        self.reset()
-
     def on_scroll(self):
         scrollbar = self.scroll.verticalScrollBar()
 
@@ -325,9 +299,9 @@ class MessageWidget(QWidget):
         time.setStyleSheet("color: #58a6ff; font-weight: 500; font-size: 11px;")
 
         message = QLabel(data)
+        message.setWordWrap(True)
+        message.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         message.setStyleSheet("color: #e6edf3;")
-
-        #QTimer.singleShot(1, lambda: self.adjust_message_height(message))
 
         right_layout.addLayout(top_row)
         right_layout.addWidget(message)
@@ -341,11 +315,6 @@ class MessageWidget(QWidget):
         layout.addLayout(left_layout)
         layout.addSpacing(10)
         layout.addLayout(right_layout)
-    
-    def adjust_message_height(self, message):
-        message.document().setTextWidth(message.viewport().width())
-        message_height = message.document().size().height()
-        message.setFixedHeight(int(message_height))
 
 class UserWidget(QWidget):
     def __init__(self, username, image, status):
