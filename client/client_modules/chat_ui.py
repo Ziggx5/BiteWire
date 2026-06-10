@@ -17,6 +17,7 @@ class ChatUi(QWidget):
 
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
         header = QFrame()
         header.setObjectName("header_container")
@@ -193,7 +194,7 @@ class ChatUi(QWidget):
     def on_scroll(self):
         scrollbar = self.scroll.verticalScrollBar()
 
-        if scrollbar.value() == scrollbar.minimum():
+        if scrollbar.value() < 500:
             print("send message history")
 
     def client_send_message(self):

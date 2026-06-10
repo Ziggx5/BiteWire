@@ -392,7 +392,14 @@ class ChatServer(QObject):
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT sender, content, created_at FROM messages
+            SELECT sender, content, created_at
+            FROM (
+	            SELECT sender, content, created_at, id
+	            FROM messages
+	            ORDER BY id DESC
+	            LIMIT 20
+            )
+            ORDER BY id ASC
         """)
 
         result = cursor.fetchall()
