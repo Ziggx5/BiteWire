@@ -12,6 +12,7 @@ class ChatUi(QWidget):
         self.profile_cache = profile_cache
         self.username = None
         self.reset = reset
+        self.old_message_id = None
 
         self.user_widgets = {}
 
@@ -194,8 +195,8 @@ class ChatUi(QWidget):
     def on_scroll(self):
         scrollbar = self.scroll.verticalScrollBar()
 
-        if scrollbar.value() < 500:
-            print("send message history")
+        if scrollbar.value() < 60:
+            self.chat_handler.send_json_message({"type": "message_history", "content": self.old_message_id})
 
     def client_send_message(self):
         message = self.message_input.toPlainText().strip()
@@ -206,15 +207,44 @@ class ChatUi(QWidget):
         self.message_input.clear()
         self.message_input.setFocus()
 
-    def client_display_message(self, username, content, time):
+    def create_message_widget(self, username, content, time):
         cached_picture = self.profile_cache.get(username, "message_profile_picture")
 
         if cached_picture:
-            message_widget = MessageWidget(username, content, time, cached_picture)
+            return MessageWidget(username, content, time, cached_picture)
         else:
-            message_widget = MessageWidget(username, content, time, f"{self.image_path}/user_picture_placeholder.png")
+            return MessageWidget(username, content, time, f"{self.image_path}/user_picture_placeholder.png")
+
+    def display_first_chat_history(self, username, content, time, message_id):
+        message_widget = self.create_message_widget(username, content, time)
 
         self.chat_layout.addWidget(message_widget)
+
+        if not self.old_message_id:
+            self.old_message_id = message_id
+        else:
+            self.old_message_id = min(self.old_message_id, message_id)
+        
+        self.chat_layout.update()
+        QApplication.processEvents()
+
+        QTimer.singleShot(0, lambda: self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
+
+    def display_old_chat_history (self, username, content, time, message_id):
+        message_widget = self.create_message_widget(username, content, time)
+
+        self.chat_layout.insertWidget(0, message_widget)
+
+        if not self.old_message_id:
+            self.old_message_id = message_id
+        else:
+            self.old_message_id = min(self.old_message_id, message_id)
+
+    def display_new_message(self, username, content, time):
+        message_widget = self.create_message_widget(username, content, time)
+
+        self.chat_layout.addWidget(message_widget)
+        
         self.chat_layout.update()
         QApplication.processEvents()
 

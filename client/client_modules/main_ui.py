@@ -47,7 +47,9 @@ class MainUi(QWidget):
         self.update_checker = UpdateChecker(self.image_path, self.update_window_show_main_ui)
         self.chat_ui = ChatUi(self.image_path, self.chat_handler, self.profile_cache, self.clear_chat_widget)
 
-        self.chat_handler.message_received.connect(self.chat_ui.client_display_message)
+        self.chat_handler.history_message_received.connect(self.chat_ui.display_old_chat_history)
+        self.chat_handler.first_history_message_received.connect(self.chat_ui.display_first_chat_history)
+        self.chat_handler.message_received.connect(self.chat_ui.display_new_message)
         self.chat_handler.users_received.connect(self.chat_ui.add_users)
         self.chat_handler.server_status.connect(self.server_close_message)
         self.update_checker.update_found.connect(self.update_button_updater)

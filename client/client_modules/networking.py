@@ -7,6 +7,8 @@ import struct
 
 class ChatHandler(QObject):
     message_received = Signal(str, str, str)
+    history_message_received = Signal(str, str, str, int)
+    first_history_message_received = Signal(str, str, str, int)
     users_received = Signal(list)
     server_status = Signal(str)
 
@@ -83,10 +85,14 @@ class ChatHandler(QObject):
                     
                 elif message_type == "ping":
                     self.send_json_message({"type": "pong"})
+                
+                elif message_type == "first_message_history":
+                    for content in message['content']:
+                        self.first_history_message_received.emit(content['user'], content['content'], content['time'], content['id'])
                     
                 elif message_type == "message_history":
-                    for content in message['content']:
-                        self.message_received.emit(content['user'], content['content'], content['time'])
+                    for content in reversed(message['content']):
+                        self.history_message_received.emit(content['user'], content['content'], content['time'], content['id'])
                     
                 elif message_type == "profile_picture_data":
                     self.profile_cache.save(message['content'])

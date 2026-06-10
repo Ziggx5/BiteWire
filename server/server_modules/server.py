@@ -221,6 +221,11 @@ class ChatServer(QObject):
 
         elif message_type == "pong":
             client.last_pong = time.time()
+        
+        elif message_type == "message_history":
+            content = data.get("content")
+            
+            self.send_message_history(client, content)
 
         else:
             self.remove_client(client)
@@ -387,29 +392,52 @@ class ChatServer(QObject):
                     self.remove_client(client)
                     self.safe_client_close(client)
 
-    def send_message_history(self, client):
+    def send_message_history(self, client, old_id = None):
         conn = sqlite3.connect(self.messages_database_path)
         cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT sender, content, created_at
+        if old_id:
+            cursor.execute("""
+            SELECT sender, content, created_at, id
             FROM (
-	            SELECT sender, content, created_at, id
-	            FROM messages
-	            ORDER BY id DESC
-	            LIMIT 20
+                SELECT sender, content, created_at, id
+                FROM messages
+                WHERE id < ?
+                ORDER BY id DESC            
+                LIMIT 20         
             )
             ORDER BY id ASC
-        """)
+            """, (old_id,))
 
-        result = cursor.fetchall()
+            result = cursor.fetchall()
 
-        messages = []
+            messages = []
 
-        for message in result:
-            messages.append({"user": message[0], "content": message[1], "time": message[2]})
+            for message in result:
+                messages.append({"id": message[3], "user": message[0], "content": message[1], "time": message[2]})
+            
+            client.send({"type": "message_history", "content": messages})
 
-        client.send({"type": "message_history", "content": messages})
+        else:
+            cursor.execute("""
+                SELECT sender, content, created_at, id
+                FROM (
+	                SELECT sender, content, created_at, id
+	                FROM messages
+	                ORDER BY id DESC
+	                LIMIT 20
+                )
+                ORDER BY id ASC
+            """)
+
+            result = cursor.fetchall()
+
+            messages = []
+
+            for message in result:
+                messages.append({"id": message[3], "user": message[0], "content": message[1], "time": message[2]})
+            
+            client.send({"type": "first_message_history", "content": messages})
 
     def send_profile_picture(self, client):
         data = []
