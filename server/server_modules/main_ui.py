@@ -12,8 +12,13 @@ class MainUi(QWidget):
         super().__init__()
 
         self.setWindowTitle("BiteWire Server")
-        self.setStyleSheet("background-color : #0e1117;")
-        self.setFixedSize(400, 500)
+        self.setObjectName("main_ui")
+        self.setStyleSheet("""
+            QWidget#main_ui {
+                background-color : #0e1117;
+            }
+        """)
+        self.setFixedSize(600, 500)
         self.tray = TrayManager(self)
         self.chat_server = ChatServer()
         self.chat_server.uptime_signal.connect(self.update_timer)
@@ -22,6 +27,13 @@ class MainUi(QWidget):
         self.files = files_check()
 
         layout = QVBoxLayout(self)
+
+        cards_layout = QHBoxLayout()
+
+        cards_layout.addWidget(StatCard("Server Status", "Stopped"))
+        cards_layout.addWidget(StatCard("Connected Clients", "0", "View all >"))
+        cards_layout.addWidget(StatCard("Total Messages", "0"))
+        cards_layout.addWidget(StatCard("Uptime", "0"))
 
         ssl_box = QGroupBox("SSL Certificate Files")
         ssl_box_layout = QVBoxLayout()
@@ -111,6 +123,7 @@ class MainUi(QWidget):
 
         server_control_box.setLayout(server_control_box_layout)
 
+        layout.addLayout(cards_layout)
         layout.addWidget(ssl_box)
         layout.addWidget(databases_box)
         layout.addWidget(server_control_box)
@@ -169,3 +182,52 @@ class MainUi(QWidget):
 
     def open_server_folder(self):
         QDesktopServices.openUrl(QUrl.fromLocalFile(self.local_file))
+
+class StatCard(QFrame):
+    def __init__(self, title, value, subtitle = None):
+        super().__init__()
+
+        self.setObjectName("statcard")
+
+        self.setStyleSheet("""
+            QFrame#statcard {
+                background-color: #111827;
+                border: 1px solid #23304a;
+                border-radius: 12px;
+            }
+        """)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        title_label = QLabel(title)
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #d1d5db;
+                font-size: 12px;
+            }
+        """)
+
+        value_label = QLabel(value)
+        value_label.setStyleSheet("""
+            QLabel {
+                color: #4ade80;
+                font-size: 23px;
+                font-weight: 700px;
+            }
+        """)
+
+        layout.addWidget(title_label)
+        layout.addSpacing(10)
+        layout.addWidget(value_label)
+        layout.addStretch()
+
+        if subtitle:
+            subtitle_label = QLabel(subtitle)
+            subtitle_label.setStyleSheet("""
+                QLabel {
+                    color: #60a5fa;
+                    font-size: 11px;
+                }
+            """)
+            layout.addWidget(subtitle_label)
