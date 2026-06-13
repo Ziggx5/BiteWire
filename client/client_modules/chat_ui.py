@@ -13,6 +13,7 @@ class ChatUi(QWidget):
         self.username = None
         self.reset = reset
         self.old_message_id = None
+        self.loading_history = None
 
         self.user_widgets = {}
 
@@ -195,7 +196,9 @@ class ChatUi(QWidget):
     def on_scroll(self):
         scrollbar = self.scroll.verticalScrollBar()
 
-        if scrollbar.value() < 60:
+        if scrollbar.value() < 60 and not self.loading_history:
+            self.loading_history = True
+
             self.chat_handler.send_json_message({"type": "message_history", "content": self.old_message_id})
 
     def client_send_message(self):
@@ -230,15 +233,30 @@ class ChatUi(QWidget):
 
         QTimer.singleShot(0, lambda: self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
 
-    def display_old_chat_history (self, username, content, time, message_id):
-        message_widget = self.create_message_widget(username, content, time)
+    def display_old_chat_history (self, data):
+        scrollbar = self.scroll.verticalScrollBar()
 
-        self.chat_layout.insertWidget(0, message_widget)
+        old_value = scrollbar.value()
+        old_max = scrollbar.maximum()
 
-        if not self.old_message_id:
-            self.old_message_id = message_id
-        else:
-            self.old_message_id = min(self.old_message_id, message_id)
+        for message in reversed(data):
+            message_widget = self.create_message_widget(message['user'], message['content'], message['time'])
+            self.chat_layout.insertWidget(0, message_widget)
+
+            if not self.old_message_id:
+                self.old_message_id = message["id"]
+            else:
+                self.old_message_id = min(self.old_message_id, message["id"])
+
+        self.chat_layout.invalidate()
+        self.chat_layout.activate()
+        QApplication.processEvents()
+
+        new_max = scrollbar.maximum()
+        
+        scrollbar.setValue(old_value + (new_max - old_max))
+        
+        self.loading_history = False
 
     def display_new_message(self, username, content, time):
         message_widget = self.create_message_widget(username, content, time)
