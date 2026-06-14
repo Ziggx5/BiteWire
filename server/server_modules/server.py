@@ -58,6 +58,8 @@ class Client:
 
 class ChatServer(QObject):
     uptime_signal = Signal(int, int, int)
+    client_count_signal = Signal(str)
+    message_count_signal = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -73,6 +75,7 @@ class ChatServer(QObject):
         self.certfile = None
         self.keyfile = None
         self.database = None
+        self.message_count = 0
 
         self.load_files()
         self.users_database_path, self.messages_database_path = database_files()
@@ -219,6 +222,9 @@ class ChatServer(QObject):
                 "time": current_time
             })
 
+            self.message_count += 1
+            self.message_count_signal.emit(str(self.message_count))
+
         elif message_type == "pong":
             client.last_pong = time.time()
         
@@ -300,11 +306,13 @@ class ChatServer(QObject):
             if client in self.clients:
                 self.clients.remove(client)
         self.send_users_list_all_clients()
+        self.get_client_count()
 
     def add_client(self, client):
         with self.clients_lock:
             if client not in self.clients:
                 self.clients.append(client)
+                self.get_client_count()
 
     def disconnect_all_clients(self):
         self.broadcast({"type": "server_status", "status": "Server has been closed."})
@@ -323,6 +331,8 @@ class ChatServer(QObject):
                 client.conn.close()
             except:
                 pass
+        
+        self.get_client_count()
 
     def broadcast(self, message):
         with self.clients_lock:
@@ -470,3 +480,18 @@ class ChatServer(QObject):
             client.conn.close()
         except:
             pass
+
+    def get_client_count(self):
+        self.client_count_signal.emit(str(len(self.clients)))
+
+    def get_message_count(self):
+        conn = sqlite3.connect(self.messages_database_path)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT (*) FROM messages")
+
+        result = cursor.fetchone()[0]
+
+        self.message_count = result
+
+        self.message_count_signal.emit(str(result))

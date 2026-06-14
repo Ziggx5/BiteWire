@@ -26,14 +26,27 @@ class MainUi(QWidget):
         image_path = file_root()
         self.files = files_check()
 
+        self.server_status_card = StatCard("Server Status", "Stopped")
+        self.connected_clients_card = StatCard("Connected Clients", "0", "View all >")
+        self.total_messages_card = StatCard("Total Messages", "0")
+        self.server_uptime_card = StatCard("Uptime", "00:00:00")
+
+        self.chat_server.client_count_signal.connect(self.connected_clients_card.set_value)
+        self.chat_server.message_count_signal.connect(self.total_messages_card.set_value)
+
+        self.chat_server.get_message_count()
+
         layout = QVBoxLayout(self)
 
         cards_layout = QHBoxLayout()
 
-        cards_layout.addWidget(StatCard("Server Status", "Stopped"))
-        cards_layout.addWidget(StatCard("Connected Clients", "0", "View all >"))
-        cards_layout.addWidget(StatCard("Total Messages", "0"))
-        cards_layout.addWidget(StatCard("Uptime", "0"))
+        cards_layout.addWidget(self.server_status_card)
+        cards_layout.addSpacing(5)
+        cards_layout.addWidget(self.connected_clients_card)
+        cards_layout.addSpacing(5)
+        cards_layout.addWidget(self.total_messages_card)
+        cards_layout.addSpacing(5)
+        cards_layout.addWidget(self.server_uptime_card)
 
         ssl_box = QGroupBox("SSL Certificate Files")
         ssl_box_layout = QVBoxLayout()
@@ -156,7 +169,7 @@ class MainUi(QWidget):
 
         threading.Thread(target = self.chat_server.start, daemon = True).start()
 
-        self.server_status_state.setText("Running")
+        self.server_status_card.set_value("Running")
         self.start_server_button.setEnabled(False)
         QTimer.singleShot(2000, lambda: self.stop_server_button.setEnabled(True))
 
@@ -164,7 +177,7 @@ class MainUi(QWidget):
 
     def stop_server(self):
         self.chat_server.stop()
-        self.server_status_state.setText("Stopped")
+        self.server_status_card.set_value("Stopped")
         self.stop_server_button.setEnabled(False)
         QTimer.singleShot(2000, lambda: self.start_server_button.setEnabled(True))
 
@@ -173,7 +186,7 @@ class MainUi(QWidget):
         self.update_timer(0, 0, 0)
     
     def update_timer(self, hours, minutes, seconds):
-        self.server_uptime_time.setText(f"{hours:02}:{minutes:02}:{seconds:02}")
+        self.server_uptime_card.set_value(f"{hours:02}:{minutes:02}:{seconds:02}")
         self.tray.set_server_uptime(hours, minutes, seconds)
         
     def closeEvent(self, event):
@@ -193,7 +206,7 @@ class StatCard(QFrame):
             QFrame#statcard {
                 background-color: #111827;
                 border: 1px solid #23304a;
-                border-radius: 12px;
+                border-radius: 7px;
             }
         """)
 
@@ -208,18 +221,17 @@ class StatCard(QFrame):
             }
         """)
 
-        value_label = QLabel(value)
-        value_label.setStyleSheet("""
+        self.value_label = QLabel(value)
+        self.value_label.setStyleSheet("""
             QLabel {
                 color: #4ade80;
-                font-size: 23px;
+                font-size: 17px;
                 font-weight: 700px;
             }
         """)
 
         layout.addWidget(title_label)
-        layout.addSpacing(10)
-        layout.addWidget(value_label)
+        layout.addWidget(self.value_label)
         layout.addStretch()
 
         if subtitle:
@@ -231,3 +243,6 @@ class StatCard(QFrame):
                 }
             """)
             layout.addWidget(subtitle_label)
+    
+    def set_value(self, value):
+        self.value_label.setText(value)
