@@ -18,7 +18,7 @@ class MainUi(QWidget):
                 background-color : #0e1117;
             }
         """)
-        self.setFixedSize(600, 500)
+        self.setFixedSize(700, 700)
         self.tray = TrayManager(self)
         self.chat_server = ChatServer()
         self.chat_server.uptime_signal.connect(self.update_timer)
@@ -27,7 +27,7 @@ class MainUi(QWidget):
         self.files = files_check()
 
         self.server_status_card = StatCard("Server Status", "Stopped")
-        self.connected_clients_card = StatCard("Connected Clients", "0", "View all >")
+        self.connected_clients_card = StatCard("Connected Clients", "0")
         self.total_messages_card = StatCard("Total Messages", "0")
         self.server_uptime_card = StatCard("Uptime", "00:00:00")
 
@@ -47,6 +47,116 @@ class MainUi(QWidget):
         cards_layout.addWidget(self.total_messages_card)
         cards_layout.addSpacing(5)
         cards_layout.addWidget(self.server_uptime_card)
+
+        server_info = QWidget()
+        server_info.setStyleSheet("""
+            QWidget {
+                background-color: #111827;
+                border: 1px solid #23304a;
+                border-radius: 7px;
+            }
+        """)
+        server_info_layout = QGridLayout(server_info)
+        server_info_layout.setSpacing(5)
+
+        server_info_label = QLabel("Server Info")
+        server_info_label.setStyleSheet("""
+            QLabel {
+                color: #f3f4f6;
+                font-size: 15px;
+                font-weight: 600px;
+                border: none;
+            }
+        """)
+
+        port_label = QLabel("Port")
+        port_label.setStyleSheet("""
+            QLabel {
+                color: #9ca3af;
+                border: none;
+            }
+        """)
+        port_placeholder_label = QLabel("0")
+        port_placeholder_label.setStyleSheet("""
+            QLabel {
+                color: #e5e7eb;
+                font-weight: 600;
+                border: none;
+            }        
+        """)
+
+        ssl_status_label = QLabel("SSL Status")
+        ssl_status_label.setStyleSheet("""
+            QLabel {
+                color: #9ca3af;
+                border: none;
+            }
+        """)
+        ssl_status_placeholder_label = QLabel("Invalid")
+        ssl_status_placeholder_label.setStyleSheet("""
+            QLabel {
+                color: #4ade80;
+                font-weight: 600;
+                border: none;
+            }        
+        """)
+
+        ssl_expires_label = QLabel("SSL Expires")
+        ssl_expires_label.setStyleSheet("""
+            QLabel {
+                color: #9ca3af;
+                border: none;
+            }
+        """)
+        ssl_expires_placeholder_label = QLabel("Date")
+        ssl_expires_placeholder_label.setStyleSheet("""
+            QLabel {
+                color: #e5e7eb;
+                font-weight: 600;
+                border: none;
+            }        
+        """)
+
+        line1 = QFrame()
+        line1.setFrameShape(QFrame.Shape.HLine)
+        line1.setFixedHeight(1)
+        line1.setStyleSheet("""
+            QFrame {
+                border: 1px solid #1f2a44;
+                border-radius: 8px;
+            }
+        """)
+
+        line2 = QFrame()
+        line2.setFrameShape(QFrame.Shape.HLine)
+        line2.setFixedHeight(1)
+        line2.setStyleSheet("""
+            QFrame {
+                border: 1px solid #1f2a44;
+                border-radius: 8px;
+            }
+        """)
+
+        line3 = QFrame()
+        line3.setFrameShape(QFrame.Shape.HLine)
+        line3.setFixedHeight(1)
+        line3.setStyleSheet("""
+            QFrame {
+                border: 1px solid #1f2a44;
+                border-radius: 8px;
+            }
+        """)
+
+        server_info_layout.addWidget(server_info_label, 0, 0)
+        server_info_layout.addWidget(line1, 1, 0, 1, 2)
+        server_info_layout.addWidget(port_label, 2, 0)
+        server_info_layout.addWidget(port_placeholder_label, 2, 1, Qt.AlignmentFlag.AlignRight)
+        server_info_layout.addWidget(line2, 3, 0, 1, 2)
+        server_info_layout.addWidget(ssl_status_label, 4, 0)
+        server_info_layout.addWidget(ssl_status_placeholder_label, 4, 1, Qt.AlignmentFlag.AlignRight)
+        server_info_layout.addWidget(line3, 5, 0, 1, 2)
+        server_info_layout.addWidget(ssl_expires_label, 6, 0)
+        server_info_layout.addWidget(ssl_expires_placeholder_label, 6, 1, Qt.AlignmentFlag.AlignRight)
 
         ssl_box = QGroupBox("SSL Certificate Files")
         ssl_box_layout = QVBoxLayout()
@@ -137,6 +247,7 @@ class MainUi(QWidget):
         server_control_box.setLayout(server_control_box_layout)
 
         layout.addLayout(cards_layout)
+        layout.addWidget(server_info)
         layout.addWidget(ssl_box)
         layout.addWidget(databases_box)
         layout.addWidget(server_control_box)
@@ -197,11 +308,10 @@ class MainUi(QWidget):
         QDesktopServices.openUrl(QUrl.fromLocalFile(self.local_file))
 
 class StatCard(QFrame):
-    def __init__(self, title, value, subtitle = None):
+    def __init__(self, title, value):
         super().__init__()
 
         self.setObjectName("statcard")
-
         self.setStyleSheet("""
             QFrame#statcard {
                 background-color: #111827;
@@ -209,6 +319,8 @@ class StatCard(QFrame):
                 border-radius: 7px;
             }
         """)
+        self.setFixedHeight(80)
+
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
@@ -233,16 +345,6 @@ class StatCard(QFrame):
         layout.addWidget(title_label)
         layout.addWidget(self.value_label)
         layout.addStretch()
-
-        if subtitle:
-            subtitle_label = QLabel(subtitle)
-            subtitle_label.setStyleSheet("""
-                QLabel {
-                    color: #60a5fa;
-                    font-size: 11px;
-                }
-            """)
-            layout.addWidget(subtitle_label)
     
     def set_value(self, value):
         self.value_label.setText(value)
