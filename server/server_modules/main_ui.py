@@ -25,7 +25,7 @@ class MainUi(QWidget):
         self.local_file = local_data_file()
         image_path = file_root()
         self.files = files_check()
-        expiry_date, remaining_days, cert_issued = validate_certificate()
+        expiry_date, remaining_days, cert_issued, cert_status = validate_certificate()
 
         self.server_status_card = StatCard("Server Status", "Stopped")
         self.connected_clients_card = StatCard("Connected Clients", "0")
@@ -93,7 +93,7 @@ class MainUi(QWidget):
                 border: none;
             }
         """)
-        ssl_status_placeholder_label = QLabel("Valid")
+        ssl_status_placeholder_label = QLabel(cert_status)
         ssl_status_placeholder_label.setStyleSheet("""
             QLabel {
                 color: #4ade80;

@@ -39,10 +39,22 @@ def profile_pictures_file():
 
 def validate_certificate():
     data_dir = local_data_file()
-    cert = ssl._ssl._test_decode_cert(f"{data_dir}/server.crt")
-    cert_issued = cert['notAfter']
-    date_now = datetime.now()
-    expiry_date = datetime.strptime(cert_issued, "%b %d %H:%M:%S %Y %Z")
-    remaining_days = (expiry_date - date_now).days
+    cert_path = f"{data_dir}/server.crt"
 
-    return str(expiry_date), str(remaining_days), cert_issued
+    if os.path.exists(cert_path):
+        cert = ssl._ssl._test_decode_cert(cert_path)
+
+        issued_date = datetime.strptime(cert['notBefore'], "%b %d %H:%M:%S %Y %Z")
+        date_now = datetime.utcnow()
+        expiry_date = datetime.strptime(cert['notAfter'], "%b %d %H:%M:%S %Y %Z")
+
+        remaining_days = (expiry_date - date_now).days
+
+        if date_now < expiry_date:
+            cert_status = "Valid"
+        else:
+            cert_status = "Invalid"
+
+        return expiry_date.strftime("%d %b %Y"), str(remaining_days), issued_date.strftime("%d %b %Y"), cert_status
+    else:
+        return None, None, None, "Invalid"
