@@ -1,6 +1,8 @@
 from platformdirs import user_data_dir
 import os
 import json
+import ssl
+from datetime import datetime
 
 def local_data_file():
     app_name = "BiteWire_Server"
@@ -34,3 +36,13 @@ def profile_pictures_file():
     os.makedirs(path, exist_ok = True)
 
     return path
+
+def validate_certificate():
+    data_dir = local_data_file()
+    cert = ssl._ssl._test_decode_cert(f"{data_dir}/server.crt")
+    cert_issued = cert['notAfter']
+    date_now = datetime.now()
+    expiry_date = datetime.strptime(cert_issued, "%b %d %H:%M:%S %Y %Z")
+    remaining_days = (expiry_date - date_now).days
+
+    return str(expiry_date), str(remaining_days), cert_issued

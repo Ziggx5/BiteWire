@@ -2,7 +2,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import threading
-from server_modules.data_manipulation import local_data_file, files_check
+from server_modules.data_manipulation import local_data_file, files_check, validate_certificate
 from server_modules.server import ChatServer
 from server_modules.system_tray import TrayManager
 from server_modules.load_assets import file_root
@@ -25,6 +25,7 @@ class MainUi(QWidget):
         self.local_file = local_data_file()
         image_path = file_root()
         self.files = files_check()
+        expiry_date, remaining_days, cert_issued = validate_certificate()
 
         self.server_status_card = StatCard("Server Status", "Stopped")
         self.connected_clients_card = StatCard("Connected Clients", "0")
@@ -76,7 +77,7 @@ class MainUi(QWidget):
                 border: none;
             }
         """)
-        port_placeholder_label = QLabel("0")
+        port_placeholder_label = QLabel("50505")
         port_placeholder_label.setStyleSheet("""
             QLabel {
                 color: #e5e7eb;
@@ -85,14 +86,14 @@ class MainUi(QWidget):
             }        
         """)
 
-        ssl_status_label = QLabel("SSL Status")
+        ssl_status_label = QLabel("Certificate Status")
         ssl_status_label.setStyleSheet("""
             QLabel {
                 color: #9ca3af;
                 border: none;
             }
         """)
-        ssl_status_placeholder_label = QLabel("Invalid")
+        ssl_status_placeholder_label = QLabel("Valid")
         ssl_status_placeholder_label.setStyleSheet("""
             QLabel {
                 color: #4ade80;
@@ -101,14 +102,46 @@ class MainUi(QWidget):
             }        
         """)
 
-        ssl_expires_label = QLabel("SSL Expires")
+        ssl_remaining_days_label = QLabel("Days Left")
+        ssl_remaining_days_label.setStyleSheet("""
+            QLabel {
+                color: #9ca3af;
+                border: none;
+            }
+        """)
+        ssl_remaining_days_placeholder_label = QLabel(remaining_days)
+        ssl_remaining_days_placeholder_label.setStyleSheet("""
+            QLabel {
+                color: #e5e7eb;
+                font-weight: 600;
+                border: none;
+            }   
+        """)
+
+        ssl_issued_date_label = QLabel("Issued On")
+        ssl_issued_date_label.setStyleSheet("""
+            QLabel {
+                color: #9ca3af;
+                border: none;
+            }
+        """)
+        ssl_issued_date_placeholder_label = QLabel(cert_issued)
+        ssl_issued_date_placeholder_label.setStyleSheet("""
+            QLabel {
+                color: #e5e7eb;
+                font-weight: 600;
+                border: none;
+            } 
+        """)
+
+        ssl_expires_label = QLabel("Expires On")
         ssl_expires_label.setStyleSheet("""
             QLabel {
                 color: #9ca3af;
                 border: none;
             }
         """)
-        ssl_expires_placeholder_label = QLabel("Date")
+        ssl_expires_placeholder_label = QLabel(expiry_date)
         ssl_expires_placeholder_label.setStyleSheet("""
             QLabel {
                 color: #e5e7eb;
@@ -147,6 +180,26 @@ class MainUi(QWidget):
             }
         """)
 
+        line4 = QFrame()
+        line4.setFrameShape(QFrame.Shape.HLine)
+        line4.setFixedHeight(1)
+        line4.setStyleSheet("""
+            QFrame {
+                border: 1px solid #1f2a44;
+                border-radius: 8px;
+            }
+        """)
+
+        line5 = QFrame()
+        line5.setFrameShape(QFrame.Shape.HLine)
+        line5.setFixedHeight(1)
+        line5.setStyleSheet("""
+            QFrame {
+                border: 1px solid #1f2a44;
+                border-radius: 8px;
+            }
+        """)
+
         server_info_layout.addWidget(server_info_label, 0, 0)
         server_info_layout.addWidget(line1, 1, 0, 1, 2)
         server_info_layout.addWidget(port_label, 2, 0)
@@ -155,8 +208,14 @@ class MainUi(QWidget):
         server_info_layout.addWidget(ssl_status_label, 4, 0)
         server_info_layout.addWidget(ssl_status_placeholder_label, 4, 1, Qt.AlignmentFlag.AlignRight)
         server_info_layout.addWidget(line3, 5, 0, 1, 2)
-        server_info_layout.addWidget(ssl_expires_label, 6, 0)
-        server_info_layout.addWidget(ssl_expires_placeholder_label, 6, 1, Qt.AlignmentFlag.AlignRight)
+        server_info_layout.addWidget(ssl_remaining_days_label, 6, 0)
+        server_info_layout.addWidget(ssl_remaining_days_placeholder_label, 6, 1, Qt.AlignmentFlag.AlignRight)
+        server_info_layout.addWidget(line4, 7, 0, 1, 2)
+        server_info_layout.addWidget(ssl_issued_date_label, 8, 0)
+        server_info_layout.addWidget(ssl_issued_date_placeholder_label, 8, 1, Qt.AlignmentFlag.AlignRight)
+        server_info_layout.addWidget(line5, 9, 0, 1, 2)
+        server_info_layout.addWidget(ssl_expires_label, 10, 0)
+        server_info_layout.addWidget(ssl_expires_placeholder_label, 10, 1, Qt.AlignmentFlag.AlignRight)
 
         ssl_box = QGroupBox("SSL Certificate Files")
         ssl_box_layout = QVBoxLayout()
