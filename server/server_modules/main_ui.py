@@ -2,7 +2,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import threading
-from server_modules.data_manipulation import local_data_file, files_check, validate_certificate
+from server_modules.data_manipulation import local_data_file, files_check, validate_certificate, resouce_statistic
 from server_modules.server import ChatServer
 from server_modules.system_tray import TrayManager
 from server_modules.load_assets import file_root
@@ -26,6 +26,12 @@ class MainUi(QWidget):
         image_path = file_root()
         self.files = files_check()
         expiry_date, remaining_days, cert_issued, cert_status = validate_certificate()
+        self.cpu_usage = "0"
+        self.ram_usage = "0"
+
+        self.resource_timer = QTimer()
+        self.resource_timer.timeout.connect(self.update_server_resource_values)
+        self.resource_timer.start(1000)
 
         self.server_status_card = StatCard("Server Status", "Stopped")
         self.connected_clients_card = StatCard("Connected Clients", "0")
@@ -217,6 +223,19 @@ class MainUi(QWidget):
         server_info_layout.addWidget(ssl_expires_label, 10, 0)
         server_info_layout.addWidget(ssl_expires_placeholder_label, 10, 1, Qt.AlignmentFlag.AlignRight)
 
+        server_resources = QWidget()
+        server_resources_layout = QHBoxLayout(server_resources)
+        server_statistics_and_resources_container = QHBoxLayout()
+
+        self.cpu_percentage_card = StatCard("CPU Usage", f"{self.cpu_usage}%")
+        self.ram_usage_card = StatCard("RAM Usage", f"{self.ram_usage}MB")
+
+        server_resources_layout.addWidget(self.cpu_percentage_card)
+        server_resources_layout.addWidget(self.ram_usage_card)
+
+        server_statistics_and_resources_container.addWidget(server_resources)
+        server_statistics_and_resources_container.addWidget(server_info)
+
         ssl_box = QGroupBox("SSL Certificate Files")
         ssl_box_layout = QVBoxLayout()
         certificate_file_layout = QHBoxLayout()
@@ -227,10 +246,8 @@ class MainUi(QWidget):
         users_database_layout = QHBoxLayout()
         messages_database_layout = QHBoxLayout()
 
-        server_control_box = QGroupBox("Server Control")
+        server_control_box = QGroupBox()
         server_control_box_layout = QVBoxLayout()
-        server_status_layout = QHBoxLayout()
-        server_uptime_layout = QHBoxLayout()
         server_buttons_layout = QHBoxLayout()
 
         server_folder_layout = QHBoxLayout()
@@ -287,17 +304,9 @@ class MainUi(QWidget):
 
         databases_box.setLayout(database_files_layout)
 
-        server_status_layout.addWidget(server_status_label)
-        server_status_layout.addWidget(self.server_status_state)
-
-        server_uptime_layout.addWidget(server_uptime_label)
-        server_uptime_layout.addWidget(self.server_uptime_time)
-
         server_buttons_layout.addWidget(self.start_server_button)
         server_buttons_layout.addWidget(self.stop_server_button)
 
-        server_control_box_layout.addLayout(server_status_layout)
-        server_control_box_layout.addLayout(server_uptime_layout)
         server_control_box_layout.addLayout(server_buttons_layout)
 
         server_folder_layout.addStretch()
@@ -306,7 +315,7 @@ class MainUi(QWidget):
         server_control_box.setLayout(server_control_box_layout)
 
         layout.addLayout(cards_layout)
-        layout.addWidget(server_info)
+        layout.addLayout(server_statistics_and_resources_container)
         layout.addWidget(ssl_box)
         layout.addWidget(databases_box)
         layout.addWidget(server_control_box)
@@ -365,6 +374,11 @@ class MainUi(QWidget):
 
     def open_server_folder(self):
         QDesktopServices.openUrl(QUrl.fromLocalFile(self.local_file))
+
+    def update_server_resource_values(self):
+        self.cpu_usage, self.ram_usage = resouce_statistic()
+        self.cpu_percentage_card.set_value(f"{self.cpu_usage}%")
+        self.ram_usage_card.set_value(f"{self.ram_usage}MB")
 
 class StatCard(QFrame):
     def __init__(self, title, value):

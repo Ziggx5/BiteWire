@@ -3,6 +3,10 @@ import os
 import json
 import ssl
 from datetime import datetime
+import psutil
+
+process = psutil.Process()
+process.cpu_percent()
 
 def local_data_file():
     app_name = "BiteWire_Server"
@@ -58,3 +62,6 @@ def validate_certificate():
         return expiry_date.strftime("%d %b %Y"), str(remaining_days), issued_date.strftime("%d %b %Y"), cert_status
     else:
         return None, None, None, "Invalid"
+
+def resouce_statistic():
+    return str(process.cpu_percent()), str(process.memory_info().rss // 1024 // 1024)
