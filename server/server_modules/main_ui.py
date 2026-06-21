@@ -26,12 +26,21 @@ class MainUi(QWidget):
         image_path = file_root()
         self.files = files_check()
         expiry_date, remaining_days, cert_issued, cert_status = validate_certificate()
+
         self.cpu_usage = "0"
         self.ram_usage = "0"
+        self.incoming = "0"
+        self.outgoing = "0"
+        self.recv_speed = "0"
+        self.sent_speed = "0"
 
         self.resource_timer = QTimer()
         self.resource_timer.timeout.connect(self.update_server_resource_values)
         self.resource_timer.start(1000)
+
+        #self.network_timer = QTimer()
+        #self.network_timer.timeout.connect(self.chat_server.update_network_statistics)
+        #self.network_timer.start(1000)
 
         self.server_status_card = StatCard("Server Status", "Stopped")
         self.connected_clients_card = StatCard("Connected Clients", "0")
@@ -224,14 +233,25 @@ class MainUi(QWidget):
         server_info_layout.addWidget(ssl_expires_placeholder_label, 10, 1, Qt.AlignmentFlag.AlignRight)
 
         server_resources = QWidget()
-        server_resources_layout = QHBoxLayout(server_resources)
+        server_resouces_layout = QVBoxLayout(server_resources)
+        cpu_and_ram_stats_layout = QHBoxLayout()
+        incoming_and_outgoing_layout = QHBoxLayout()
+
         server_statistics_and_resources_container = QHBoxLayout()
 
         self.cpu_percentage_card = StatCard("CPU Usage", f"{self.cpu_usage}%")
         self.ram_usage_card = StatCard("RAM Usage", f"{self.ram_usage}MB")
+        self.incoming_card = StatCard("Incoming", f"{self.incoming}KB/s")
+        self.outgoing_card = StatCard("Outgoing", f"{self.outgoing}KB/s")
 
-        server_resources_layout.addWidget(self.cpu_percentage_card)
-        server_resources_layout.addWidget(self.ram_usage_card)
+        cpu_and_ram_stats_layout.addWidget(self.cpu_percentage_card)
+        cpu_and_ram_stats_layout.addWidget(self.ram_usage_card)
+
+        incoming_and_outgoing_layout.addWidget(self.incoming_card)
+        incoming_and_outgoing_layout.addWidget(self.outgoing_card)
+
+        server_resouces_layout.addLayout(cpu_and_ram_stats_layout)
+        server_resouces_layout.addLayout(incoming_and_outgoing_layout)
 
         server_statistics_and_resources_container.addWidget(server_resources)
         server_statistics_and_resources_container.addWidget(server_info)
@@ -377,8 +397,13 @@ class MainUi(QWidget):
 
     def update_server_resource_values(self):
         self.cpu_usage, self.ram_usage = resouce_statistic()
+        self.incoming, self.outgoing = self.chat_server.update_network_statistics()
+        print(self.recv_speed)
+
         self.cpu_percentage_card.set_value(f"{self.cpu_usage}%")
         self.ram_usage_card.set_value(f"{self.ram_usage}MB")
+        self.incoming_card.set_value(f"{self.incoming}KB/s")
+        self.outgoing_card.set_value(f"{self.outgoing}KB/s")
 
 class StatCard(QFrame):
     def __init__(self, title, value):

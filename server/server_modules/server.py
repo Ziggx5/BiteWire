@@ -13,12 +13,13 @@ import bcrypt
 import struct
 
 class Client:
-    def __init__(self, conn, address):
+    def __init__(self, conn, address, server):
         self.conn = conn
         self.address = address
         self.username = None
         self.buffer = ""
         self.last_pong = None
+        self.server = server
 
     def recvall(self, length):
         data = b""
@@ -46,12 +47,13 @@ class Client:
         if not data:
             return None
 
-        return json.loads(data.decode("utf-8"))
+        return json.loads(data.decode("utf-8")), length + 4
     
     def send(self, data):
         try:
             message = json.dumps(data).encode("utf-8")
             length = struct.pack("!I", len(message))
+            self.server.bytes_sent += len(message) + 4
             self.conn.send(length + message)
         except Exception as e:
             print(e)
@@ -76,6 +78,12 @@ class ChatServer(QObject):
         self.keyfile = None
         self.database = None
         self.message_count = 0
+
+        self.bytes_sent = 0
+        self.bytes_recv = 0
+
+        self.last_sent = 0
+        self.last_recv = 0
 
         self.load_files()
         self.users_database_path, self.messages_database_path = database_files()
@@ -240,7 +248,9 @@ class ChatServer(QObject):
     def client_handler(self, client):
         while True:
             try:
-                data = client.receive_json_message()
+                data, message_byte_length = client.receive_json_message()
+
+                self.bytes_recv += message_byte_length
 
                 if not data:
                     break
@@ -284,7 +294,7 @@ class ChatServer(QObject):
 
             try:
                 tls_conn = self.context.wrap_socket(conn, server_side = True)
-                client = Client(tls_conn, address)
+                client = Client(tls_conn, address, self)
             except Exception as e:
                 print(e)
                 conn.close()
@@ -495,3 +505,15 @@ class ChatServer(QObject):
         self.message_count = result
 
         self.message_count_signal.emit(str(result))
+
+    def update_network_statistics(self):
+        recv_now = self.bytes_recv
+        sent_now = self.bytes_sent
+
+        recv_speed = recv_now - self.last_recv
+        sent_speed = sent_now - self.last_sent
+
+        self.last_recv = recv_now
+        self.last_sent = sent_now
+
+        return recv_speed, sent_speed
