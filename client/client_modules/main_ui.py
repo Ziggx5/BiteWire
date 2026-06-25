@@ -17,6 +17,7 @@ class MainUi(QWidget):
         super().__init__()
 
         self.setWindowTitle("BiteWire")
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setStyleSheet("""
         QWidget {
             background-color: #0e1117;
@@ -46,6 +47,7 @@ class MainUi(QWidget):
         self.tray = TrayManager(self)
         self.update_checker = UpdateChecker(self.image_path, self.update_window_show_main_ui)
         self.chat_ui = ChatUi(self.image_path, self.chat_handler, self.profile_cache, self.clear_chat_widget)
+        self.custom_title_bar = CustomTitleBar()
 
         self.chat_handler.history_message_received.connect(self.chat_ui.display_old_chat_history)
         self.chat_handler.first_history_message_received.connect(self.chat_ui.display_first_chat_history)
@@ -77,9 +79,16 @@ class MainUi(QWidget):
 
         self.overlay_layout.addWidget(popup_background_container, alignment = Qt.AlignCenter)
 
-        main_root_layout = QHBoxLayout(self)
-        main_root_layout.setSpacing(0)
-        main_root_layout.setContentsMargins(0, 0, 0, 0)
+        main_root_vertical_layout = QVBoxLayout(self)
+        main_root_vertical_layout.setSpacing(0)
+        main_root_vertical_layout.setContentsMargins(0, 0, 0, 0)
+
+        main_root_horizontal_layout = QHBoxLayout()
+        main_root_horizontal_layout.setSpacing(0)
+        main_root_horizontal_layout.setContentsMargins(0, 0, 0, 0)
+
+        main_root_vertical_layout.addWidget(self.custom_title_bar)
+        main_root_vertical_layout.addLayout(main_root_horizontal_layout)
 
         left_container = QVBoxLayout()
 
@@ -219,8 +228,8 @@ class MainUi(QWidget):
         left_container.addWidget(server_frame, 1)
         left_container.addWidget(user_frame)
 
-        main_root_layout.addLayout(left_container, 1)
-        main_root_layout.addWidget(main_frame, 5)
+        main_root_horizontal_layout.addLayout(left_container, 1)
+        main_root_horizontal_layout.addWidget(main_frame, 5)
 
     def add_server_window_show_main_ui(self):
         self.add_server_window.hide()
@@ -389,3 +398,60 @@ class ServerButton(QFrame):
     def connected_server(self):
         self.setProperty("current_server", True)
         self.setEnabled(False)
+
+class CustomTitleBar(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setFixedHeight(35)
+        self.setAutoFillBackground(True)
+        self.setObjectName("customtitlebar")
+        self.setStyleSheet("""
+            QWidget#customtitlebar {
+                background-color: #161b22;
+            }
+        """)
+
+        button_style_sheet = """
+        QPushButton {
+            background: transparent;
+            color: #9ca3af;
+            border: none;
+            font-size: 14px;
+            border-radius: 0px;
+        }
+
+        QPushButton:hover {
+            color: #f3f4f6;
+            background-color: #1f2937;
+        }
+        """
+        
+        layout = QHBoxLayout(self)
+        layout.setSpacing(5)
+        layout.setContentsMargins(10, 0, 10, 0)
+
+        title = QLabel("BiteWire")
+        title.setStyleSheet("""
+        QLabel {
+            color: #e5e7eb;
+            font-weight: 600;
+            font-size: 12px
+        }
+        """)
+
+        minimize_button = QPushButton("-")
+        minimize_button.setFixedSize(35, 35)
+        minimize_button.setStyleSheet(button_style_sheet)
+
+        maximize_button = QPushButton("□")
+        maximize_button.setFixedSize(35, 35)
+        maximize_button.setStyleSheet(button_style_sheet)
+
+        close_button = QPushButton("x")
+        close_button.setFixedSize(35, 35)
+        close_button.setStyleSheet(button_style_sheet.replace("#1f2937", "#ef4444"))
+
+        layout.addWidget(title)
+        layout.addWidget(minimize_button)
+        layout.addWidget(maximize_button)
+        layout.addWidget(close_button)
