@@ -47,7 +47,7 @@ class MainUi(QWidget):
         self.tray = TrayManager(self)
         self.update_checker = UpdateChecker(self.image_path, self.update_window_show_main_ui)
         self.chat_ui = ChatUi(self.image_path, self.chat_handler, self.profile_cache, self.clear_chat_widget)
-        self.custom_title_bar = CustomTitleBar()
+        self.custom_title_bar = CustomTitleBar(self)
 
         self.chat_handler.history_message_received.connect(self.chat_ui.display_old_chat_history)
         self.chat_handler.first_history_message_received.connect(self.chat_ui.display_first_chat_history)
@@ -400,7 +400,7 @@ class ServerButton(QFrame):
         self.setEnabled(False)
 
 class CustomTitleBar(QWidget):
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
         self.setFixedHeight(35)
         self.setAutoFillBackground(True)
@@ -425,10 +425,12 @@ class CustomTitleBar(QWidget):
             background-color: #1f2937;
         }
         """
+
+        self.parent = parent
         
         layout = QHBoxLayout(self)
         layout.setSpacing(5)
-        layout.setContentsMargins(10, 0, 10, 0)
+        layout.setContentsMargins(10, 0, 0, 0)
 
         title = QLabel("BiteWire")
         title.setStyleSheet("""
@@ -442,16 +444,25 @@ class CustomTitleBar(QWidget):
         minimize_button = QPushButton("-")
         minimize_button.setFixedSize(35, 35)
         minimize_button.setStyleSheet(button_style_sheet)
+        minimize_button.clicked.connect(lambda: self.parent.showMinimized())
 
         maximize_button = QPushButton("□")
         maximize_button.setFixedSize(35, 35)
         maximize_button.setStyleSheet(button_style_sheet)
+        maximize_button.clicked.connect(lambda: self.toggle_maximize())
 
         close_button = QPushButton("x")
         close_button.setFixedSize(35, 35)
         close_button.setStyleSheet(button_style_sheet.replace("#1f2937", "#ef4444"))
+        close_button.clicked.connect(lambda: self.parent.close())
 
         layout.addWidget(title)
         layout.addWidget(minimize_button)
         layout.addWidget(maximize_button)
         layout.addWidget(close_button)
+
+    def toggle_maximize(self):
+        if self.parent.isMaximized():
+            self.parent.showNormal()
+        else:
+            self.parent.showMaximized()
