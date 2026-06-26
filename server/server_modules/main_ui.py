@@ -38,10 +38,6 @@ class MainUi(QWidget):
         self.resource_timer.timeout.connect(self.update_server_resource_values)
         self.resource_timer.start(1000)
 
-        #self.network_timer = QTimer()
-        #self.network_timer.timeout.connect(self.chat_server.update_network_statistics)
-        #self.network_timer.start(1000)
-
         self.server_status_card = StatCard("Server Status", "Stopped")
         self.connected_clients_card = StatCard("Connected Clients", "0")
         self.total_messages_card = StatCard("Total Messages", "0")
@@ -256,6 +252,58 @@ class MainUi(QWidget):
         server_statistics_and_resources_container.addWidget(server_resources)
         server_statistics_and_resources_container.addWidget(server_info)
 
+        recent_logs_and_active_clients_container = QHBoxLayout()
+
+        recent_logs_card = QFrame()
+        recent_logs_card.setObjectName("recent_logs_card")
+        recent_logs_card.setStyleSheet("""
+            QFrame#recent_logs_card {
+                background-color: #111827;
+                border: 1px solid #23304a;
+                border-radius: 7px;
+            }
+        """)
+        recent_logs_card_layout = QVBoxLayout(recent_logs_card)
+
+        recent_logs_card_header_layout = QHBoxLayout()
+
+        recent_logs_label = QLabel("Recent Logs")
+
+        view_all_logs_label = QLabel("View all logs >")
+
+        recent_logs_card_header_layout.addWidget(recent_logs_label)
+        recent_logs_card_header_layout.addStretch()
+        recent_logs_card_header_layout.addWidget(view_all_logs_label)
+
+        recent_logs_card_layout.addLayout(recent_logs_card_header_layout)
+        
+        recent_logs_and_active_clients_container.addWidget(recent_logs_card)
+
+        active_clients_card = QFrame()
+        active_clients_card.setObjectName("active_clients_card")
+        active_clients_card.setStyleSheet("""
+            QFrame#active_clients_card {
+                background-color: #111827;
+                border: 1px solid #23304a;
+                border-radius: 7px;
+            }
+        """)
+        active_clients_card_layout = QVBoxLayout(active_clients_card)
+
+        active_clients_card_header_layout = QHBoxLayout()
+
+        active_clients_label = QLabel("Active Clients")
+
+        view_all_clients_label = QLabel("View all clients >")
+
+        active_clients_card_header_layout.addWidget(active_clients_label)
+        active_clients_card_header_layout.addStretch()
+        active_clients_card_header_layout.addWidget(view_all_clients_label)
+
+        active_clients_card_layout.addLayout(active_clients_card_header_layout)
+
+        recent_logs_and_active_clients_container.addWidget(active_clients_card)
+
         ssl_box = QGroupBox("SSL Certificate Files")
         ssl_box_layout = QVBoxLayout()
         certificate_file_layout = QHBoxLayout()
@@ -336,6 +384,7 @@ class MainUi(QWidget):
 
         layout.addLayout(cards_layout)
         layout.addLayout(server_statistics_and_resources_container)
+        layout.addLayout(recent_logs_and_active_clients_container)
         layout.addWidget(ssl_box)
         layout.addWidget(databases_box)
         layout.addWidget(server_control_box)
@@ -398,7 +447,6 @@ class MainUi(QWidget):
     def update_server_resource_values(self):
         self.cpu_usage, self.ram_usage = resouce_statistic()
         self.incoming, self.outgoing = self.chat_server.update_network_statistics()
-        print(self.recv_speed)
 
         self.cpu_percentage_card.set_value(f"{self.cpu_usage}%")
         self.ram_usage_card.set_value(f"{self.ram_usage}MB")
