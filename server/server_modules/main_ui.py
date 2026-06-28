@@ -22,6 +22,7 @@ class MainUi(QWidget):
         self.tray = TrayManager(self)
         self.chat_server = ChatServer()
         self.chat_server.uptime_signal.connect(self.update_timer)
+        self.chat_server.first_clients_signal.connect(self.refresh_first_clients)
         self.local_file = local_data_file()
         image_path = file_root()
         self.files = files_check()
@@ -288,7 +289,7 @@ class MainUi(QWidget):
                 border-radius: 7px;
             }
         """)
-        active_clients_card_layout = QVBoxLayout(active_clients_card)
+        self.active_clients_card_layout = QVBoxLayout(active_clients_card)
 
         active_clients_card_header_layout = QHBoxLayout()
 
@@ -300,7 +301,7 @@ class MainUi(QWidget):
         active_clients_card_header_layout.addStretch()
         active_clients_card_header_layout.addWidget(view_all_clients_label)
 
-        active_clients_card_layout.addLayout(active_clients_card_header_layout)
+        self.active_clients_card_layout.addLayout(active_clients_card_header_layout)
 
         recent_logs_and_active_clients_container.addWidget(active_clients_card)
 
@@ -453,6 +454,11 @@ class MainUi(QWidget):
         self.incoming_card.set_value(f"{self.incoming}KB/s")
         self.outgoing_card.set_value(f"{self.outgoing}KB/s")
 
+    def refresh_first_clients(self, clients):
+        for client in clients:
+            row = ActiveClient(client)
+            self.active_clients_card_layout.addWidget(row)
+
 class StatCard(QFrame):
     def __init__(self, title, value):
         super().__init__()
@@ -494,3 +500,14 @@ class StatCard(QFrame):
     
     def set_value(self, value):
         self.value_label.setText(value)
+
+class ActiveClient(QWidget):
+    def __init__(self, username):
+        super().__init__()
+
+        layout = QHBoxLayout(self)
+
+        username_label = QLabel(username)
+
+        layout.addWidget(username_label)
+        layout.addStretch()

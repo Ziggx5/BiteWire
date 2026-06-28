@@ -62,6 +62,7 @@ class ChatServer(QObject):
     uptime_signal = Signal(int, int, int)
     client_count_signal = Signal(str)
     message_count_signal = Signal(str)
+    first_clients_signal = Signal(list)
 
     def __init__(self):
         super().__init__()
@@ -317,12 +318,14 @@ class ChatServer(QObject):
                 self.clients.remove(client)
         self.send_users_list_all_clients()
         self.get_client_count()
+        self.get_first_clients(client)
 
     def add_client(self, client):
         with self.clients_lock:
             if client not in self.clients:
                 self.clients.append(client)
                 self.get_client_count()
+                self.get_first_clients(client)
 
     def disconnect_all_clients(self):
         self.broadcast({"type": "server_status", "status": "Server has been closed."})
@@ -343,6 +346,7 @@ class ChatServer(QObject):
                 pass
         
         self.get_client_count()
+        self.get_first_clients(client)
 
     def broadcast(self, message):
         with self.clients_lock:
@@ -517,3 +521,11 @@ class ChatServer(QObject):
         self.last_sent = sent_now
 
         return recv_speed, sent_speed
+
+    def get_first_clients(self, client):
+        first_clients = []
+
+        for client in self.clients[:5]:
+            first_clients.append(client.username)
+
+        self.first_clients_signal.emit(first_clients)
