@@ -63,6 +63,7 @@ class ChatServer(QObject):
     client_count_signal = Signal(str)
     message_count_signal = Signal(str)
     first_clients_signal = Signal(list)
+    active_clients_count_signal = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -318,15 +319,13 @@ class ChatServer(QObject):
                 self.clients.remove(client)
         self.send_users_list_all_clients()
         self.send_profile_picture()
-        self.get_client_count()
-        self.get_first_clients(client)
+        self.get_active_clients_info()
 
     def add_client(self, client):
         with self.clients_lock:
             if client not in self.clients:
                 self.clients.append(client)
-                self.get_client_count()
-                self.get_first_clients(client)
+                self.get_active_clients_info()
 
     def disconnect_all_clients(self):
         self.broadcast({"type": "server_status", "status": "Server has been closed."})
@@ -346,8 +345,7 @@ class ChatServer(QObject):
             except:
                 pass
         
-        self.get_client_count()
-        self.get_first_clients(client)
+        self.get_active_clients_info()
 
     def broadcast(self, message):
         with self.clients_lock:
@@ -497,7 +495,13 @@ class ChatServer(QObject):
             pass
 
     def get_client_count(self):
-        self.client_count_signal.emit(str(len(self.clients)))
+        conn = sqlite3.connect(self.users_database_path)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT (*) FROM users")
+
+        result = cursor.fetchone()[0]
+        self.client_count_signal.emit(str(result))
 
     def get_message_count(self):
         conn = sqlite3.connect(self.messages_database_path)
@@ -523,10 +527,11 @@ class ChatServer(QObject):
 
         return recv_speed, sent_speed
 
-    def get_first_clients(self, client):
+    def get_active_clients_info(self):
         first_clients = []
 
         for client in self.clients[:5]:
             first_clients.append(client.username)
 
         self.first_clients_signal.emit(first_clients)
+        self.active_clients_count_signal.emit(str(len(self.clients)))

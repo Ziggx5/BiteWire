@@ -23,6 +23,7 @@ class MainUi(QWidget):
         self.chat_server = ChatServer()
         self.chat_server.uptime_signal.connect(self.update_timer)
         self.chat_server.first_clients_signal.connect(self.refresh_first_clients)
+        self.chat_server.active_clients_count_signal.connect(self.refresh_active_clients_count)
         self.local_file = local_data_file()
         image_path = file_root()
         self.files = files_check()
@@ -40,14 +41,15 @@ class MainUi(QWidget):
         self.resource_timer.start(1000)
 
         self.server_status_card = StatCard("Server Status", "Stopped")
-        self.connected_clients_card = StatCard("Connected Clients", "0")
+        self.total_users_card = StatCard("Total Users", "0")
         self.total_messages_card = StatCard("Total Messages", "0")
         self.server_uptime_card = StatCard("Uptime", "00:00:00")
 
-        self.chat_server.client_count_signal.connect(self.connected_clients_card.set_value)
+        self.chat_server.client_count_signal.connect(self.total_users_card.set_value)
         self.chat_server.message_count_signal.connect(self.total_messages_card.set_value)
 
         self.chat_server.get_message_count()
+        self.chat_server.get_client_count()
 
         layout = QVBoxLayout(self)
 
@@ -55,7 +57,7 @@ class MainUi(QWidget):
 
         cards_layout.addWidget(self.server_status_card)
         cards_layout.addSpacing(5)
-        cards_layout.addWidget(self.connected_clients_card)
+        cards_layout.addWidget(self.total_users_card)
         cards_layout.addSpacing(5)
         cards_layout.addWidget(self.total_messages_card)
         cards_layout.addSpacing(5)
@@ -295,11 +297,11 @@ class MainUi(QWidget):
 
         active_clients_card_header_layout = QHBoxLayout()
 
-        active_clients_label = QLabel("Active Clients")
+        self.active_clients_label = QLabel("Active Clients (0)")
 
         view_all_clients_label = QLabel("View all clients >")
 
-        active_clients_card_header_layout.addWidget(active_clients_label)
+        active_clients_card_header_layout.addWidget(self.active_clients_label)
         active_clients_card_header_layout.addStretch()
         active_clients_card_header_layout.addWidget(view_all_clients_label)
 
@@ -466,6 +468,9 @@ class MainUi(QWidget):
         for client in clients:
             row = ActiveClient(client)
             self.active_clients_card_first_clients_layout.addWidget(row)
+    
+    def refresh_active_clients_count(self, clients_count):
+        self.active_clients_label.setText(f"Active Clients ({clients_count})")
 
 class StatCard(QFrame):
     def __init__(self, title, value):
