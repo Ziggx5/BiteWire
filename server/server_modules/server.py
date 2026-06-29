@@ -204,7 +204,7 @@ class ChatServer(QObject):
                 client.send({"type": "login", "status": "ok"})
                 self.add_client(client)
                 self.send_users_list_all_clients()
-                self.send_profile_picture(client)
+                self.send_profile_picture()
                 self.send_message_history(client)
             else:
                 client.send({"type": "login", "status": "fail"})
@@ -317,6 +317,7 @@ class ChatServer(QObject):
             if client in self.clients:
                 self.clients.remove(client)
         self.send_users_list_all_clients()
+        self.send_profile_picture()
         self.get_client_count()
         self.get_first_clients(client)
 
@@ -463,7 +464,7 @@ class ChatServer(QObject):
             
             client.send({"type": "first_message_history", "content": messages})
 
-    def send_profile_picture(self, client):
+    def send_profile_picture(self):
         data = []
         conn = sqlite3.connect(self.users_database_path)
         cursor = conn.cursor()
@@ -482,7 +483,7 @@ class ChatServer(QObject):
 
             data.append({"username": username, "image_bytes": encoded_image_bytes})
 
-        client.send({"type": "profile_picture_data", "content": data})
+        self.broadcast({"type": "profile_picture_data", "content": data})
 
     def safe_client_close(self, client):
         try:

@@ -289,7 +289,9 @@ class MainUi(QWidget):
                 border-radius: 7px;
             }
         """)
-        self.active_clients_card_layout = QVBoxLayout(active_clients_card)
+        active_clients_card_layout = QVBoxLayout(active_clients_card)
+
+        self.active_clients_card_first_clients_layout = QVBoxLayout()
 
         active_clients_card_header_layout = QHBoxLayout()
 
@@ -301,7 +303,8 @@ class MainUi(QWidget):
         active_clients_card_header_layout.addStretch()
         active_clients_card_header_layout.addWidget(view_all_clients_label)
 
-        self.active_clients_card_layout.addLayout(active_clients_card_header_layout)
+        active_clients_card_layout.addLayout(active_clients_card_header_layout)
+        active_clients_card_layout.addLayout(self.active_clients_card_first_clients_layout)
 
         recent_logs_and_active_clients_container.addWidget(active_clients_card)
 
@@ -455,9 +458,14 @@ class MainUi(QWidget):
         self.outgoing_card.set_value(f"{self.outgoing}KB/s")
 
     def refresh_first_clients(self, clients):
+        while self.active_clients_card_first_clients_layout.count():
+            item = self.active_clients_card_first_clients_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
         for client in clients:
             row = ActiveClient(client)
-            self.active_clients_card_layout.addWidget(row)
+            self.active_clients_card_first_clients_layout.addWidget(row)
 
 class StatCard(QFrame):
     def __init__(self, title, value):
