@@ -4,19 +4,21 @@ from packaging import version
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-import markdown
+import platform
 
 class UpdateChecker(QWidget):
     update_found = Signal(str)
 
     def __init__(self, image_path, on_cancel):
         super().__init__()
-        self.current_release = "2.0.0"
+        self.current_release = "2.1.0"
         self.url = "https://api.github.com/repos/Ziggx5/BiteWire/releases"
         self.on_cancel = on_cancel
 
         self.setFixedSize(650, 550)
         self.setStyleSheet("background-color: transparent;")
+
+        self.detect_os()
 
         update_page_layout = QVBoxLayout(self)
         header_page_horizontal_layout = QHBoxLayout()
@@ -99,16 +101,15 @@ class UpdateChecker(QWidget):
         scroll_layout = QVBoxLayout(scroll_content)
         scroll_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.description = QLabel()
-        self.description.setWordWrap(True)
+        self.description = QTextBrowser()
+        self.description.setReadOnly(True)
         self.description.setContentsMargins(0, 0, 0, 0)
         self.description.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.description.setStyleSheet("""
-            QLabel {
+            QTextBrowser {
                 font-size: 15px;
                 color: #c9d1d9;
                 padding: 10px;
-                line-height: 22px;
             }
         """)
 
@@ -188,10 +189,18 @@ class UpdateChecker(QWidget):
                         latest_release = split_release
                         self.update_found.emit(latest_release)
                         self.new_version_label.setText(f"Version {latest_release}")
-                        html = markdown.markdown(release["body"])
-                        self.description.setText(html)
+                        self.description.setMarkdown(release["body"])
                         break
             return None
 
         except:
             return None
+
+    def detect_os(self):
+        if platform.system() == "Windows":
+            return "windows"
+        else:
+            if os.path.exists("/usr/bin/apt"):
+                return "debian"
+            else:
+                return "rpm"

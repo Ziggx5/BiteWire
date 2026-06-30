@@ -29,7 +29,7 @@ class LoadingScreen(QWidget):
 
         lower_layout = QHBoxLayout()
 
-        version_label = QLabel("Version 2.0.0")
+        version_label = QLabel("Version 2.1.0")
         version_label.setStyleSheet("color: #a5a8ad; font: 10px;")
         creator_label = QLabel("Created by Ziggx5")
         creator_label.setStyleSheet("color: #a5a8ad; font: 10px;")
