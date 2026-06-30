@@ -9,7 +9,7 @@
 BiteWire is a simple, secure chat application that allows users to connect to hosted servers, communicate in real-time, and manage their own server through a dedicated server application.
 
 ---
-<img width="2050" height="1166" alt="screenshot" src="https://github.com/user-attachments/assets/abec2d8b-abb1-4357-9c89-6875320c8f81" />
+<img width="1920" height="1036" alt="image" src="https://github.com/user-attachments/assets/43279c64-fff7-46ce-b6f7-325fdc7ca8e1" />
 
 ## ⚙️ Server Setup
 
@@ -45,7 +45,7 @@ Make sure port ```50505``` is open on your router.
 - for local (LAN) usage, this step is not required
 - for external connections, port forwarding is necessary
 
-<img width="400" height="528" alt="image" src="https://github.com/user-attachments/assets/a6d447a6-9307-47f1-b0c1-800be08dec52" />
+<img width="830" height="858" alt="image" src="https://github.com/user-attachments/assets/bea6526c-7a21-4fca-8b37-bc390666f2e0" />
 
 ## 📦 Downloads
 
@@ -57,16 +57,16 @@ Make sure port ```50505``` is open on your router.
     <th>Red Hat (.rpm)</th>
   </tr>
   <tr>
-    <td>BiteWire 2.0.0</td>
-    <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/c2.0.0/BiteWire.exe">⬇️ Download</a></td>
-    <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/c2.0.0/bitewire_2.0.0_amd64.deb">⬇️ Download</a></td>
-      <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/c2.0.0/bitewire-2.0.0-1.x86_64.rpm">⬇️ Download</a></td>
+    <td>BiteWire 2.1.0</td>
+    <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/c2.1.0/BiteWire.exe">⬇️ Download</a></td>
+    <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/c2.1.0/bitewire_2.1.0_amd64.deb">⬇️ Download</a></td>
+      <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/c2.1.0/bitewire-2.1.0-1.x86_64.rpm">⬇️ Download</a></td>
   </tr>
   <tr>
-  <td>BiteWire Server 1.8.0</td>
-  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/s1.8.0/BiteWire.Server.exe">⬇️ Download</a></td>
-  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/s1.8.0/bitewire-server_1.8.0_amd64.deb">⬇️ Download</a></td>
-  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/s1.8.0/bitewire-server-1.8.0-1.x86_64.rpm">⬇️ Download</a></td>
+  <td>BiteWire Server 2.0.0</td>
+  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/s2.0.0/BiteWire.Server.exe">⬇️ Download</a></td>
+  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/s2.0.0/bitewire-server_2.0.0_amd64.deb">⬇️ Download</a></td>
+  <td><a href = "https://github.com/Ziggx5/BiteWire/releases/download/s2.0.0/bitewire-server-2.0.0-1.x86_64.rpm">⬇️ Download</a></td>
   </tr>
 </table>
 
