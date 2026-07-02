@@ -342,6 +342,7 @@ class ServerButton(QFrame):
         """)
 
         layout = QHBoxLayout(self)
+        vertical_layout = QVBoxLayout()
 
         image = QLabel()
         image.setFixedSize(40, 40)
@@ -366,37 +367,45 @@ class ServerButton(QFrame):
         self.label.setFixedWidth(180)
         self.label.setStyleSheet("""
             QLabel {
-                color: #a5a8ad;
+                color: white;
                 border: none;
                 background: transparent;
                 font-size: 15px;
             }
         """)
 
-        self.resize_server_name()
-
-        self.delete_button = QPushButton("X")
-        self.delete_button.setFixedSize(20, 20)
-        self.delete_button.setVisible(False)
-        self.delete_button.setStyleSheet("""
-            QPushButton {
+        users_count = QLabel("0 Members")
+        users_count.setStyleSheet("""
+            QLabel{
+                color: #a5a8ad;
                 border: none;
-                color: #8c8c8c;
                 background: transparent;
-            }
-
-            QPushButton:hover {
-                color: #bababa;
+                font-size: 10px;
             }
         """)
 
+        self.resize_server_name()
+
+        self.active_server_pointer = QLabel(">")
+        self.active_server_pointer.setFixedSize(20, 20)
+        self.active_server_pointer.setVisible(False)
+        self.active_server_pointer.setStyleSheet("""
+            QLabel{
+                border: none;
+                color: white;
+                background: transparent;
+            }
+        """)
+
+        vertical_layout.addWidget(self.label)
+        vertical_layout.addWidget(users_count)
+
         layout.addWidget(image)
-        layout.addWidget(self.label)
+        layout.addLayout(vertical_layout)
         layout.addStretch()
-        layout.addWidget(self.delete_button)
+        layout.addWidget(self.active_server_pointer)
 
         self.mousePressEvent = self.frame_clicked
-        self.delete_button.clicked.connect(self.delete_button_clicked)
     
     def resize_server_name(self):
         metrics = QFontMetrics(self.label.font())
@@ -406,18 +415,10 @@ class ServerButton(QFrame):
     def frame_clicked(self, event):
         self.on_click(self)
 
-    def delete_button_clicked(self):
-        self.on_delete(self)
-
-    def enterEvent(self, event):
-        self.delete_button.setVisible(True)
-
-    def leaveEvent(self, event):
-        self.delete_button.setVisible(False)
-
     def connected_server(self):
         self.setProperty("current_server", True)
         self.setEnabled(False)
+        self.active_server_pointer.setVisible(True)
 
 class CustomTitleBar(QWidget):
     def __init__(self, parent):
