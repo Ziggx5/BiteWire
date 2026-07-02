@@ -323,7 +323,7 @@ class ServerButton(QFrame):
         self.on_click = on_click
         self.on_delete = on_delete
 
-        self.setFixedHeight(40)
+        self.setFixedHeight(60)
         self.setCursor(Qt.PointingHandCursor)
         self.setStyleSheet("""
             QFrame {
@@ -342,6 +342,25 @@ class ServerButton(QFrame):
         """)
 
         layout = QHBoxLayout(self)
+
+        image = QLabel()
+        image.setFixedSize(40, 40)
+        pixmap = QPixmap(f"{file_root()}/user_picture_placeholder.png").scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+        rounded_image = QPixmap(40, 40)
+        rounded_image.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(rounded_image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+
+        path = QPainterPath()
+        path.addEllipse(0, 0, 40, 40)
+
+        painter.setClipPath(path)
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
+
+        image.setPixmap(rounded_image)
 
         self.label = QLabel()
         self.label.setFixedWidth(180)
@@ -371,6 +390,7 @@ class ServerButton(QFrame):
             }
         """)
 
+        layout.addWidget(image)
         layout.addWidget(self.label)
         layout.addStretch()
         layout.addWidget(self.delete_button)
