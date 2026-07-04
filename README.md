@@ -1,5 +1,5 @@
 # 💬 BiteWire
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey)
 ![Downloads](https://img.shields.io/github/downloads/Ziggx5/BiteWire/total)
