@@ -207,6 +207,7 @@ class ChatServer(QObject):
                 self.send_users_list_all_clients()
                 self.send_profile_picture()
                 self.send_message_history(client)
+                self.send_client_count()
             else:
                 client.send({"type": "login", "status": "fail"})
         
@@ -502,6 +503,16 @@ class ChatServer(QObject):
 
         result = cursor.fetchone()[0]
         self.client_count_signal.emit(str(result))
+
+    def send_client_count(self):
+        conn = sqlite3.connect(self.users_database_path)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT (*) FROM users")
+
+        result = cursor.fetchone()[0]
+
+        self.broadcast({"type": "users_count", "content": str(result)})
 
     def get_message_count(self):
         conn = sqlite3.connect(self.messages_database_path)
