@@ -3,7 +3,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 import base64
 from client_modules.add_server_ui import AddServerUi
-from client_modules.data_manipulation import delete_server, server_loader
+from client_modules.data_manipulation import server_loader
 from client_modules.networking import ChatHandler
 from client_modules.tray_manager import TrayManager
 from client_modules.path_finder import file_root
@@ -57,8 +57,10 @@ class MainUi(QWidget):
         self.update_checker.update_found.connect(self.update_button_updater)
         self.profile_cache.profile_picture.connect(self.chat_ui.update_profile_pictures)
         self.chat_ui.own_profile_picture.connect(self.update_own_profile_picture)
+        self.chat_handler.users_count_signal.connect(self.update_users_count)
 
         self.current_server_ip = None
+        self.server_buttons = {}
 
         self.overlay = QWidget(self)
         self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
@@ -253,8 +255,10 @@ class MainUi(QWidget):
                 widget.deleteLater()
 
         server_list = server_loader()
+        self.server_buttons.clear()
         for server in server_list:
-            server_button = ServerButton(server["name"], server["ip_address"], self.login_page_popup, self.server_delete_data)
+            server_button = ServerButton(server["name"], server["ip_address"], self.login_page_popup)
+            self.server_buttons[server["ip_address"]] = server_button
             if server['ip_address'] == self.current_server_ip:
                 server_button.connected_server()
             self.server_layout.addWidget(server_button)
@@ -278,11 +282,6 @@ class MainUi(QWidget):
 
         self.main_layout_horizontal.addWidget(self.chat_ui)
         self.chat_ui.show()
-
-    def server_delete_data(self, item):
-        self.server_address = item.ip
-        delete_server(self.server_address)
-        self.reload_servers()
 
     def show_popup(self, widget):
         while self.popup_background_container_layout.count():
@@ -313,15 +312,19 @@ class MainUi(QWidget):
     def clear_chat_widget(self):
         self.chat_ui.hide()
         self.main_layout_horizontal.removeWidget(self.chat_ui)
+    
+    def update_users_count(self, value):
+        button = self.server_buttons.get(self.current_server_ip)
+
+        button.set_users_value(value)
 
 class ServerButton(QFrame):
-    def __init__(self, name, ip, on_click, on_delete):
+    def __init__(self, name, ip, on_click):
         super().__init__()
 
         self.name = name
         self.ip = ip
         self.on_click = on_click
-        self.on_delete = on_delete
 
         self.setFixedHeight(60)
         self.setCursor(Qt.PointingHandCursor)
@@ -374,8 +377,8 @@ class ServerButton(QFrame):
             }
         """)
 
-        users_count = QLabel("0 Members")
-        users_count.setStyleSheet("""
+        self.users_count = QLabel("0 Members")
+        self.users_count.setStyleSheet("""
             QLabel{
                 color: #a5a8ad;
                 border: none;
@@ -398,7 +401,7 @@ class ServerButton(QFrame):
         """)
 
         vertical_layout.addWidget(self.label)
-        vertical_layout.addWidget(users_count)
+        vertical_layout.addWidget(self.users_count)
 
         layout.addWidget(image)
         layout.addLayout(vertical_layout)
@@ -419,6 +422,9 @@ class ServerButton(QFrame):
         self.setProperty("current_server", True)
         self.setEnabled(False)
         self.active_server_pointer.setVisible(True)
+
+    def set_users_value(self, value):
+        self.users_count.setText(f"{value} members")
 
 class CustomTitleBar(QWidget):
     def __init__(self, parent):

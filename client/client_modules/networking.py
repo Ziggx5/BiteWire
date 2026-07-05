@@ -11,6 +11,7 @@ class ChatHandler(QObject):
     first_history_message_received = Signal(str, str, str, int)
     users_received = Signal(list)
     server_status = Signal(str)
+    users_count_signal = Signal(str)
 
     def __init__(self, profile_cache = None):
         super().__init__()
@@ -51,7 +52,7 @@ class ChatHandler(QObject):
         length = struct.unpack("!I", raw_length)[0]
 
         data = self.recvall(length)
-
+        
         if not data:
             return None
 
@@ -95,6 +96,10 @@ class ChatHandler(QObject):
                     
                 elif message_type == "profile_picture_data":
                     self.profile_cache.save(message['content'])
+                
+                elif message_type == "users_count":
+                    self.users_count_signal.emit(message['content'])
+
 
             except socket.timeout:
                 continue
