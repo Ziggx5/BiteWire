@@ -493,3 +493,13 @@ class CustomTitleBar(QWidget):
             self.parent.showNormal()
         else:
             self.parent.showMaximized()
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.toggle_maximize()
+    
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            handle = self.window().windowHandle()
+            if handle:
+                handle.startSystemMove()
