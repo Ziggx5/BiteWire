@@ -18,13 +18,14 @@ class MainUi(QWidget):
                 background-color : #0e1117;
             }
         """)
-        self.setFixedSize(700, 700)
+        self.setFixedSize(900, 700)
         self.tray = TrayManager(self)
         self.chat_server = ChatServer()
         self.chat_server.uptime_signal.connect(self.update_timer)
         self.chat_server.first_clients_signal.connect(self.refresh_first_clients)
         self.chat_server.active_clients_count_signal.connect(self.refresh_active_clients_count)
         self.local_file = local_data_file()
+
         image_path = file_root()
         self.files = files_check()
         expiry_date, remaining_days, cert_issued, cert_status = validate_certificate()
@@ -51,7 +52,12 @@ class MainUi(QWidget):
         self.chat_server.get_message_count()
         self.chat_server.get_client_count()
 
-        layout = QVBoxLayout(self)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        main_screen_layout = QVBoxLayout()
+        main_screen_layout.setContentsMargins(10, 10, 10, 10)
 
         cards_layout = QHBoxLayout()
 
@@ -279,7 +285,7 @@ class MainUi(QWidget):
         recent_logs_card_header_layout.addWidget(view_all_logs_label)
 
         recent_logs_card_layout.addLayout(recent_logs_card_header_layout)
-        
+
         recent_logs_and_active_clients_container.addWidget(recent_logs_card)
 
         active_clients_card = QFrame()
@@ -388,13 +394,13 @@ class MainUi(QWidget):
 
         server_control_box.setLayout(server_control_box_layout)
 
-        layout.addLayout(cards_layout)
-        layout.addLayout(server_statistics_and_resources_container)
-        layout.addLayout(recent_logs_and_active_clients_container)
-        layout.addWidget(ssl_box)
-        layout.addWidget(databases_box)
-        layout.addWidget(server_control_box)
-        layout.addLayout(server_folder_layout)
+        main_screen_layout.addLayout(cards_layout)
+        main_screen_layout.addLayout(server_statistics_and_resources_container)
+        main_screen_layout.addLayout(recent_logs_and_active_clients_container)
+        main_screen_layout.addWidget(ssl_box)
+        main_screen_layout.addWidget(databases_box)
+        main_screen_layout.addWidget(server_control_box)
+        main_screen_layout.addLayout(server_folder_layout)
 
         self.certificate_file_input.setEnabled(False)
         self.key_file_input.setEnabled(False)
@@ -402,6 +408,28 @@ class MainUi(QWidget):
         self.messages_database_file_input.setEnabled(False)
 
         self.fill_inputs(self.files)
+
+        sidebar = QFrame()
+        sidebar.setFixedWidth(200)
+        sidebar.setStyleSheet("""
+        QFrame{
+            background-color: #111827;
+            border-right: 1px solid #23304a;
+            }
+        """)
+        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar_layout.setContentsMargins(5, 10, 5, 10)
+        sidebar_layout.setSpacing(5)
+
+        sidebar_layout.addWidget(SideButtons("Dashboard", f"{image_path}/home.png"))
+        sidebar_layout.addWidget(SideButtons("Users", f"{image_path}/users.png"))
+        sidebar_layout.addWidget(SideButtons("Logs", f"{image_path}/logs.png"))
+        sidebar_layout.addWidget(SideButtons("Settings", f"{image_path}/settings.png"))
+        sidebar_layout.addStretch()
+        sidebar_layout.addWidget(SideButtons("About", f"{image_path}/about.png"))
+
+        layout.addWidget(sidebar)
+        layout.addLayout(main_screen_layout)
 
     def fill_inputs(self, files):
         for file_path in files:
@@ -413,7 +441,7 @@ class MainUi(QWidget):
 
             elif file_path.endswith("users.db"):
                 self.users_database_file_input.setText(file_path)
-                
+
             elif file_path.endswith("messages.db"):
                 self.messages_database_file_input.setText(file_path)
 
@@ -438,11 +466,11 @@ class MainUi(QWidget):
         self.tray.set_server_status("Stopped")
 
         self.update_timer(0, 0, 0)
-    
+
     def update_timer(self, hours, minutes, seconds):
         self.server_uptime_card.set_value(f"{hours:02}:{minutes:02}:{seconds:02}")
         self.tray.set_server_uptime(hours, minutes, seconds)
-        
+
     def closeEvent(self, event):
         event.ignore()
         self.hide()
@@ -468,7 +496,7 @@ class MainUi(QWidget):
         for client in clients:
             row = ActiveClient(client)
             self.active_clients_card_first_clients_layout.addWidget(row)
-    
+
     def refresh_active_clients_count(self, clients_count):
         self.active_clients_label.setText(f"Active Clients ({clients_count})")
 
@@ -510,7 +538,7 @@ class StatCard(QFrame):
         layout.addWidget(title_label)
         layout.addWidget(self.value_label)
         layout.addStretch()
-    
+
     def set_value(self, value):
         self.value_label.setText(value)
 
@@ -524,3 +552,46 @@ class ActiveClient(QWidget):
 
         layout.addWidget(username_label)
         layout.addStretch()
+
+class SideButtons(QPushButton):
+    def __init__(self, text, icon):
+        super().__init__()
+
+        self.icon = icon
+        self.text = text
+
+        self.setFixedHeight(40)
+
+        self.setStyleSheet("""
+        QWidget {
+            background: transparent;
+            border: 3px solid transparent;
+            border-radius: 10px;
+            color: #9ca3af;
+            }
+            
+        QWidget:hover {
+            background: #1b2535;
+            color: white;
+            }
+        """)
+
+        layout = QHBoxLayout(self)
+        layout.setSpacing(10)
+        layout.setContentsMargins(10, 0, 10, 0)
+
+        icon = QLabel()
+        icon.setPixmap(QPixmap(self.icon).scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation))
+        icon.setFixedSize(30, 30)
+
+        label = QLabel(self.text)
+        label.setStyleSheet("""
+        QLabel {
+            color: #d1d5db;
+            font-size: 14px;
+            font-weight: 500;
+            }
+        """)
+
+        layout.addWidget(icon)
+        layout.addWidget(label)
