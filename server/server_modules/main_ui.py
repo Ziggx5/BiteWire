@@ -25,6 +25,7 @@ class MainUi(QWidget):
         self.chat_server.first_clients_signal.connect(self.refresh_first_clients)
         self.chat_server.active_clients_count_signal.connect(self.refresh_active_clients_count)
         self.local_file = local_data_file()
+        self.settings_page = SettingsPage()
 
         image_path = file_root()
         self.files = files_check()
@@ -41,6 +42,8 @@ class MainUi(QWidget):
         self.resource_timer.timeout.connect(self.update_server_resource_values)
         self.resource_timer.start(1000)
 
+        self.stack = QStackedLayout()
+
         self.server_status_card = StatCard("Server Status", "Stopped")
         self.total_users_card = StatCard("Total Users", "0")
         self.total_messages_card = StatCard("Total Messages", "0")
@@ -56,8 +59,17 @@ class MainUi(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        main_screen_layout = QVBoxLayout()
+        main_screen = QWidget()
+        main_screen_layout = QVBoxLayout(main_screen)
         main_screen_layout.setContentsMargins(10, 10, 10, 10)
+
+        dashboard_button = SideButtons("Dashboard", f"{image_path}/home.png")
+        dashboard_button.clicked.connect(lambda: self.stack.setCurrentWidget(main_screen))
+        users_button = SideButtons("Users", f"{image_path}/users.png")
+        logs_button = SideButtons("Logs", f"{image_path}/logs.png")
+        settings_button = SideButtons("Settings", f"{image_path}/settings.png")
+        settings_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.settings_page))
+        about_button = SideButtons("About", f"{image_path}/about.png")
 
         cards_layout = QHBoxLayout()
 
@@ -421,15 +433,19 @@ class MainUi(QWidget):
         sidebar_layout.setContentsMargins(5, 10, 5, 10)
         sidebar_layout.setSpacing(5)
 
-        sidebar_layout.addWidget(SideButtons("Dashboard", f"{image_path}/home.png"))
-        sidebar_layout.addWidget(SideButtons("Users", f"{image_path}/users.png"))
-        sidebar_layout.addWidget(SideButtons("Logs", f"{image_path}/logs.png"))
-        sidebar_layout.addWidget(SideButtons("Settings", f"{image_path}/settings.png"))
+        sidebar_layout.addWidget(dashboard_button)
+        sidebar_layout.addWidget(users_button)
+        sidebar_layout.addWidget(logs_button)
+        sidebar_layout.addWidget(settings_button)
         sidebar_layout.addStretch()
-        sidebar_layout.addWidget(SideButtons("About", f"{image_path}/about.png"))
+        sidebar_layout.addWidget(about_button)
+
+        self.stack.addWidget(main_screen)
+        self.stack.addWidget(self.settings_page)
+        self.stack.setCurrentWidget(main_screen)
 
         layout.addWidget(sidebar)
-        layout.addLayout(main_screen_layout)
+        layout.addLayout(self.stack)
 
     def fill_inputs(self, files):
         for file_path in files:
@@ -595,3 +611,43 @@ class SideButtons(QPushButton):
 
         layout.addWidget(icon)
         layout.addWidget(label)
+
+class SettingsPage(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        layout = QVBoxLayout(self)
+
+        server_files_label = QLabel("Server Files")
+        server_files_label.setStyleSheet("""
+        QLabel {
+            color: #d1d5db;
+            font-size: 14px;
+            font-weight: 500;
+            }
+        """)
+
+        certificate_file_label = QLabel("Certificate file:")
+        self.certificate_file_input = QLineEdit()
+        self.certificate_file_input.setEnabled(False)
+
+        key_file_label = QLabel("Key file:")
+        self.key_file_input = QLineEdit()
+        self.key_file_input.setEnabled(False)
+
+        users_database_file_label = QLabel("Users database file:")
+        self.users_database_file_input = QLineEdit()
+        self.users_database_file_input.setEnabled(False)
+
+        messages_database_file_label = QLabel("Messages database file:")
+        self.messages_database_file_input = QLineEdit()
+        self.messages_database_file_input.setEnabled(False)
+
+        layout.addWidget(server_files_label)
+        layout.addWidget(self.certificate_file_input)
+        layout.addWidget(key_file_label)
+        layout.addWidget(self.key_file_input)
+        layout.addWidget(users_database_file_label)
+        layout.addWidget(self.users_database_file_input)
+        layout.addWidget(messages_database_file_label)
+        layout.addWidget(self.messages_database_file_input)
