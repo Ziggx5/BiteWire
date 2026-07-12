@@ -25,10 +25,11 @@ class MainUi(QWidget):
         self.chat_server.first_clients_signal.connect(self.refresh_first_clients)
         self.chat_server.active_clients_count_signal.connect(self.refresh_active_clients_count)
         self.local_file = local_data_file()
-        self.settings_page = SettingsPage()
+        self.settings_page = SettingsPage(self.local_file)
 
         image_path = file_root()
         self.files = files_check()
+        self.settings_page.fill_inputs(self.files)
         expiry_date, remaining_days, cert_issued, cert_status = validate_certificate()
 
         self.cpu_usage = "0"
@@ -328,33 +329,9 @@ class MainUi(QWidget):
 
         recent_logs_and_active_clients_container.addWidget(active_clients_card)
 
-        ssl_box = QGroupBox("SSL Certificate Files")
-        ssl_box_layout = QVBoxLayout()
-        certificate_file_layout = QHBoxLayout()
-        key_file_layout = QHBoxLayout()
-
-        databases_box = QGroupBox("Database files")
-        database_files_layout = QVBoxLayout()
-        users_database_layout = QHBoxLayout()
-        messages_database_layout = QHBoxLayout()
-
         server_control_box = QGroupBox()
         server_control_box_layout = QVBoxLayout()
         server_buttons_layout = QHBoxLayout()
-
-        server_folder_layout = QHBoxLayout()
-
-        certificate_file_label = QLabel("Certificate file:")
-        self.certificate_file_input = QLineEdit()
-
-        key_file_label = QLabel("Key file:")
-        self.key_file_input = QLineEdit()
-
-        users_database_file_label = QLabel("Users database file:")
-        self.users_database_file_input = QLineEdit()
-
-        messages_database_file_label = QLabel("Messages database file:")
-        self.messages_database_file_input = QLineEdit()
 
         self.start_server_button = QPushButton("Start Server")
         self.start_server_button.clicked.connect(self.start_server)
@@ -362,64 +339,18 @@ class MainUi(QWidget):
         self.stop_server_button.clicked.connect(self.stop_server)
         self.stop_server_button.setEnabled(False)
 
-        server_status_label = QLabel("Server Status:")
-        self.server_status_state = QLabel("Stopped")
-
-        server_uptime_label = QLabel("Server Uptime")
-        self.server_uptime_time = QLabel("Time")
-
-        server_folder_button = QPushButton()
-        server_folder_button.setIcon(QIcon(f"{image_path}/folder.png"))
-        server_folder_button.setIconSize(QSize(15, 15))
-        server_folder_button.setFixedSize(35, 35)
-        server_folder_button.clicked.connect(self.open_server_folder)
-
-        certificate_file_layout.addWidget(certificate_file_label)
-        certificate_file_layout.addWidget(self.certificate_file_input)
-
-        key_file_layout.addWidget(key_file_label)
-        key_file_layout.addWidget(self.key_file_input)
-
-        ssl_box_layout.addLayout(certificate_file_layout)
-        ssl_box_layout.addLayout(key_file_layout)
-
-        ssl_box.setLayout(ssl_box_layout)
-
-        users_database_layout.addWidget(users_database_file_label)
-        users_database_layout.addWidget(self.users_database_file_input)
-
-        messages_database_layout.addWidget(messages_database_file_label)
-        messages_database_layout.addWidget(self.messages_database_file_input)
-
-        database_files_layout.addLayout(users_database_layout)
-        database_files_layout.addLayout(messages_database_layout)
-
-        databases_box.setLayout(database_files_layout)
-
         server_buttons_layout.addWidget(self.start_server_button)
         server_buttons_layout.addWidget(self.stop_server_button)
 
         server_control_box_layout.addLayout(server_buttons_layout)
-
-        server_folder_layout.addStretch()
-        server_folder_layout.addWidget(server_folder_button)
 
         server_control_box.setLayout(server_control_box_layout)
 
         main_screen_layout.addLayout(cards_layout)
         main_screen_layout.addLayout(server_statistics_and_resources_container)
         main_screen_layout.addLayout(recent_logs_and_active_clients_container)
-        main_screen_layout.addWidget(ssl_box)
-        main_screen_layout.addWidget(databases_box)
+        main_screen_layout.addStretch()
         main_screen_layout.addWidget(server_control_box)
-        main_screen_layout.addLayout(server_folder_layout)
-
-        self.certificate_file_input.setEnabled(False)
-        self.key_file_input.setEnabled(False)
-        self.users_database_file_input.setEnabled(False)
-        self.messages_database_file_input.setEnabled(False)
-
-        self.fill_inputs(self.files)
 
         sidebar = QFrame()
         sidebar.setFixedWidth(200)
@@ -462,8 +393,8 @@ class MainUi(QWidget):
                 self.messages_database_file_input.setText(file_path)
 
     def start_server(self):
-        if not self.certificate_file_input.text() or not self.key_file_input.text():
-            return
+        #if not self.certificate_file_input.text() or not self.key_file_input.text():
+            #return
 
         threading.Thread(target = self.chat_server.start, daemon = True).start()
 
@@ -613,10 +544,11 @@ class SideButtons(QPushButton):
         layout.addWidget(label)
 
 class SettingsPage(QWidget):
-    def __init__(self):
+    def __init__(self, local_files):
         super().__init__()
 
         layout = QVBoxLayout(self)
+        layout.setSpacing(10)
 
         server_files_label = QLabel("Server Files")
         server_files_label.setStyleSheet("""
@@ -643,7 +575,12 @@ class SettingsPage(QWidget):
         self.messages_database_file_input = QLineEdit()
         self.messages_database_file_input.setEnabled(False)
 
+        browse_button = QPushButton("Browse...")
+        browse_button.setFixedWidth(100)
+        browse_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(local_files)))
+
         layout.addWidget(server_files_label)
+        layout.addWidget(certificate_file_label)
         layout.addWidget(self.certificate_file_input)
         layout.addWidget(key_file_label)
         layout.addWidget(self.key_file_input)
@@ -651,3 +588,19 @@ class SettingsPage(QWidget):
         layout.addWidget(self.users_database_file_input)
         layout.addWidget(messages_database_file_label)
         layout.addWidget(self.messages_database_file_input)
+        layout.addWidget(browse_button)
+        layout.addStretch()
+
+    def fill_inputs(self, files):
+        for file_path in files:
+            if file_path.endswith(".crt"):
+                self.certificate_file_input.setText(file_path)
+
+            elif file_path.endswith(".key"):
+                self.key_file_input.setText(file_path)
+
+            elif file_path.endswith("users.db"):
+                self.users_database_file_input.setText(file_path)
+
+            elif file_path.endswith("messages.db"):
+                self.messages_database_file_input.setText(file_path)
