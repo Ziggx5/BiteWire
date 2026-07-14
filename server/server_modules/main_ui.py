@@ -18,16 +18,16 @@ class MainUi(QWidget):
                 background-color : #0e1117;
             }
         """)
-        self.setFixedSize(900, 700)
+        self.setFixedSize(900, 580)
         self.tray = TrayManager(self)
         self.chat_server = ChatServer()
         self.chat_server.uptime_signal.connect(self.update_timer)
         self.chat_server.first_clients_signal.connect(self.refresh_first_clients)
         self.chat_server.active_clients_count_signal.connect(self.refresh_active_clients_count)
         self.local_file = local_data_file()
-        self.settings_page = SettingsPage(self.local_file)
-
         image_path = file_root()
+        self.settings_page = SettingsPage(self.local_file, image_path)
+
         self.files = files_check()
         self.settings_page.fill_inputs(self.files)
         expiry_date, remaining_days, cert_issued, cert_status = validate_certificate()
@@ -278,6 +278,7 @@ class MainUi(QWidget):
 
         recent_logs_card = QFrame()
         recent_logs_card.setObjectName("recent_logs_card")
+        recent_logs_card.setFixedHeight(200)
         recent_logs_card.setStyleSheet("""
             QFrame#recent_logs_card {
                 background-color: #111827;
@@ -286,6 +287,7 @@ class MainUi(QWidget):
             }
         """)
         recent_logs_card_layout = QVBoxLayout(recent_logs_card)
+        recent_logs_card_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         recent_logs_card_header_layout = QHBoxLayout()
 
@@ -299,10 +301,9 @@ class MainUi(QWidget):
 
         recent_logs_card_layout.addLayout(recent_logs_card_header_layout)
 
-        recent_logs_and_active_clients_container.addWidget(recent_logs_card)
-
         active_clients_card = QFrame()
         active_clients_card.setObjectName("active_clients_card")
+        active_clients_card.setFixedHeight(200)
         active_clients_card.setStyleSheet("""
             QFrame#active_clients_card {
                 background-color: #111827;
@@ -311,6 +312,7 @@ class MainUi(QWidget):
             }
         """)
         active_clients_card_layout = QVBoxLayout(active_clients_card)
+        active_clients_card_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.active_clients_card_first_clients_layout = QVBoxLayout()
 
@@ -327,27 +329,46 @@ class MainUi(QWidget):
         active_clients_card_layout.addLayout(active_clients_card_header_layout)
         active_clients_card_layout.addLayout(self.active_clients_card_first_clients_layout)
 
+        recent_logs_and_active_clients_container.addWidget(recent_logs_card)
+        recent_logs_and_active_clients_container.addSpacing(5)
         recent_logs_and_active_clients_container.addWidget(active_clients_card)
 
-        server_control_box = QGroupBox()
-        server_control_box_layout = QVBoxLayout()
-        server_buttons_layout = QHBoxLayout()
+        server_control_box = QFrame()
+        server_buttons_layout = QHBoxLayout(server_control_box)
 
-        self.start_server_button = QPushButton("Start Server")
+        self.start_server_button = QPushButton("Start")
+        self.start_server_button.setFixedSize(80, 30)
+        self.start_server_button.setStyleSheet("""
+            QPushButton {
+                border-radius: 3px;
+                font-size: 13px;
+                font-weight: 600;
+                background-color: #1d64d6;
+            }
+        """)
         self.start_server_button.clicked.connect(self.start_server)
-        self.stop_server_button = QPushButton("Stop Server")
+        self.stop_server_button = QPushButton("Stop")
+        self.stop_server_button.setFixedSize(80, 30)
+        self.stop_server_button.setStyleSheet("""
+            QPushButton {
+                border-radius: 3px;
+                font-size: 13px;
+                font-weight: 600;
+                background-color: gray;
+            }
+        """)
         self.stop_server_button.clicked.connect(self.stop_server)
         self.stop_server_button.setEnabled(False)
 
         server_buttons_layout.addWidget(self.start_server_button)
+        server_buttons_layout.addSpacing(5)
         server_buttons_layout.addWidget(self.stop_server_button)
-
-        server_control_box_layout.addLayout(server_buttons_layout)
-
-        server_control_box.setLayout(server_control_box_layout)
+        server_buttons_layout.addStretch()
 
         main_screen_layout.addLayout(cards_layout)
+        main_screen_layout.addSpacing(10)
         main_screen_layout.addLayout(server_statistics_and_resources_container)
+        main_screen_layout.addSpacing(10)
         main_screen_layout.addLayout(recent_logs_and_active_clients_container)
         main_screen_layout.addStretch()
         main_screen_layout.addWidget(server_control_box)
@@ -377,20 +398,6 @@ class MainUi(QWidget):
 
         layout.addWidget(sidebar)
         layout.addLayout(self.stack)
-
-    def fill_inputs(self, files):
-        for file_path in files:
-            if file_path.endswith(".crt"):
-                self.certificate_file_input.setText(file_path)
-
-            elif file_path.endswith(".key"):
-                self.key_file_input.setText(file_path)
-
-            elif file_path.endswith("users.db"):
-                self.users_database_file_input.setText(file_path)
-
-            elif file_path.endswith("messages.db"):
-                self.messages_database_file_input.setText(file_path)
 
     def start_server(self):
         #if not self.certificate_file_input.text() or not self.key_file_input.text():
@@ -544,20 +551,31 @@ class SideButtons(QPushButton):
         layout.addWidget(label)
 
 class SettingsPage(QWidget):
-    def __init__(self, local_files):
+    def __init__(self, local_files, image_path):
         super().__init__()
 
         layout = QVBoxLayout(self)
         layout.setSpacing(10)
 
+        header_layout = QHBoxLayout()
+
+        layout.addLayout(header_layout)
+
         server_files_label = QLabel("Server Files")
         server_files_label.setStyleSheet("""
         QLabel {
             color: #d1d5db;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 20px;
+            font-weight: 600;
             }
         """)
+
+        server_files_icon = QLabel()
+        server_files_icon.setPixmap(QPixmap(f"{image_path}/folder.png").scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation))
+        server_files_icon.setFixedSize(30, 30)
+
+        header_layout.addWidget(server_files_icon)
+        header_layout.addWidget(server_files_label)
 
         certificate_file_label = QLabel("Certificate file:")
         self.certificate_file_input = QLineEdit()
@@ -579,7 +597,6 @@ class SettingsPage(QWidget):
         browse_button.setFixedWidth(100)
         browse_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(local_files)))
 
-        layout.addWidget(server_files_label)
         layout.addWidget(certificate_file_label)
         layout.addWidget(self.certificate_file_input)
         layout.addWidget(key_file_label)
