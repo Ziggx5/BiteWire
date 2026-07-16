@@ -1,3 +1,5 @@
+from math import trunc
+
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -45,10 +47,10 @@ class MainUi(QWidget):
 
         self.stack = QStackedLayout()
 
-        self.server_status_card = StatCard("Server Status", "Stopped")
-        self.total_users_card = StatCard("Total Users", "0")
-        self.total_messages_card = StatCard("Total Messages", "0")
-        self.server_uptime_card = StatCard("Uptime", "00:00:00")
+        self.server_status_card = StatCard("Server Status", "Stopped", "#3b82f6")
+        self.total_users_card = StatCard("Total Users", "0", "#60a5fa")
+        self.total_messages_card = StatCard("Total Messages", "0", "#a78bfa")
+        self.server_uptime_card = StatCard("Uptime", "00:00:00", "#2dd4bf")
 
         self.chat_server.client_count_signal.connect(self.total_users_card.set_value)
         self.chat_server.message_count_signal.connect(self.total_messages_card.set_value)
@@ -251,16 +253,16 @@ class MainUi(QWidget):
         server_info_layout.addWidget(ssl_expires_placeholder_label, 10, 1, Qt.AlignmentFlag.AlignRight)
 
         server_resources = QWidget()
-        server_resouces_layout = QVBoxLayout(server_resources)
+        server_resources_layout = QVBoxLayout(server_resources)
         cpu_and_ram_stats_layout = QHBoxLayout()
         incoming_and_outgoing_layout = QHBoxLayout()
 
         server_statistics_and_resources_container = QHBoxLayout()
 
-        self.cpu_percentage_card = StatCard("CPU Usage", f"{self.cpu_usage}%")
-        self.ram_usage_card = StatCard("RAM Usage", f"{self.ram_usage}MB")
-        self.incoming_card = StatCard("Incoming", f"{self.incoming}KB/s")
-        self.outgoing_card = StatCard("Outgoing", f"{self.outgoing}KB/s")
+        self.cpu_percentage_card = StatCard("CPU Usage", f"{self.cpu_usage}%", "#facc15")
+        self.ram_usage_card = StatCard("RAM Usage", f"{self.ram_usage}MB", "#f472b6")
+        self.incoming_card = StatCard("Incoming", f"{self.incoming}KB/s", "#4ade80")
+        self.outgoing_card = StatCard("Outgoing", f"{self.outgoing}KB/s", "#fb923c")
 
         cpu_and_ram_stats_layout.addWidget(self.cpu_percentage_card)
         cpu_and_ram_stats_layout.addWidget(self.ram_usage_card)
@@ -268,8 +270,8 @@ class MainUi(QWidget):
         incoming_and_outgoing_layout.addWidget(self.incoming_card)
         incoming_and_outgoing_layout.addWidget(self.outgoing_card)
 
-        server_resouces_layout.addLayout(cpu_and_ram_stats_layout)
-        server_resouces_layout.addLayout(incoming_and_outgoing_layout)
+        server_resources_layout.addLayout(cpu_and_ram_stats_layout)
+        server_resources_layout.addLayout(incoming_and_outgoing_layout)
 
         server_statistics_and_resources_container.addWidget(server_resources)
         server_statistics_and_resources_container.addWidget(server_info)
@@ -455,7 +457,7 @@ class MainUi(QWidget):
         self.active_clients_label.setText(f"Active Clients ({clients_count})")
 
 class StatCard(QFrame):
-    def __init__(self, title, value):
+    def __init__(self, title, value, text_color):
         super().__init__()
 
         self.setObjectName("statcard")
@@ -481,12 +483,12 @@ class StatCard(QFrame):
         """)
 
         self.value_label = QLabel(value)
-        self.value_label.setStyleSheet("""
-            QLabel {
-                color: #4ade80;
+        self.value_label.setStyleSheet(f"""
+            QLabel {{
+                color: {text_color};
                 font-size: 17px;
                 font-weight: 700px;
-            }
+            }}
         """)
 
         layout.addWidget(title_label)
@@ -561,6 +563,18 @@ class SettingsPage(QWidget):
         layout.addLayout(header_layout)
         layout.addSpacing(10)
 
+        frame = QFrame()
+        frame.setObjectName("frame")
+        frame.setStyleSheet("""
+        QFrame#frame {
+            background: #161b22;
+            border: 1px solid #2b3442;
+            border-radius: 12px;
+            }
+        """)
+
+        frame_layout = QVBoxLayout(frame)
+
         files_grid_layout = QGridLayout()
         files_grid_layout.setSpacing(20)
         files_grid_layout.setHorizontalSpacing(10)
@@ -590,13 +604,13 @@ class SettingsPage(QWidget):
         header_layout.addWidget(server_files_label)
 
         certificate_file_icon = QLabel()
-        certificate_file_icon.setPixmap(QPixmap(f"{image_path}/certificate.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        certificate_file_icon.setFixedSize(40, 40)
+        certificate_file_icon.setPixmap(QPixmap(f"{image_path}/certificate.png").scaled(25, 25, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        certificate_file_icon.setFixedSize(50, 50)
         certificate_file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         certificate_file_icon.setStyleSheet("""
         QLabel {
-            background-color: #172554;
-            border: 1px solid #2563eb;
+            background-color: #15161c;
+            border: 1px solid #282b33;
             border-radius: 10px;
             }
         """)
@@ -609,8 +623,8 @@ class SettingsPage(QWidget):
         self.certificate_file_input = QLineEdit()
         self.certificate_file_input.setStyleSheet("""
         QLineEdit {
-            background-color: #0f172a;
-            border: 1px solid #23304a;
+            background-color: #1d212a;
+            border: 1px solid #282c35;
             border-radius: 8px;
             color: #d1d5db;
             padding: 8px;     
@@ -619,13 +633,13 @@ class SettingsPage(QWidget):
         self.certificate_file_input.setEnabled(False)
 
         key_file_icon = QLabel()
-        key_file_icon.setPixmap(QPixmap(f"{image_path}/key.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        key_file_icon.setFixedSize(40, 40)
+        key_file_icon.setPixmap(QPixmap(f"{image_path}/key.png").scaled(25, 25, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        key_file_icon.setFixedSize(50, 50)
         key_file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         key_file_icon.setStyleSheet("""
         QLabel {
-            background-color: #172554;
-            border: 1px solid #2563eb;
+            background-color: #15161c;
+            border: 1px solid #282b33;
             border-radius: 10px;
             }
         """)
@@ -638,8 +652,8 @@ class SettingsPage(QWidget):
         self.key_file_input = QLineEdit()
         self.key_file_input.setStyleSheet("""
         QLineEdit {
-            background-color: #0f172a;
-            border: 1px solid #23304a;
+            background-color: #1d212a;
+            border: 1px solid #282c35;
             border-radius: 8px;
             color: #d1d5db;
             padding: 8px;     
@@ -648,13 +662,13 @@ class SettingsPage(QWidget):
         self.key_file_input.setEnabled(False)
 
         users_database_file_icon = QLabel()
-        users_database_file_icon.setPixmap(QPixmap(f"{image_path}/user_database.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        users_database_file_icon.setFixedSize(40, 40)
+        users_database_file_icon.setPixmap(QPixmap(f"{image_path}/user_database.png").scaled(25, 25, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        users_database_file_icon.setFixedSize(50, 50)
         users_database_file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         users_database_file_icon.setStyleSheet("""
         QLabel {
-            background-color: #172554;
-            border: 1px solid #2563eb;
+            background-color: #15161c;
+            border: 1px solid #282b33;
             border-radius: 10px;
             }
         """)
@@ -667,8 +681,8 @@ class SettingsPage(QWidget):
         self.users_database_file_input = QLineEdit()
         self.users_database_file_input.setStyleSheet("""
         QLineEdit {
-            background-color: #0f172a;
-            border: 1px solid #23304a;
+            background-color: #1d212a;
+            border: 1px solid #282c35;
             border-radius: 8px;
             color: #d1d5db;
             padding: 8px;     
@@ -677,13 +691,13 @@ class SettingsPage(QWidget):
         self.users_database_file_input.setEnabled(False)
 
         messages_database_file_icon = QLabel()
-        messages_database_file_icon.setPixmap(QPixmap(f"{image_path}/message_database.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        messages_database_file_icon.setFixedSize(40, 40)
+        messages_database_file_icon.setPixmap(QPixmap(f"{image_path}/message_database.png").scaled(25, 25, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        messages_database_file_icon.setFixedSize(50, 50)
         messages_database_file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         messages_database_file_icon.setStyleSheet("""
         QLabel {
-            background-color: #172554;
-            border: 1px solid #2563eb;
+            background-color: #15161c;
+            border: 1px solid #282b33;
             border-radius: 10px;
             }
         """)
@@ -696,8 +710,8 @@ class SettingsPage(QWidget):
         self.messages_database_file_input = QLineEdit()
         self.messages_database_file_input.setStyleSheet("""
         QLineEdit {
-            background-color: #0f172a;
-            border: 1px solid #23304a;
+            background-color: #1d212a;
+            border: 1px solid #282c35;
             border-radius: 8px;
             color: #d1d5db;
             padding: 8px;     
@@ -705,25 +719,46 @@ class SettingsPage(QWidget):
         """)
         self.messages_database_file_input.setEnabled(False)
 
-        browse_button = QPushButton("Browse...")
-        browse_button.setStyleSheet("""
-        QPushButton {
-            background-color: #2563eb;
-            color: white;
-            border-radius: 5px;
-            padding: 8px 16px;
-            }
-        
-        QPushButton:hover {
-            background-color: #1d4ed8;
-            }
-        
-        QPushButton:pressed {
-            background-color: #1e40af;
+        footer_layout = QHBoxLayout()
+        footer_layout.setSpacing(10)
+        footer_layout.setContentsMargins(10, 10, 10, 10)
+
+        info_icon = QLabel()
+        info_icon.setPixmap(QPixmap(f"{image_path}/about.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+
+        info_label = QLabel("Database files are generated automatically when server starts. if you already have existing database files, place them in the application directory.")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("""
+        QLabel {
+            color: #dbeafe;
+            font-size: 13px;
             }
         """)
+
+        browse_button = QPushButton("Browse...")
+        browse_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #2563eb;
+                    color: white;
+                    border-radius: 5px;
+                    padding: 8px 16px;
+                    }
+
+                QPushButton:hover {
+                    background-color: #1d4ed8;
+                    }
+
+                QPushButton:pressed {
+                    background-color: #1e40af;
+                    }
+                """)
         browse_button.setFixedWidth(100)
         browse_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(local_files)))
+
+        footer_layout.addWidget(info_icon)
+        footer_layout.addWidget(info_label)
+        footer_layout.addStretch()
+        footer_layout.addWidget(browse_button)
 
         files_grid_layout.addWidget(certificate_file_icon, 0, 0)
         files_grid_layout.addWidget(certificate_file_label, 0, 1)
@@ -737,9 +772,11 @@ class SettingsPage(QWidget):
         files_grid_layout.addWidget(messages_database_file_icon, 3, 0)
         files_grid_layout.addWidget(messages_database_file_label, 3, 1)
         files_grid_layout.addWidget(self.messages_database_file_input, 3, 2)
-        files_grid_layout.addWidget(browse_button, 4, 0)
 
-        layout.addLayout(files_grid_layout)
+        frame_layout.addLayout(files_grid_layout)
+        frame_layout.addLayout(footer_layout)
+
+        layout.addWidget(frame)
         layout.addStretch()
 
     def fill_inputs(self, files):
