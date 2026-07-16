@@ -555,57 +555,191 @@ class SettingsPage(QWidget):
         super().__init__()
 
         layout = QVBoxLayout(self)
-        layout.setSpacing(10)
 
         header_layout = QHBoxLayout()
 
         layout.addLayout(header_layout)
+        layout.addSpacing(10)
+
+        files_grid_layout = QGridLayout()
+        files_grid_layout.setSpacing(20)
+        files_grid_layout.setHorizontalSpacing(10)
 
         server_files_label = QLabel("Server Files")
         server_files_label.setStyleSheet("""
         QLabel {
             color: #d1d5db;
             font-size: 20px;
-            font-weight: 600;
+            font-weight: 500;
             }
         """)
 
         server_files_icon = QLabel()
-        server_files_icon.setPixmap(QPixmap(f"{image_path}/folder.png").scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation))
-        server_files_icon.setFixedSize(30, 30)
+        server_files_icon.setPixmap(QPixmap(f"{image_path}/folder.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        server_files_icon.setFixedSize(40, 40)
+        server_files_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        server_files_icon.setStyleSheet("""
+        QLabel {
+            background-color: #1e3a8a;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            } 
+        """)
 
         header_layout.addWidget(server_files_icon)
         header_layout.addWidget(server_files_label)
 
-        certificate_file_label = QLabel("Certificate file:")
+        certificate_file_icon = QLabel()
+        certificate_file_icon.setPixmap(QPixmap(f"{image_path}/certificate.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        certificate_file_icon.setFixedSize(40, 40)
+        certificate_file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        certificate_file_icon.setStyleSheet("""
+        QLabel {
+            background-color: #172554;
+            border: 1px solid #2563eb;
+            border-radius: 10px;
+            }
+        """)
+        certificate_file_label = QLabel("Certificate file")
+        certificate_file_label.setStyleSheet("""
+        QLabel {
+            font-weight: 500;
+            } 
+        """)
         self.certificate_file_input = QLineEdit()
+        self.certificate_file_input.setStyleSheet("""
+        QLineEdit {
+            background-color: #0f172a;
+            border: 1px solid #23304a;
+            border-radius: 8px;
+            color: #d1d5db;
+            padding: 8px;     
+            }
+        """)
         self.certificate_file_input.setEnabled(False)
 
-        key_file_label = QLabel("Key file:")
+        key_file_icon = QLabel()
+        key_file_icon.setPixmap(QPixmap(f"{image_path}/key.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        key_file_icon.setFixedSize(40, 40)
+        key_file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        key_file_icon.setStyleSheet("""
+        QLabel {
+            background-color: #172554;
+            border: 1px solid #2563eb;
+            border-radius: 10px;
+            }
+        """)
+        key_file_label = QLabel("Key file")
+        key_file_label.setStyleSheet("""
+        QLabel {
+            font-weight: 500;
+            } 
+        """)
         self.key_file_input = QLineEdit()
+        self.key_file_input.setStyleSheet("""
+        QLineEdit {
+            background-color: #0f172a;
+            border: 1px solid #23304a;
+            border-radius: 8px;
+            color: #d1d5db;
+            padding: 8px;     
+            }
+        """)
         self.key_file_input.setEnabled(False)
 
-        users_database_file_label = QLabel("Users database file:")
+        users_database_file_icon = QLabel()
+        users_database_file_icon.setPixmap(QPixmap(f"{image_path}/user_database.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        users_database_file_icon.setFixedSize(40, 40)
+        users_database_file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        users_database_file_icon.setStyleSheet("""
+        QLabel {
+            background-color: #172554;
+            border: 1px solid #2563eb;
+            border-radius: 10px;
+            }
+        """)
+        users_database_file_label = QLabel("Users database file")
+        users_database_file_label.setStyleSheet("""
+        QLabel {
+            font-weight: 500;
+            } 
+        """)
         self.users_database_file_input = QLineEdit()
+        self.users_database_file_input.setStyleSheet("""
+        QLineEdit {
+            background-color: #0f172a;
+            border: 1px solid #23304a;
+            border-radius: 8px;
+            color: #d1d5db;
+            padding: 8px;     
+            }
+        """)
         self.users_database_file_input.setEnabled(False)
 
-        messages_database_file_label = QLabel("Messages database file:")
+        messages_database_file_icon = QLabel()
+        messages_database_file_icon.setPixmap(QPixmap(f"{image_path}/message_database.png").scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        messages_database_file_icon.setFixedSize(40, 40)
+        messages_database_file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        messages_database_file_icon.setStyleSheet("""
+        QLabel {
+            background-color: #172554;
+            border: 1px solid #2563eb;
+            border-radius: 10px;
+            }
+        """)
+        messages_database_file_label = QLabel("Messages database file")
+        messages_database_file_label.setStyleSheet("""
+        QLabel {
+            font-weight: 500;
+            } 
+        """)
         self.messages_database_file_input = QLineEdit()
+        self.messages_database_file_input.setStyleSheet("""
+        QLineEdit {
+            background-color: #0f172a;
+            border: 1px solid #23304a;
+            border-radius: 8px;
+            color: #d1d5db;
+            padding: 8px;     
+            }
+        """)
         self.messages_database_file_input.setEnabled(False)
 
         browse_button = QPushButton("Browse...")
+        browse_button.setStyleSheet("""
+        QPushButton {
+            background-color: #2563eb;
+            color: white;
+            border-radius: 5px;
+            padding: 8px 16px;
+            }
+        
+        QPushButton:hover {
+            background-color: #1d4ed8;
+            }
+        
+        QPushButton:pressed {
+            background-color: #1e40af;
+            }
+        """)
         browse_button.setFixedWidth(100)
         browse_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(local_files)))
 
-        layout.addWidget(certificate_file_label)
-        layout.addWidget(self.certificate_file_input)
-        layout.addWidget(key_file_label)
-        layout.addWidget(self.key_file_input)
-        layout.addWidget(users_database_file_label)
-        layout.addWidget(self.users_database_file_input)
-        layout.addWidget(messages_database_file_label)
-        layout.addWidget(self.messages_database_file_input)
-        layout.addWidget(browse_button)
+        files_grid_layout.addWidget(certificate_file_icon, 0, 0)
+        files_grid_layout.addWidget(certificate_file_label, 0, 1)
+        files_grid_layout.addWidget(self.certificate_file_input, 0, 2)
+        files_grid_layout.addWidget(key_file_icon, 1, 0)
+        files_grid_layout.addWidget(key_file_label, 1, 1)
+        files_grid_layout.addWidget(self.key_file_input, 1, 2)
+        files_grid_layout.addWidget(users_database_file_icon, 2, 0)
+        files_grid_layout.addWidget(users_database_file_label, 2, 1)
+        files_grid_layout.addWidget(self.users_database_file_input, 2, 2)
+        files_grid_layout.addWidget(messages_database_file_icon, 3, 0)
+        files_grid_layout.addWidget(messages_database_file_label, 3, 1)
+        files_grid_layout.addWidget(self.messages_database_file_input, 3, 2)
+        files_grid_layout.addWidget(browse_button, 4, 0)
+
+        layout.addLayout(files_grid_layout)
         layout.addStretch()
 
     def fill_inputs(self, files):
