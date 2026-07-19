@@ -5,20 +5,23 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import platform
+import threading
 
 class UpdateChecker(QWidget):
     update_found = Signal(str)
+    download_percent_signal = Signal(str)
 
     def __init__(self, image_path, on_cancel):
         super().__init__()
-        self.current_release = "2.1.0"
+        self.current_release = "2.0.0"
         self.url = "https://api.github.com/repos/Ziggx5/BiteWire/releases"
         self.on_cancel = on_cancel
+        self.download_link = None
+        self.system = None
+        self.download_percent_signal.connect(lambda p: self.download_percent.setText(p))
 
         self.setFixedSize(650, 550)
         self.setStyleSheet("background-color: transparent;")
-
-        self.detect_os()
 
         update_page_layout = QVBoxLayout(self)
         header_page_horizontal_layout = QHBoxLayout()
@@ -129,6 +132,7 @@ class UpdateChecker(QWidget):
         update_button.setIcon(QIcon(f"{image_path}/update_white.png"))
         update_button.setIconSize(QSize(18, 18))
         update_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        update_button.clicked.connect(lambda: self.start_download())
         update_button.setStyleSheet("""
             QPushButton {
                 background-color: #1f6feb;
@@ -160,10 +164,14 @@ class UpdateChecker(QWidget):
             }
         """)
 
+        self.download_percent = QLabel()
+        self.download_percent.setVisible(False)
+
         update_button_layout.addStretch()
         update_button_layout.addWidget(later_button)
         update_button_layout.addSpacing(8)
         update_button_layout.addWidget(update_button)
+        update_button_layout.addWidget(self.download_percent)
 
         update_page_layout.addLayout(header_page_horizontal_layout)
         update_page_layout.addWidget(upper_line)
@@ -173,8 +181,18 @@ class UpdateChecker(QWidget):
         update_page_layout.addWidget(bottom_line)
         update_page_layout.addLayout(update_button_layout)
 
+    def detect_os(self):
+        if platform.system() == "Windows":
+            return ".exe"
+        else:
+            if os.path.exists("/usr/bin/apt"):
+                return ".deb"
+            else:
+                return ".rpm"
+
     def check_update(self):
         try:
+            self.system = self.detect_os()
             response = requests.get(self.url, timeout = 2)
             data = response.json()
 
@@ -184,6 +202,10 @@ class UpdateChecker(QWidget):
             for release in data:
                 tag = release["tag_name"]
                 if tag.startswith("c"):
+                    for asset in release["assets"]:
+                        self.download_link = asset["browser_download_url"]
+                        if self.download_link.endswith(self.system):
+                            break
                     split_release = tag[1:]
                     if version.parse(split_release) > version.parse(self.current_release):
                         latest_release = split_release
@@ -196,11 +218,21 @@ class UpdateChecker(QWidget):
         except:
             return None
 
-    def detect_os(self):
-        if platform.system() == "Windows":
-            return "windows"
-        else:
-            if os.path.exists("/usr/bin/apt"):
-                return "debian"
-            else:
-                return "rpm"
+    def download_file(self):
+        response = requests.get(self.download_link, stream = True)
+        total = int(response.headers.get('content-length'))
+        downloaded = 0
+        print(response.headers.get('content-length'))
+
+        with open (f"file{self.system}", "wb") as f:
+            for chunk in response.iter_content(8192):
+                if chunk:
+                    f.write(chunk)
+                    downloaded += len(chunk)
+
+                    percent = downloaded / total * 100
+                    self.download_percent_signal.emit(f"{int(percent)}%")
+
+    def start_download(self):
+        self.download_percent.setVisible(True)
+        threading.Thread(target=self.download_file, daemon=True).start()
