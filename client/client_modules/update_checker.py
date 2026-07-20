@@ -127,13 +127,13 @@ class UpdateChecker(QWidget):
         bottom_line.setFrameShape(QFrame.Shape.HLine)
         bottom_line.setStyleSheet("color: #30363d;")
 
-        update_button = QPushButton("Download")
-        update_button.setFixedSize(110, 35)
-        update_button.setIcon(QIcon(f"{image_path}/update_white.png"))
-        update_button.setIconSize(QSize(18, 18))
-        update_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        update_button.clicked.connect(lambda: self.start_download())
-        update_button.setStyleSheet("""
+        self.update_button = QPushButton("Download")
+        self.update_button.setFixedSize(110, 35)
+        self.update_button.setIcon(QIcon(f"{image_path}/update_white.png"))
+        self.update_button.setIconSize(QSize(18, 18))
+        self.update_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.update_button.clicked.connect(lambda: self.start_download())
+        self.update_button.setStyleSheet("""
             QPushButton {
                 background-color: #1f6feb;
                 border-radius: 4px;
@@ -146,11 +146,11 @@ class UpdateChecker(QWidget):
             }
         """)
 
-        later_button = QPushButton("Later")
-        later_button.setFixedSize(110, 35)
-        later_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        later_button.clicked.connect(self.on_cancel)
-        later_button.setStyleSheet("""
+        self.later_button = QPushButton("Later")
+        self.later_button.setFixedSize(110, 35)
+        self.later_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.later_button.clicked.connect(self.on_cancel)
+        self.later_button.setStyleSheet("""
             QPushButton {
                 background-color: #21262d;
                 color: #c9d1d9;
@@ -164,13 +164,52 @@ class UpdateChecker(QWidget):
             }
         """)
 
+        download_path_frame = QFrame()
+        download_path_frame.setStyleSheet("""
+        QFrame {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            }
+        """)
+        download_path_frame_layout = QHBoxLayout(download_path_frame)
+
+        self.download_path_label = QLabel(QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation))
+        self.download_path_label.setStyleSheet("""
+        QLabel {
+            color: #8b949e;
+            font-size: 13px;
+            border: None;
+            }
+        """)
+
+        self.edit_download_path_button = QPushButton("Browse...")
+        self.edit_download_path_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.edit_download_path_button.setFixedSize(60, 30)
+        self.edit_download_path_button.clicked.connect(lambda: self.select_download_folder())
+        self.edit_download_path_button.setStyleSheet("""
+        QPushButton {
+            background-color: transparent;
+            border: None;
+            border-radius: 6px;
+            }
+        
+        QPushButton:hover {
+            background-color: #30363d;
+            }
+        """)
+
+        download_path_frame_layout.addWidget(self.download_path_label)
+        download_path_frame_layout.addWidget(self.edit_download_path_button)
+
         self.download_percent = QLabel()
         self.download_percent.setVisible(False)
 
+        update_button_layout.addWidget(download_path_frame)
         update_button_layout.addStretch()
-        update_button_layout.addWidget(later_button)
+        update_button_layout.addWidget(self.later_button)
         update_button_layout.addSpacing(8)
-        update_button_layout.addWidget(update_button)
+        update_button_layout.addWidget(self.update_button)
         update_button_layout.addWidget(self.download_percent)
 
         update_page_layout.addLayout(header_page_horizontal_layout)
@@ -221,10 +260,14 @@ class UpdateChecker(QWidget):
     def download_file(self):
         response = requests.get(self.download_link, stream = True)
         total = int(response.headers.get('content-length'))
+        file_name = response.headers.get('content-disposition').split("filename=")[1]
         downloaded = 0
-        print(response.headers.get('content-length'))
 
-        with open (f"file{self.system}", "wb") as f:
+        self.update_button.setVisible(False)
+        self.later_button.setVisible(False)
+        self.edit_download_path_button.setEnabled(False)
+
+        with open (f"{self.download_path_label.text()}/{file_name}", "wb") as f:
             for chunk in response.iter_content(8192):
                 if chunk:
                     f.write(chunk)
@@ -233,6 +276,13 @@ class UpdateChecker(QWidget):
                     percent = downloaded / total * 100
                     self.download_percent_signal.emit(f"{int(percent)}%")
 
+            self.download_percent_signal.emit("New app version downloaded successfully! Close the app now.")
+
     def start_download(self):
         self.download_percent.setVisible(True)
         threading.Thread(target=self.download_file, daemon=True).start()
+
+    def select_download_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Select Download Folder", self.download_path_label.text())
+        if folder:
+            self.download_path_label.setText(folder)
