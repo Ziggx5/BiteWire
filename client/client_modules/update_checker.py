@@ -1,3 +1,5 @@
+from operator import truediv
+
 import requests
 import os
 from packaging import version
@@ -19,6 +21,7 @@ class UpdateChecker(QWidget):
         self.download_link = None
         self.system = None
         self.download_percent_signal.connect(lambda p: self.download_percent.setText(p))
+        self.stop_download_event = threading.Event()
 
         self.setFixedSize(650, 550)
         self.setStyleSheet("background-color: transparent;")
@@ -80,9 +83,43 @@ class UpdateChecker(QWidget):
 
         version_widget_layout.addWidget(self.new_version_label)
 
+        file_size_widget = QWidget()
+        file_size_widget.setFixedSize(110, 35)
+        file_size_widget.setStyleSheet("""
+        QWidget {
+            background-color: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 3px;
+            }    
+        """)
+
+        file_size_layout = QHBoxLayout(file_size_widget)
+        file_size_layout.setContentsMargins(10, 0, 10, 0)
+
+        self.file_size = QLabel("size")
+        self.file_size.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.file_size.setStyleSheet("""
+        QLabel {
+            color: #60a5fa;
+            font-size: 14px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            }
+        """)
+
+        file_size_layout.addWidget(self.file_size)
+
+        cards_layout = QHBoxLayout()
+        cards_layout.setSpacing(10)
+        cards_layout.addWidget(version_widget)
+        cards_layout.addWidget(file_size_widget)
+        cards_layout.addStretch()
+
         header_page_vertical_layout.addWidget(update_label)
         header_page_vertical_layout.addWidget(subtitle_label)
-        header_page_vertical_layout.addWidget(version_widget)
+        header_page_vertical_layout.addSpacing(10)
+        header_page_vertical_layout.addLayout(cards_layout)
 
         header_page_horizontal_layout.addWidget(update_image_widget, alignment = Qt.AlignmentFlag.AlignLeft)
         header_page_horizontal_layout.addSpacing(10)
@@ -205,11 +242,18 @@ class UpdateChecker(QWidget):
         self.download_percent = QLabel()
         self.download_percent.setVisible(False)
 
+        self.cancel_download_button = QPushButton("Cancel")
+        self.cancel_download_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.cancel_download_button.setFixedSize(60, 30)
+        self.cancel_download_button.setVisible(False)
+        self.cancel_download_button.clicked.connect(lambda: self.stop_download())
+
         update_button_layout.addWidget(download_path_frame)
         update_button_layout.addStretch()
         update_button_layout.addWidget(self.later_button)
         update_button_layout.addSpacing(8)
         update_button_layout.addWidget(self.update_button)
+        update_button_layout.addWidget(self.cancel_download_button)
         update_button_layout.addWidget(self.download_percent)
 
         update_page_layout.addLayout(header_page_horizontal_layout)
@@ -243,6 +287,7 @@ class UpdateChecker(QWidget):
                 if tag.startswith("c"):
                     for asset in release["assets"]:
                         self.download_link = asset["browser_download_url"]
+                        self.file_size.setText(f"{asset['size'] / 1024 / 1024:.2f} MB")
                         if self.download_link.endswith(self.system):
                             break
                     split_release = tag[1:]
@@ -258,17 +303,18 @@ class UpdateChecker(QWidget):
             return None
 
     def download_file(self):
+        self.stop_download_event.clear()
         response = requests.get(self.download_link, stream = True)
         total = int(response.headers.get('content-length'))
         file_name = response.headers.get('content-disposition').split("filename=")[1]
         downloaded = 0
 
-        self.update_button.setVisible(False)
-        self.later_button.setVisible(False)
-        self.edit_download_path_button.setEnabled(False)
-
         with open (f"{self.download_path_label.text()}/{file_name}", "wb") as f:
             for chunk in response.iter_content(8192):
+                if self.stop_download_event.is_set():
+                    f.close()
+                    os.remove(f"{self.download_path_label.text()}/{file_name}")
+                    return
                 if chunk:
                     f.write(chunk)
                     downloaded += len(chunk)
@@ -280,9 +326,22 @@ class UpdateChecker(QWidget):
 
     def start_download(self):
         self.download_percent.setVisible(True)
+        self.cancel_download_button.setVisible(True)
+        self.update_button.setVisible(False)
+        self.later_button.setVisible(False)
+        self.edit_download_path_button.setEnabled(False)
         threading.Thread(target=self.download_file, daemon=True).start()
 
     def select_download_folder(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Download Folder", self.download_path_label.text())
         if folder:
             self.download_path_label.setText(folder)
+
+    def stop_download(self):
+        self.stop_download_event.set()
+        self.download_percent.setVisible(False)
+        self.cancel_download_button.setVisible(False)
+
+        self.update_button.setVisible(True)
+        self.later_button.setVisible(True)
+        self.edit_download_path_button.setEnabled(True)
