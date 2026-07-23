@@ -735,6 +735,35 @@ class SettingsPage(QWidget):
             }
         """)
 
+        server_icon = QLabel()
+        server_icon.setPixmap(QPixmap(f"{image_path}/server_icon.png").scaled(25, 25, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        server_icon.setFixedSize(50, 50)
+        server_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        server_icon.setStyleSheet("""
+        QLabel {
+            background-color: #15161c;
+            border: 1px solid #282b33;
+            border-radius: 10px;
+            }
+        """)
+        server_icon_label = QLabel("Server icon")
+        server_icon_label.setStyleSheet("""
+        QLabel {
+            font-weight: 500;
+            }
+        """)
+        self.server_icon_input = QLineEdit()
+        self.server_icon_input.setStyleSheet("""
+        QLineEdit {
+            background-color: #1d212a;
+            border: 1px solid #282c35;
+            border-radius: 8px;
+            color: #d1d5db;
+            padding: 8px;     
+            }
+        """)
+        self.server_icon_input.setEnabled(False)
+
         browse_button = QPushButton("Browse...")
         browse_button.setStyleSheet("""
                 QPushButton {
@@ -772,6 +801,9 @@ class SettingsPage(QWidget):
         files_grid_layout.addWidget(messages_database_file_icon, 3, 0)
         files_grid_layout.addWidget(messages_database_file_label, 3, 1)
         files_grid_layout.addWidget(self.messages_database_file_input, 3, 2)
+        files_grid_layout.addWidget(server_icon, 4, 0)
+        files_grid_layout.addWidget(server_icon_label, 4, 1)
+        files_grid_layout.addWidget(self.server_icon_input, 4, 2)
 
         frame_layout.addLayout(files_grid_layout)
         frame_layout.addLayout(footer_layout)
@@ -792,3 +824,6 @@ class SettingsPage(QWidget):
 
             elif file_path.endswith("messages.db"):
                 self.messages_database_file_input.setText(file_path)
+
+            elif file_path.endswith(".png") or file_path.endswith(".jpg") or file_path.endswith(".jpeg"):
+                self.server_icon_input.setText(file_path)
