@@ -12,6 +12,7 @@ class ChatHandler(QObject):
     users_received = Signal(list)
     server_status = Signal(str)
     users_count_signal = Signal(str)
+    server_icon_signal = Signal(str)
 
     def __init__(self, profile_cache = None):
         super().__init__()
@@ -52,7 +53,7 @@ class ChatHandler(QObject):
         length = struct.unpack("!I", raw_length)[0]
 
         data = self.recvall(length)
-        
+
         if not data:
             return None
 
@@ -100,6 +101,8 @@ class ChatHandler(QObject):
                 elif message_type == "users_count":
                     self.users_count_signal.emit(message['content'])
 
+                elif message_type == "server_icon":
+                    self.server_icon_signal.emit(message['content'])
 
             except socket.timeout:
                 continue

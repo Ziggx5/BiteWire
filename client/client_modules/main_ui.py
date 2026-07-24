@@ -58,7 +58,7 @@ class MainUi(QWidget):
         self.profile_cache.profile_picture.connect(self.chat_ui.update_profile_pictures)
         self.chat_ui.own_profile_picture.connect(self.update_own_profile_picture)
         self.chat_handler.users_count_signal.connect(self.update_users_count)
-
+        self.chat_handler.server_icon_signal.connect(self.update_server_icon)
         self.current_server_ip = None
         self.server_buttons = {}
 
@@ -318,6 +318,12 @@ class MainUi(QWidget):
 
         button.set_users_value(value)
 
+    def update_server_icon(self, icon_base64):
+        decoded_bytes = base64.b64decode(icon_base64)
+
+        button = self.server_buttons.get(self.current_server_ip)
+        button.set_server_icon(decoded_bytes)
+
 class ServerButton(QFrame):
     def __init__(self, name, ip, on_click):
         super().__init__()
@@ -347,8 +353,16 @@ class ServerButton(QFrame):
         layout = QHBoxLayout(self)
         vertical_layout = QVBoxLayout()
 
-        image = QLabel()
-        image.setFixedSize(40, 40)
+        self.server_icon = QLabel()
+        self.server_icon.setFixedSize(40, 40)
+        self.server_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.server_icon.setStyleSheet("""
+        QLabel {
+            background-color: transparent;
+            border: none;
+            }
+        """)
+
         pixmap = QPixmap(f"{file_root()}/user_picture_placeholder.png").scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
         rounded_image = QPixmap(40, 40)
         rounded_image.fill(Qt.GlobalColor.transparent)
@@ -364,7 +378,7 @@ class ServerButton(QFrame):
         painter.drawPixmap(0, 0, pixmap)
         painter.end()
 
-        image.setPixmap(rounded_image)
+        self.server_icon.setPixmap(rounded_image)
 
         self.label = QLabel()
         self.label.setFixedWidth(180)
@@ -403,7 +417,7 @@ class ServerButton(QFrame):
         vertical_layout.addWidget(self.label)
         vertical_layout.addWidget(self.users_count)
 
-        layout.addWidget(image)
+        layout.addWidget(self.server_icon)
         layout.addLayout(vertical_layout)
         layout.addStretch()
         layout.addWidget(self.active_server_pointer)
@@ -425,6 +439,26 @@ class ServerButton(QFrame):
 
     def set_users_value(self, value):
         self.users_count.setText(f"{value} members")
+
+    def set_server_icon(self, decoded_bytes):
+        pixmap = QPixmap()
+        pixmap.loadFromData(decoded_bytes)
+        pixmap.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+        rounded_image = QPixmap(40, 40)
+        rounded_image.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(rounded_image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+
+        path = QPainterPath()
+        path.addEllipse(0, 0, 40, 40)
+
+        painter.setClipPath(path)
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
+
+        self.server_icon.setPixmap(rounded_image)
 
 class CustomTitleBar(QWidget):
     def __init__(self, parent):
