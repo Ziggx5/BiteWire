@@ -69,10 +69,13 @@ class MainUi(QWidget):
         dashboard_button = SideButtons("Dashboard", f"{image_path}/home.png")
         dashboard_button.clicked.connect(lambda: self.stack.setCurrentWidget(main_screen))
         users_button = SideButtons("Users", f"{image_path}/users.png")
+        users_button.setToolTip("Currently not available")
         logs_button = SideButtons("Logs", f"{image_path}/logs.png")
+        logs_button.setToolTip("Currently not available")
         settings_button = SideButtons("Settings", f"{image_path}/settings.png")
         settings_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.settings_page))
         about_button = SideButtons("About", f"{image_path}/about.png")
+        about_button.setToolTip("Currently not available")
 
         cards_layout = QHBoxLayout()
 
@@ -296,6 +299,7 @@ class MainUi(QWidget):
         recent_logs_label = QLabel("Recent Logs")
 
         view_all_logs_label = QLabel("View all logs >")
+        view_all_logs_label.setToolTip("Currently not available")
 
         recent_logs_card_header_layout.addWidget(recent_logs_label)
         recent_logs_card_header_layout.addStretch()
@@ -320,9 +324,10 @@ class MainUi(QWidget):
 
         active_clients_card_header_layout = QHBoxLayout()
 
-        self.active_clients_label = QLabel("Active Clients (0)")
+        self.active_clients_label = QLabel("Active Clients")
 
         view_all_clients_label = QLabel("View all clients >")
+        view_all_clients_label.setToolTip("Currently not available")
 
         active_clients_card_header_layout.addWidget(self.active_clients_label)
         active_clients_card_header_layout.addStretch()

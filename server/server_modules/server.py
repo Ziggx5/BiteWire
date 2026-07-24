@@ -79,6 +79,7 @@ class ChatServer(QObject):
         self.certfile = None
         self.keyfile = None
         self.database = None
+        self.server_icon = None
         self.message_count = 0
 
         self.bytes_sent = 0
@@ -99,6 +100,8 @@ class ChatServer(QObject):
                 self.keyfile = file_path
             elif file_path.endswith(".db"):
                 self.database = file_path
+            elif file_path.endswith(".png") or file_path.endswith(".jpg") or file_path.endswith(".jpeg"):
+                self.server_icon = file_path
 
     def init_database(self):
         conn = sqlite3.connect(self.users_database_path)
@@ -208,6 +211,7 @@ class ChatServer(QObject):
                 self.send_profile_picture()
                 self.send_message_history(client)
                 self.send_client_count()
+                self.send_server_icon()
             else:
                 client.send({"type": "login", "status": "fail"})
         
@@ -546,3 +550,11 @@ class ChatServer(QObject):
 
         self.first_clients_signal.emit(first_clients)
         self.active_clients_count_signal.emit(str(len(self.clients)))
+
+    def send_server_icon(self):
+        with open(self.server_icon, "rb") as f:
+            icon_bytes = f.read()
+
+        base64_icon = base64.b64encode(icon_bytes).decode("utf-8")
+
+        self.broadcast({"type": "server_icon", "content": base64_icon})
