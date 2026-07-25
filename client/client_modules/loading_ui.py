@@ -96,4 +96,4 @@ class LoadingScreen(QWidget):
     def open_main_ui(self):
         self.close()
         self.MainUi = MainUi()
-        self.MainUi.show()
+        self.MainUi.showMaximized()

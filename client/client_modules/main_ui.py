@@ -3,7 +3,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 import base64
 from client_modules.add_server_ui import AddServerUi
-from client_modules.data_manipulation import server_loader
+from client_modules.data_manipulation import server_loader, save_server_icon
 from client_modules.networking import ChatHandler
 from client_modules.tray_manager import TrayManager
 from client_modules.path_finder import file_root
@@ -37,7 +37,6 @@ class MainUi(QWidget):
             background-color: #4b5563;
         }
         """)
-        self.showMaximized()
 
         self.image_path = file_root()
         self.profile_cache = ProfileCache()
@@ -322,7 +321,7 @@ class MainUi(QWidget):
         decoded_bytes = base64.b64decode(icon_base64)
 
         button = self.server_buttons.get(self.current_server_ip)
-        button.set_server_icon(decoded_bytes)
+        button.set_server_icon(decoded_bytes, button.name)
 
 class ServerButton(QFrame):
     def __init__(self, name, ip, on_click):
@@ -440,10 +439,10 @@ class ServerButton(QFrame):
     def set_users_value(self, value):
         self.users_count.setText(f"{value} members")
 
-    def set_server_icon(self, decoded_bytes):
+    def set_server_icon(self, decoded_bytes, server_name):
         pixmap = QPixmap()
         pixmap.loadFromData(decoded_bytes)
-        pixmap.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+        pixmap_scaled = pixmap.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
         rounded_image = QPixmap(40, 40)
         rounded_image.fill(Qt.GlobalColor.transparent)
 
@@ -455,8 +454,10 @@ class ServerButton(QFrame):
         path.addEllipse(0, 0, 40, 40)
 
         painter.setClipPath(path)
-        painter.drawPixmap(0, 0, pixmap)
+        painter.drawPixmap(0, 0, pixmap_scaled)
         painter.end()
+
+        save_server_icon(rounded_image, server_name)
 
         self.server_icon.setPixmap(rounded_image)
 

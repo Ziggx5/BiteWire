@@ -1,8 +1,6 @@
 from platformdirs import user_data_dir
 import os
 import json
-from cryptography.fernet import Fernet
-import base64
 
 def create_local_file():
     app_name = "BiteWire"
@@ -16,6 +14,18 @@ def server_file():
     server_file_path = os.path.join(data_dir, "servers.json")
 
     return server_file_path
+
+def server_icons_file():
+    data_dir = create_local_file()
+    server_icons_folder_path = os.path.join(data_dir, "server_icons")
+    os.makedirs(server_icons_folder_path, exist_ok = True)
+
+    return server_icons_folder_path
+
+def save_server_icon(image, server_name):
+    data_dir = server_icons_file()
+    image_path = os.path.join(data_dir, server_name + ".png")
+    image.save(image_path)
 
 def save_server_data(name, ip_address):
     server_file_path = server_file()
