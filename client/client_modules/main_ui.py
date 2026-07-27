@@ -333,6 +333,7 @@ class ServerButton(QFrame):
         self.ip = ip
         self.user_count = user_count
         self.on_click = on_click
+        self.connected = False
 
         self.setFixedHeight(60)
         self.setCursor(Qt.PointingHandCursor)
@@ -435,11 +436,14 @@ class ServerButton(QFrame):
         self.label.setText(resize_name)
 
     def frame_clicked(self, event):
+        if self.connected:
+            return
+
         self.on_click(self)
 
     def connected_server(self):
+        self.connected = True
         self.setProperty("current_server", True)
-        self.setEnabled(False)
         self.active_server_pointer.setVisible(True)
 
     def set_users_value(self, value):
