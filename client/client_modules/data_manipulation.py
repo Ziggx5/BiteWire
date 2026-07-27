@@ -2,7 +2,7 @@ from platformdirs import user_data_dir
 import os
 import json
 
-def create_local_file():
+def app_directory():
     app_name = "BiteWire"
     data_dir = user_data_dir(app_name)
     os.makedirs(data_dir, exist_ok = True)
@@ -10,13 +10,13 @@ def create_local_file():
     return data_dir
 
 def server_file():
-    data_dir = create_local_file()
+    data_dir = app_directory()
     server_file_path = os.path.join(data_dir, "servers.json")
 
     return server_file_path
 
 def server_icons_file():
-    data_dir = create_local_file()
+    data_dir = app_directory()
     server_icons_folder_path = os.path.join(data_dir, "server_icons")
     os.makedirs(server_icons_folder_path, exist_ok = True)
 
@@ -31,7 +31,8 @@ def save_server_data(name, ip_address):
     server_file_path = server_file()
     data = {
         "name": name,
-        "ip_address": ip_address
+        "ip_address": ip_address,
+        "user_count": 0
     }
     servers = []
 
@@ -75,3 +76,15 @@ def server_loader():
         server_list = json.load(f)
     
     return server_list
+
+def update_user_count(ip_address, new_user_count):
+    server_file_path = server_file()
+    servers = []
+
+    for server in server_loader():
+        if server["ip_address"] == ip_address:
+            server['user_count'] = new_user_count
+    servers.append(server)
+
+    with open (server_file_path, "w", encoding = "utf-8") as f:
+        json.dump(servers, f, indent = 4)

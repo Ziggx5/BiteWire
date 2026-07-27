@@ -1,9 +1,11 @@
+import os.path
+
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import base64
 from client_modules.add_server_ui import AddServerUi
-from client_modules.data_manipulation import server_loader, save_server_icon
+from client_modules.data_manipulation import server_loader, save_server_icon, app_directory, update_user_count
 from client_modules.networking import ChatHandler
 from client_modules.tray_manager import TrayManager
 from client_modules.path_finder import file_root
@@ -256,7 +258,7 @@ class MainUi(QWidget):
         server_list = server_loader()
         self.server_buttons.clear()
         for server in server_list:
-            server_button = ServerButton(server["name"], server["ip_address"], self.login_page_popup)
+            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], self.login_page_popup)
             self.server_buttons[server["ip_address"]] = server_button
             if server['ip_address'] == self.current_server_ip:
                 server_button.connected_server()
@@ -324,20 +326,21 @@ class MainUi(QWidget):
         button.set_server_icon(decoded_bytes, button.name)
 
 class ServerButton(QFrame):
-    def __init__(self, name, ip, on_click):
+    def __init__(self, name, ip, user_count, on_click):
         super().__init__()
 
         self.name = name
         self.ip = ip
+        self.user_count = user_count
         self.on_click = on_click
 
         self.setFixedHeight(60)
         self.setCursor(Qt.PointingHandCursor)
         self.setStyleSheet("""
             QFrame {
-                background-color: #1e1e2f;
+                background-color: transparent;
                 border-radius: 10px;
-                border: 1px solid #3f3f4a;
+                border none;
             }
 
             QFrame:hover {
@@ -361,8 +364,11 @@ class ServerButton(QFrame):
             border: none;
             }
         """)
+        if os.path.exists(f"{app_directory()}/server_icons/{self.name}.png"):
+            pixmap = QPixmap(f"{app_directory()}/server_icons/{self.name}.png").scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+        else:
+            pixmap = QPixmap(f"{file_root()}/server_image_placeholder.png").scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
 
-        pixmap = QPixmap(f"{file_root()}/user_picture_placeholder.png").scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
         rounded_image = QPixmap(40, 40)
         rounded_image.fill(Qt.GlobalColor.transparent)
 
@@ -390,7 +396,7 @@ class ServerButton(QFrame):
             }
         """)
 
-        self.users_count = QLabel("0 Members")
+        self.users_count = QLabel(f"{self.user_count} Members")
         self.users_count.setStyleSheet("""
             QLabel{
                 color: #a5a8ad;
@@ -438,6 +444,7 @@ class ServerButton(QFrame):
 
     def set_users_value(self, value):
         self.users_count.setText(f"{value} members")
+        update_user_count(self.ip, value)
 
     def set_server_icon(self, decoded_bytes, server_name):
         pixmap = QPixmap()
