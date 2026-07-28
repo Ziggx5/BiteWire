@@ -84,7 +84,14 @@ def update_user_count(ip_address, new_user_count):
     for server in server_loader():
         if server["ip_address"] == ip_address:
             server['user_count'] = new_user_count
-    servers.append(server)
+        servers.append(server)
 
     with open (server_file_path, "w", encoding = "utf-8") as f:
         json.dump(servers, f, indent = 4)
+
+def check_duplicate_server(ip_address):
+    for server in server_loader():
+        if server["ip_address"] == ip_address:
+            return True
+
+    return False

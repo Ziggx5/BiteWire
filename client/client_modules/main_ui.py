@@ -1,5 +1,4 @@
 import os.path
-
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -186,10 +185,10 @@ class MainUi(QWidget):
                 background-color: rgba(255, 255, 255, 0.15);
             }
         """)
-
         self.settings_button.setIconSize(QSize(18, 18))
         self.settings_button.setFixedSize(30, 30)
         self.settings_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.settings_button.setToolTip("Currently not available.")
 
         self.user_picture = QLabel()
         self.user_picture.setFixedSize(30, 30)
@@ -447,7 +446,7 @@ class ServerButton(QFrame):
         self.active_server_pointer.setVisible(True)
 
     def set_users_value(self, value):
-        self.users_count.setText(f"{value} members")
+        self.users_count.setText(f"{value} Members")
         update_user_count(self.ip, value)
 
     def set_server_icon(self, decoded_bytes, server_name):

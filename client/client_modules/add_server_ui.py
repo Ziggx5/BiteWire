@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-from client_modules.data_manipulation import save_server_data
+from client_modules.data_manipulation import save_server_data, check_duplicate_server
 from client_modules.identity_ui import AddIdentityUi
 
 class AddServerUi(QWidget):
@@ -143,15 +143,14 @@ class AddServerUi(QWidget):
         self.ip_address = self.ip_address_input.text()
 
         if self.name and self.ip_address:
-            self.stacked.setCurrentWidget(self.register)
-            self.register.send_ip_address(self.ip_address, self.name)
+            if not check_duplicate_server(self.ip_address):
+                self.stacked.setCurrentWidget(self.register)
+                self.register.send_ip_address(self.ip_address, self.name)
+            else:
+                QMessageBox.warning(self, "Error", "Server already exists")
 
         else:
-            QMessageBox.warning(
-                self,
-                "Error",
-                "Please enter server name and IP address."
-            )
+            QMessageBox.warning(self, "Error", "Please enter server name and IP address.")
     
     def reset(self):
         self.stacked.setCurrentWidget(self.add_server_page)

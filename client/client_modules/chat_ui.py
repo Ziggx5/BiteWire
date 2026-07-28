@@ -109,12 +109,14 @@ class ChatUi(QWidget):
         file_button.setIconSize(QSize(20, 20))
         file_button.setFixedSize(40, 40)
         file_button.setCursor(Qt.PointingHandCursor)
+        file_button.setToolTip("Currently not available.")
 
         emoji_button = QPushButton()
         emoji_button.setIcon(QIcon(f"{self.image_path}/emoji.png"))
         emoji_button.setIconSize(QSize(25, 25))
         emoji_button.setFixedSize(40, 40)
         emoji_button.setCursor(Qt.PointingHandCursor)
+        emoji_button.setToolTip("Currently not available.")
 
         send_button = QPushButton()
         send_button.setIcon(QIcon(f"{self.image_path}/send.png"))
@@ -310,9 +312,12 @@ class MessageWidget(QWidget):
         self.setObjectName("message_container")
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet("""
-            #message_container {
-                background-color: #111827;
+            QWidget#message_container {
+                background-color: transparent;
                 border-radius: 12px;
+            }
+            QWidget#message_container:hover {
+                background-color: #333333;
             }
         """)
 
@@ -377,14 +382,14 @@ class UserWidget(QWidget):
 
         self.setStyleSheet("""
             #userwidget {
-                background-color: rgba(255, 255, 255, 0.05);
+                background-color: transparent;
                 border-radius: 8px;
                 padding: 5px; 
                 border: none;           
             }
 
             #userwidget:hover {
-                background-color: #1f2933;
+                background-color: #333333;
             }
         """)
 
