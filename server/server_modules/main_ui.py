@@ -324,7 +324,7 @@ class MainUi(QWidget):
 
         active_clients_card_header_layout = QHBoxLayout()
 
-        self.active_clients_label = QLabel("Active Clients")
+        self.active_clients_label = QLabel("Active Clients (0)")
 
         view_all_clients_label = QLabel("View all clients >")
         view_all_clients_label.setToolTip("Currently not available")
@@ -407,8 +407,8 @@ class MainUi(QWidget):
         layout.addLayout(self.stack)
 
     def start_server(self):
-        #if not self.certificate_file_input.text() or not self.key_file_input.text():
-            #return
+        if not self.settings_page.check_required_files():
+            return
 
         threading.Thread(target = self.chat_server.start, daemon = True).start()
 
@@ -560,6 +560,10 @@ class SideButtons(QPushButton):
 class SettingsPage(QWidget):
     def __init__(self, local_files, image_path):
         super().__init__()
+
+        self.directory_watcher = QFileSystemWatcher(self)
+        self.directory_watcher.addPath(local_files)
+        self.directory_watcher.directoryChanged.connect(lambda: self.fill_inputs(files_check()))
 
         layout = QVBoxLayout(self)
 
@@ -817,6 +821,12 @@ class SettingsPage(QWidget):
         layout.addStretch()
 
     def fill_inputs(self, files):
+        self.certificate_file_input.clear()
+        self.key_file_input.clear()
+        self.users_database_file_input.clear()
+        self.messages_database_file_input.clear()
+        self.server_icon_input.clear()
+
         for file_path in files:
             if file_path.endswith(".crt"):
                 self.certificate_file_input.setText(file_path)
@@ -832,3 +842,12 @@ class SettingsPage(QWidget):
 
             elif file_path.endswith(".png") or file_path.endswith(".jpg") or file_path.endswith(".jpeg"):
                 self.server_icon_input.setText(file_path)
+
+    def check_required_files(self):
+        return all([
+            self.certificate_file_input.text(),
+            self.key_file_input.text(),
+            self.users_database_file_input.text(),
+            self.messages_database_file_input.text(),
+            self.server_icon_input.text()
+        ])
