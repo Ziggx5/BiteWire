@@ -29,6 +29,7 @@ class MainUi(QWidget):
         self.local_file = local_data_file()
         image_path = file_root()
         self.settings_page = SettingsPage(self.local_file, image_path)
+        self.users_page = UsersPage()
 
         self.files = files_check()
         self.settings_page.fill_inputs(self.files)
@@ -69,7 +70,7 @@ class MainUi(QWidget):
         dashboard_button = SideButtons("Dashboard", f"{image_path}/home.png")
         dashboard_button.clicked.connect(lambda: self.stack.setCurrentWidget(main_screen))
         users_button = SideButtons("Users", f"{image_path}/users.png")
-        users_button.setToolTip("Currently not available")
+        users_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.users_page))
         logs_button = SideButtons("Logs", f"{image_path}/logs.png")
         logs_button.setToolTip("Currently not available")
         settings_button = SideButtons("Settings", f"{image_path}/settings.png")
@@ -324,14 +325,14 @@ class MainUi(QWidget):
 
         active_clients_card_header_layout = QHBoxLayout()
 
-        self.active_clients_label = QLabel("Active Clients (0)")
+        self.active_users_label = QLabel("Active users (0)")
 
-        view_all_clients_label = QLabel("View all clients >")
-        view_all_clients_label.setToolTip("Currently not available")
+        view_all_users_label = QLabel("View all users >")
+        view_all_users_label.setToolTip("Currently not available")
 
-        active_clients_card_header_layout.addWidget(self.active_clients_label)
+        active_clients_card_header_layout.addWidget(self.active_users_label)
         active_clients_card_header_layout.addStretch()
-        active_clients_card_header_layout.addWidget(view_all_clients_label)
+        active_clients_card_header_layout.addWidget(view_all_users_label)
 
         active_clients_card_layout.addLayout(active_clients_card_header_layout)
         active_clients_card_layout.addLayout(self.active_clients_card_first_clients_layout)
@@ -401,6 +402,7 @@ class MainUi(QWidget):
 
         self.stack.addWidget(main_screen)
         self.stack.addWidget(self.settings_page)
+        self.stack.addWidget(self.users_page)
         self.stack.setCurrentWidget(main_screen)
 
         layout.addWidget(sidebar)
@@ -459,7 +461,7 @@ class MainUi(QWidget):
             self.active_clients_card_first_clients_layout.addWidget(row)
 
     def refresh_active_clients_count(self, clients_count):
-        self.active_clients_label.setText(f"Active Clients ({clients_count})")
+        self.active_clients_label.setText(f"Active users ({clients_count})")
 
 class StatCard(QFrame):
     def __init__(self, title, value, text_color):
@@ -851,3 +853,58 @@ class SettingsPage(QWidget):
             self.messages_database_file_input.text(),
             self.server_icon_input.text()
         ])
+
+class UsersPage(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        layout = QVBoxLayout(self)
+
+        header_layout = QHBoxLayout()
+
+        header_icon = QLabel()
+        header_label = QLabel("All Users")
+        header_label.setStyleSheet("""
+        QLabel {
+            color: #d1d5db;
+            font-size: 14px;
+            font-weight: 500;
+            }
+        """)
+        search_user_box = QLineEdit()
+        search_user_box.setPlaceholderText("Search...")
+        search_user_box.setFixedWidth(220)
+        search_user_box.setStyleSheet("""
+        QLineEdit {
+            background-color: #26263b;
+            color: #d1d5db;
+            border: 1px solid #3c3c52;
+            border-radius: 5px;
+            padding: 6px 10px;
+            }
+        
+        QLineEdit:focus {
+            border: 1px solid #4f8cff;
+            }
+        """)
+
+        header_layout.addWidget(header_icon)
+        header_layout.addWidget(header_label)
+        header_layout.addStretch()
+        header_layout.addWidget(search_user_box)
+
+        data_bar_layout = QHBoxLayout()
+
+        user_number_label = QLabel("#")
+        username_label = QLabel("Username")
+        status_label = QLabel("Status")
+        actions_label = QLabel("Actions")
+
+        data_bar_layout.addWidget(user_number_label)
+        data_bar_layout.addWidget(username_label)
+        data_bar_layout.addWidget(status_label)
+        data_bar_layout.addWidget(actions_label)
+
+        layout.addLayout(header_layout)
+        layout.addLayout(data_bar_layout)
+        layout.addStretch()
