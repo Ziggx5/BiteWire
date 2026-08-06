@@ -1,9 +1,9 @@
 from platformdirs import user_data_dir
 import os
-import json
 import ssl
 from datetime import datetime
 import psutil
+import sqlite3
 
 process = psutil.Process()
 process.cpu_percent()
@@ -65,3 +65,23 @@ def validate_certificate():
 
 def resouce_statistic():
     return str(process.cpu_percent()), str(process.memory_info().rss // 1024 // 1024)
+
+def get_all_users():
+    user_database_path, _ = database_files()
+    user_list = []
+
+    conn = sqlite3.connect(user_database_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, username FROM users
+    """)
+
+    result = cursor.fetchall()
+
+    for (id, username) in result:
+        user_list.append({
+            "id": id,
+            "username": username
+        })
+
+    return user_list

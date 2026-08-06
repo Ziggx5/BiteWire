@@ -4,7 +4,6 @@ import json
 import ssl
 import sqlite3
 import time
-import os
 import base64
 from datetime import datetime
 from server_modules.data_manipulation import files_check, database_files, profile_pictures_file
@@ -192,7 +191,6 @@ class ChatServer(QObject):
             if self.register_user(username, password, profile_picture):
                 client.send({"type": "register", "status": "ok"})
                 self.send_users_list_all_clients()
-
             else:
                 client.send({"type": "register", "status": "fail"})
 
@@ -214,7 +212,7 @@ class ChatServer(QObject):
                 self.send_server_icon()
             else:
                 client.send({"type": "login", "status": "fail"})
-        
+
         elif message_type == "message":
             if not client.username:
                 return

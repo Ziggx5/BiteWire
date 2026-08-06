@@ -1,10 +1,8 @@
-from math import trunc
-
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import threading
-from server_modules.data_manipulation import local_data_file, files_check, validate_certificate, resouce_statistic
+from server_modules.data_manipulation import local_data_file, files_check, validate_certificate, resouce_statistic, get_all_users
 from server_modules.server import ChatServer
 from server_modules.system_tray import TrayManager
 from server_modules.load_assets import file_root
@@ -29,7 +27,7 @@ class MainUi(QWidget):
         self.local_file = local_data_file()
         image_path = file_root()
         self.settings_page = SettingsPage(self.local_file, image_path)
-        self.users_page = UsersPage()
+        self.users_page = UsersPage(image_path)
 
         self.files = files_check()
         self.settings_page.fill_inputs(self.files)
@@ -855,19 +853,28 @@ class SettingsPage(QWidget):
         ])
 
 class UsersPage(QWidget):
-    def __init__(self):
+    def __init__(self, image_path):
         super().__init__()
 
         layout = QVBoxLayout(self)
 
         header_layout = QHBoxLayout()
 
+        users_data_widget = QWidget()
+        users_data_widget_layout = QVBoxLayout(users_data_widget)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(users_data_widget)
+
         header_icon = QLabel()
+        header_icon.setPixmap(QPixmap(f"{image_path}/users.png").scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        header_icon.setFixedSize(40, 40)
         header_label = QLabel("All Users")
         header_label.setStyleSheet("""
         QLabel {
             color: #d1d5db;
-            font-size: 14px;
+            font-size: 20px;
             font-weight: 500;
             }
         """)
@@ -893,18 +900,72 @@ class UsersPage(QWidget):
         header_layout.addStretch()
         header_layout.addWidget(search_user_box)
 
-        data_bar_layout = QHBoxLayout()
+        user_list = get_all_users()
 
-        user_number_label = QLabel("#")
-        username_label = QLabel("Username")
-        status_label = QLabel("Status")
-        actions_label = QLabel("Actions")
-
-        data_bar_layout.addWidget(user_number_label)
-        data_bar_layout.addWidget(username_label)
-        data_bar_layout.addWidget(status_label)
-        data_bar_layout.addWidget(actions_label)
+        table = QTableWidget()
+        table.setColumnCount(4)
+        table.setHorizontalHeaderLabels(["ID", "Username", "Status", "Actions"])
+        table.setRowCount(len(user_list))
+        table.verticalHeader().hide()
+        table.setShowGrid(False)
+        table.setSelectionMode(QTableWidget.NoSelection)
+        table.setEditTriggers(QTableWidget.NoEditTriggers)
+        table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        table.setStyleSheet("""
+        QTableWidget {
+            background-color: #1e1e2f;
+            border: none;
+            color: white;
+        }
+        
+        QTableWidget::item {
+            padding: 8px;
+        }
+        
+        QHeaderView::section {
+            background-color: #26263b;
+            color: #d1d5db;
+            border: none;
+            padding: 8px;
+            font-weight: bold;
+        }
+        
+        QTableWidget::item:selected {
+            background-color: #3b82f6;
+        }
+        """)
+        
 
         layout.addLayout(header_layout)
-        layout.addLayout(data_bar_layout)
+        layout.addWidget(table)
         layout.addStretch()
+
+        for row, user in enumerate(user_list):
+            table.setItem(row, 0, QTableWidgetItem(str(user['id'])))
+            table.setItem(row, 1, QTableWidgetItem(user['username']))
+
+
+class UserDataWidget(QWidget):
+    def __init__(self, user_id, username, image_path):
+        super().__init__()
+
+        self.user_id = user_id
+        self.username = username
+
+        layout = QHBoxLayout(self)
+
+        id_label = QLabel(str(self.user_id))
+
+        username_label = QLabel(self.username)
+
+        status_label = QLabel("Offline")
+
+        action_button = QPushButton()
+        action_button.setIcon(QIcon(f"{image_path}/dots.png"))
+
+        layout.addWidget(id_label)
+        layout.addWidget(username_label)
