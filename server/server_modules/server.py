@@ -556,3 +556,29 @@ class ChatServer(QObject):
         base64_icon = base64.b64encode(icon_bytes).decode("utf-8")
 
         self.broadcast({"type": "server_icon", "content": base64_icon})
+
+    def get_all_users(self):
+        user_list = []
+
+        conn = sqlite3.connect(self.users_database_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, username FROM users
+        """)
+
+        result = cursor.fetchall()
+
+        for id, username in result:
+            status = "Offline"
+
+            for client in self.clients:
+                if client.username == username:
+                    status = "Online"
+                    break
+            user_list.append({
+                "id": id,
+                "username": username,
+                "status": status
+            })
+
+        return user_list

@@ -2,7 +2,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import threading
-from server_modules.data_manipulation import local_data_file, files_check, validate_certificate, resouce_statistic, get_all_users
+from server_modules.data_manipulation import local_data_file, files_check, validate_certificate, resouce_statistic
 from server_modules.server import ChatServer
 from server_modules.system_tray import TrayManager
 from server_modules.load_assets import file_root
@@ -27,7 +27,7 @@ class MainUi(QWidget):
         self.local_file = local_data_file()
         image_path = file_root()
         self.settings_page = SettingsPage(self.local_file, image_path)
-        self.users_page = UsersPage(image_path)
+        self.users_page = UsersPage(image_path, self.chat_server)
 
         self.files = files_check()
         self.settings_page.fill_inputs(self.files)
@@ -68,7 +68,7 @@ class MainUi(QWidget):
         dashboard_button = SideButtons("Dashboard", f"{image_path}/home.png")
         dashboard_button.clicked.connect(lambda: self.stack.setCurrentWidget(main_screen))
         users_button = SideButtons("Users", f"{image_path}/users.png")
-        users_button.clicked.connect(lambda: self.stack.setCurrentWidget(self.users_page))
+        users_button.clicked.connect(lambda: (self.stack.setCurrentWidget(self.users_page), self.users_page.load_users()))
         logs_button = SideButtons("Logs", f"{image_path}/logs.png")
         logs_button.setToolTip("Currently not available")
         settings_button = SideButtons("Settings", f"{image_path}/settings.png")
@@ -853,22 +853,18 @@ class SettingsPage(QWidget):
         ])
 
 class UsersPage(QWidget):
-    def __init__(self, image_path):
+    def __init__(self, image_path, chat_server):
         super().__init__()
 
         layout = QVBoxLayout(self)
 
         header_layout = QHBoxLayout()
 
-        users_data_widget = QWidget()
-        users_data_widget_layout = QVBoxLayout(users_data_widget)
-
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(users_data_widget)
+        self.chat_server = chat_server
+        self.image_path = image_path
 
         header_icon = QLabel()
-        header_icon.setPixmap(QPixmap(f"{image_path}/users.png").scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        header_icon.setPixmap(QPixmap(f"{self.image_path}/users.png").scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         header_icon.setFixedSize(40, 40)
         header_label = QLabel("All Users")
         header_label.setStyleSheet("""
@@ -900,22 +896,25 @@ class UsersPage(QWidget):
         header_layout.addStretch()
         header_layout.addWidget(search_user_box)
 
-        user_list = get_all_users()
+        font = QFont()
+        font.setPointSize(13)
 
-        table = QTableWidget()
-        table.setColumnCount(4)
-        table.setHorizontalHeaderLabels(["ID", "Username", "Status", "Actions"])
-        table.setRowCount(len(user_list))
-        table.verticalHeader().hide()
-        table.setShowGrid(False)
-        table.setSelectionMode(QTableWidget.NoSelection)
-        table.setEditTriggers(QTableWidget.NoEditTriggers)
-        table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        table.setStyleSheet("""
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["ID", "Username", "Status", "Actions"])
+        self.table.verticalHeader().hide()
+        self.table.setShowGrid(False)
+        self.table.setFont(font)
+        self.table.setSelectionMode(QTableWidget.NoSelection)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.setAlternatingRowColors(True)
+        self.table.verticalHeader().setDefaultSectionSize(45)
+        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        self.table.setStyleSheet("""
         QTableWidget {
             background-color: #1e1e2f;
             border: none;
@@ -941,31 +940,44 @@ class UsersPage(QWidget):
         
 
         layout.addLayout(header_layout)
-        layout.addWidget(table)
-        layout.addStretch()
+        layout.addWidget(self.table)
+
+    def load_users(self):
+        user_list = self.chat_server.get_all_users()
+        self.table.setRowCount(len(user_list))
 
         for row, user in enumerate(user_list):
-            table.setItem(row, 0, QTableWidgetItem(str(user['id'])))
-            table.setItem(row, 1, QTableWidgetItem(user['username']))
+            self.table.setItem(row, 0, QTableWidgetItem(str(user['id'])))
+            self.table.setItem(row, 1, QTableWidgetItem(user['username']))
+            self.table.setItem(row, 2, QTableWidgetItem(user['status']))
+            self.table.setCellWidget(row, 3, ActionButton(self.image_path))
 
-
-class UserDataWidget(QWidget):
-    def __init__(self, user_id, username, image_path):
+class ActionButton(QWidget):
+    def __init__(self, image_path):
         super().__init__()
 
-        self.user_id = user_id
-        self.username = username
-
         layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        id_label = QLabel(str(self.user_id))
+        button = QPushButton()
+        button.setIcon(QIcon(f"{image_path}/dots.png"))
+        button.setIconSize(QSize(15, 15))
+        button.setFixedSize(30, 30)
 
-        username_label = QLabel(self.username)
+        button.setStyleSheet("""
+        QPushButton {
+            background-color: transparent;
+            border-radius: 6px;
+            border: none;
+        }
+        
+        QPushButton:hover {
+            background-color: #353a45;
+        }
+        
+        QPushButton:pressed {
+            background-color: #2a2f38;
+        }
+        """)
 
-        status_label = QLabel("Offline")
-
-        action_button = QPushButton()
-        action_button.setIcon(QIcon(f"{image_path}/dots.png"))
-
-        layout.addWidget(id_label)
-        layout.addWidget(username_label)
+        layout.addWidget(button)
