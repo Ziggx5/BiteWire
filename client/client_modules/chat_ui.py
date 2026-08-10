@@ -4,7 +4,7 @@ from PySide6.QtGui import *
 
 class ChatUi(QWidget):
     own_profile_picture = Signal(object)
-    def __init__(self, image_path, chat_handler, profile_cache, reset):
+    def __init__(self, image_path, chat_handler, profile_cache, reset, tray):
         super().__init__()
 
         self.image_path = image_path
@@ -14,6 +14,7 @@ class ChatUi(QWidget):
         self.reset = reset
         self.old_message_id = None
         self.loading_history = None
+        self.tray = tray
 
         self.user_widgets = {}
 
@@ -261,6 +262,7 @@ class ChatUi(QWidget):
         self.loading_history = False
 
     def display_new_message(self, username, content, time):
+        self.tray.show_notification(username, content)
         message_widget = self.create_message_widget(username, content, time)
 
         self.chat_layout.addWidget(message_widget)

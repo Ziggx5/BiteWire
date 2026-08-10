@@ -43,3 +43,7 @@ class TrayManager:
         if reason == QSystemTrayIcon.Trigger:
             self.parent.show()
             self.parent.activateWindow()
+
+    def show_notification(self, username, message):
+        if self.parent.isMinimized() or not self.parent.isActiveWindow():
+            self.tray_icon.showMessage("BiteWire", f"{username}: {message}", QSystemTrayIcon.MessageIcon.Information, 5000)
