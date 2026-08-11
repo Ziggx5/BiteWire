@@ -257,7 +257,7 @@ class MainUi(QWidget):
         server_list = server_loader()
         self.server_buttons.clear()
         for server in server_list:
-            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], self.login_page_popup)
+            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], self.login_page_popup, self.image_path)
             self.server_buttons[server["ip_address"]] = server_button
             if server['ip_address'] == self.current_server_ip:
                 server_button.connected_server()
@@ -325,7 +325,7 @@ class MainUi(QWidget):
         button.set_server_icon(decoded_bytes, button.name)
 
 class ServerButton(QFrame):
-    def __init__(self, name, ip, user_count, on_click):
+    def __init__(self, name, ip, user_count, on_click, image_path):
         super().__init__()
 
         self.name = name
@@ -408,15 +408,21 @@ class ServerButton(QFrame):
 
         self.resize_server_name()
 
-        self.active_server_pointer = QLabel(">")
-        self.active_server_pointer.setFixedSize(20, 20)
-        self.active_server_pointer.setVisible(False)
-        self.active_server_pointer.setStyleSheet("""
-            QLabel{
-                border: none;
-                color: white;
-                background: transparent;
-            }
+        self.options_button = QPushButton()
+        self.options_button.setIcon(QIcon(f"{image_path}/dots.png"))
+        self.options_button.setIconSize(QSize(15, 15))
+        self.options_button.setFixedSize(30, 30)
+        self.options_button.setVisible(False)
+        self.options_button.setStyleSheet("""
+        QPushButton {
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+        }
+        
+        QPushButton:hover {
+            background: #4c4c4c;
+        }
         """)
 
         vertical_layout.addWidget(self.label)
@@ -425,7 +431,7 @@ class ServerButton(QFrame):
         layout.addWidget(self.server_icon)
         layout.addLayout(vertical_layout)
         layout.addStretch()
-        layout.addWidget(self.active_server_pointer)
+        layout.addWidget(self.options_button)
 
         self.mousePressEvent = self.frame_clicked
     
@@ -443,7 +449,12 @@ class ServerButton(QFrame):
     def connected_server(self):
         self.connected = True
         self.setProperty("current_server", True)
-        self.active_server_pointer.setVisible(True)
+
+    def enterEvent(self, event, /):
+        self.options_button.setVisible(True)
+
+    def leaveEvent(self, event, /):
+        self.options_button.setVisible(False)
 
     def set_users_value(self, value):
         self.users_count.setText(f"{value} Members")
