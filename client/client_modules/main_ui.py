@@ -12,6 +12,7 @@ from client_modules.login_ui import Login
 from client_modules.update_checker import UpdateChecker
 from client_modules.profile_cache import ProfileCache
 from client_modules.chat_ui import ChatUi
+from client_modules.server_settings import ServerSettings
 
 class MainUi(QWidget):
     def __init__(self):
@@ -48,6 +49,7 @@ class MainUi(QWidget):
         self.update_checker = UpdateChecker(self.image_path, self.update_window_show_main_ui)
         self.chat_ui = ChatUi(self.image_path, self.chat_handler, self.profile_cache, self.clear_chat_widget, self.tray)
         self.custom_title_bar = CustomTitleBar(self)
+        self.server_settings = ServerSettings()
 
         self.chat_handler.history_message_received.connect(self.chat_ui.display_old_chat_history)
         self.chat_handler.first_history_message_received.connect(self.chat_ui.display_first_chat_history)
@@ -133,7 +135,7 @@ class MainUi(QWidget):
 
         self.BiteWire_label = QLabel("BiteWire")
         self.BiteWire_label.setStyleSheet("color: #a5a8ad; border: none; font-size: 30px;")
-        
+
         self.logo_layout.addWidget(self.BiteWire_label, alignment = Qt.AlignCenter)
 
         self.add_server_label = QLabel("All servers")
@@ -242,9 +244,15 @@ class MainUi(QWidget):
         self.login_server_window.hide()
         self.overlay.hide()
         self.reload_servers()
-    
+
+    def server_settings_show_main_ui(self):
+        self.server_settings.hide()
+        self.overlay.hide()
+        self.reload_servers()
+
     def update_window_show_main_ui(self):
         self.update_checker.hide()
+        self.overlay.hide()
         self.overlay.hide()
 
     def reload_servers(self):
@@ -257,7 +265,7 @@ class MainUi(QWidget):
         server_list = server_loader()
         self.server_buttons.clear()
         for server in server_list:
-            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], self.login_page_popup, self.image_path)
+            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], self.login_page_popup, self.image_path, self.server_settings_popup)
             self.server_buttons[server["ip_address"]] = server_button
             if server['ip_address'] == self.current_server_ip:
                 server_button.connected_server()
@@ -272,7 +280,7 @@ class MainUi(QWidget):
         server_name = item.name
         self.login_server_window.get_server_info(server_address, server_name)
         self.show_popup(self.login_server_window)
-    
+
     def on_success_login(self, username, server_name):
         self.username_label.setText(username)
         self.current_server_ip = self.login_server_window.ip_address
@@ -282,6 +290,10 @@ class MainUi(QWidget):
 
         self.main_layout_horizontal.addWidget(self.chat_ui)
         self.chat_ui.show()
+
+    def server_settings_popup(self, server_address, server_name):
+        self.show_popup(self.server_settings)
+        self.server_settings.get_server_info(server_address, server_name)
 
     def show_popup(self, widget):
         while self.popup_background_container_layout.count():
@@ -305,14 +317,14 @@ class MainUi(QWidget):
     def update_button_updater(self, update):
         if update:
             self.update_client_button.setVisible(True)
-        
+
     def update_own_profile_picture(self, picture):
         self.user_picture.setPixmap(picture)
-    
+
     def clear_chat_widget(self):
         self.chat_ui.hide()
         self.main_layout_horizontal.removeWidget(self.chat_ui)
-    
+
     def update_users_count(self, value):
         button = self.server_buttons.get(self.current_server_ip)
 
@@ -325,7 +337,7 @@ class MainUi(QWidget):
         button.set_server_icon(decoded_bytes, button.name)
 
 class ServerButton(QFrame):
-    def __init__(self, name, ip, user_count, on_click, image_path):
+    def __init__(self, name, ip, user_count, on_click, image_path, server_settings_popup):
         super().__init__()
 
         self.name = name
@@ -333,6 +345,7 @@ class ServerButton(QFrame):
         self.user_count = user_count
         self.on_click = on_click
         self.connected = False
+        self.server_settings_popup = server_settings_popup
 
         self.setFixedHeight(60)
         self.setCursor(Qt.PointingHandCursor)
@@ -413,6 +426,7 @@ class ServerButton(QFrame):
         self.options_button.setIconSize(QSize(15, 15))
         self.options_button.setFixedSize(30, 30)
         self.options_button.setVisible(False)
+        self.options_button.clicked.connect(self.open_server_settings)
         self.options_button.setStyleSheet("""
         QPushButton {
             border: none;
@@ -434,7 +448,7 @@ class ServerButton(QFrame):
         layout.addWidget(self.options_button)
 
         self.mousePressEvent = self.frame_clicked
-    
+
     def resize_server_name(self):
         metrics = QFontMetrics(self.label.font())
         resize_name = metrics.elidedText(self.name, Qt.ElideRight, self.label.width())
@@ -482,6 +496,9 @@ class ServerButton(QFrame):
 
         self.server_icon.setPixmap(rounded_image)
 
+    def open_server_settings(self):
+        self.server_settings_popup(self.ip, self.name)
+
 class CustomTitleBar(QWidget):
     def __init__(self, parent):
         super().__init__()
@@ -510,7 +527,7 @@ class CustomTitleBar(QWidget):
         """
 
         self.parent = parent
-        
+
         layout = QHBoxLayout(self)
         layout.setSpacing(5)
         layout.setContentsMargins(10, 0, 0, 0)
@@ -553,7 +570,7 @@ class CustomTitleBar(QWidget):
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.toggle_maximize()
-    
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             handle = self.window().windowHandle()
