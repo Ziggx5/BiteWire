@@ -293,7 +293,7 @@ class MainUi(QWidget):
 
     def server_settings_popup(self, server_address, server_name):
         self.show_popup(self.server_settings)
-        self.server_settings.get_server_info(server_address, server_name)
+        self.server_settings.get_server_info(server_name, server_address)
 
     def show_popup(self, widget):
         while self.popup_background_container_layout.count():
