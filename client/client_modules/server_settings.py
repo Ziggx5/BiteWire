@@ -42,14 +42,96 @@ class ServerSettings(QWidget):
                 border-radius: 10px;
             }
         """)
-        main_screen_layout = QVBoxLayout(main_screen)
-        server_icon = QLabel("Server Icon")
-        server_name = QLabel("Server Name")
-        confirm_button = QPushButton("Apply changes")
+        main_screen_layout = QGridLayout(main_screen)
+        main_screen_layout.setVerticalSpacing(20)
 
-        main_screen_layout.addWidget(server_icon)
-        main_screen_layout.addWidget(server_name)
-        main_screen_layout.addWidget(confirm_button)
+        server_name_label = QLabel("Server Name")
+        server_name_label.setStyleSheet("""
+            QLabel {
+                color: #e5e7eb;
+                font-size: 15px;
+                font-weight: 600;
+            }
+        """)
+
+        server_name_input = QLineEdit()
+        server_name_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #151a24;
+                color: #e5e7eb;
+                border: 1px solid #2b3448;
+                border-radius: 6px;
+                padding: 8px;
+            }
+            
+            QLineEdit:focus {
+                border: 1px solid #5865f2;
+            }
+        """)
+
+        server_address_label = QLabel("Server Address")
+        server_address_label.setStyleSheet("""
+            QLabel {
+                color: #e5e7eb;
+                font-size: 15px;
+                font-weight: 600;
+            }
+        """)
+
+        server_address_input = QLineEdit()
+        server_address_input.setReadOnly(True)
+        server_address_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #151a24;
+                color: #e5e7eb;
+                border: 1px solid #2b3448;
+                border-radius: 6px;
+                padding: 8px;
+            }
+        """)
+
+        server_port_label = QLabel("Server Port")
+        server_port_label.setStyleSheet("""
+            QLabel {
+                color: #e5e7eb;
+                font-size: 15px;
+                font-weight: 600;
+            }
+        """)
+
+        server_port_input = QLineEdit("50505")
+        server_port_input.setReadOnly(True)
+        server_port_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #151a24;
+                color: #e5e7eb;
+                border: 1px solid #2b3448;
+                border-radius: 6px;
+                padding: 8px;
+            }
+        """)
+
+        apply_button = QPushButton("Apply changes")
+        apply_button.setFixedHeight(34)
+        apply_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5865f2;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-weight: 600;
+                padding: 10px;
+            }
+        """)
+
+        main_screen_layout.addWidget(server_name_label, 0, 0)
+        main_screen_layout.addWidget(server_name_input, 1, 0)
+        main_screen_layout.addWidget(server_address_label, 2, 0)
+        main_screen_layout.addWidget(server_address_input, 3, 0)
+        main_screen_layout.addWidget(server_port_label, 2, 1)
+        main_screen_layout.addWidget(server_port_input, 3, 1)
+        main_screen_layout.setRowStretch(4, 1)
+        main_screen_layout.addWidget(apply_button, 5, 1)
 
         sidebar_server_stat = QFrame()
         sidebar_server_stat_grid = QGridLayout(sidebar_server_stat)
@@ -182,6 +264,7 @@ class ServerSettings(QWidget):
 
         container_layout = QHBoxLayout()
         container_layout.addWidget(sidebar)
+        container_layout.addSpacing(10)
         container_layout.addWidget(main_screen)
 
         layout.addLayout(header_layout)
