@@ -63,6 +63,7 @@ class MainUi(QWidget):
         self.chat_handler.server_icon_signal.connect(self.update_server_icon)
         self.current_server_ip = None
         self.server_buttons = {}
+        self.active_servers = []
 
         self.overlay = QWidget(self)
         self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
@@ -287,13 +288,16 @@ class MainUi(QWidget):
         self.reload_servers()
         self.chat_ui.set_username(username)
         self.chat_ui.set_server_name(server_name)
-
         self.main_layout_horizontal.addWidget(self.chat_ui)
         self.chat_ui.show()
+        self.active_servers.append(self.current_server_ip)
 
     def server_settings_popup(self, server_address, server_name):
         self.show_popup(self.server_settings)
-        self.server_settings.get_server_info(server_name, server_address)
+        if server_address in self.active_servers:
+            self.server_settings.get_server_info(server_name, server_address, "Online")
+        else:
+            self.server_settings.get_server_info(server_name, server_address, "Offline")
 
     def show_popup(self, widget):
         while self.popup_background_container_layout.count():

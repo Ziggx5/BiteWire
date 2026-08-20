@@ -10,6 +10,7 @@ class ServerSettings(QWidget):
 
         self.server_name = None
         self.server_address = None
+        self.status = None
 
         self.setFixedSize(800, 600)
         self.setStyleSheet("background-color: transparent;")
@@ -54,8 +55,8 @@ class ServerSettings(QWidget):
             }
         """)
 
-        server_name_input = QLineEdit()
-        server_name_input.setStyleSheet("""
+        self.server_name_input = QLineEdit()
+        self.server_name_input.setStyleSheet("""
             QLineEdit {
                 background-color: #151a24;
                 color: #e5e7eb;
@@ -78,15 +79,28 @@ class ServerSettings(QWidget):
             }
         """)
 
-        server_address_input = QLineEdit()
-        server_address_input.setReadOnly(True)
-        server_address_input.setStyleSheet("""
+        self.server_address_input = QLineEdit()
+        self.server_address_input.setReadOnly(True)
+        self.server_address_input.setStyleSheet("""
             QLineEdit {
                 background-color: #151a24;
                 color: #e5e7eb;
                 border: 1px solid #2b3448;
                 border-radius: 6px;
                 padding: 8px;
+            }
+        """)
+
+        copy_button = QPushButton("Copy")
+        copy_button.setIcon(QIcon(f"{file_root()}/clipboard.png"))
+        copy_button.setIconSize(QSize(20, 20))
+        copy_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #e5e7eb;
+                border: 1px solid #343f56;
+                border-radius: 6px;
+                padding: 5px;
             }
         """)
 
@@ -111,28 +125,31 @@ class ServerSettings(QWidget):
             }
         """)
 
-        apply_button = QPushButton("Apply changes")
-        apply_button.setFixedHeight(34)
-        apply_button.setStyleSheet("""
+        save_button = QPushButton("Save Changes")
+        save_button.setStyleSheet("""
             QPushButton {
                 background-color: #5865f2;
                 color: white;
                 border: none;
                 border-radius: 6px;
                 font-weight: 600;
-                padding: 10px;
+                padding: 10px
             }
         """)
 
-        main_screen_layout.addWidget(server_name_label, 0, 0)
-        main_screen_layout.addWidget(server_name_input, 1, 0)
-        main_screen_layout.addWidget(server_address_label, 2, 0)
-        main_screen_layout.addWidget(server_address_input, 3, 0)
-        main_screen_layout.addWidget(server_port_label, 2, 1)
-        main_screen_layout.addWidget(server_port_input, 3, 1)
-        main_screen_layout.setRowStretch(4, 1)
-        main_screen_layout.addWidget(apply_button, 5, 1)
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(save_button)
 
+        main_screen_layout.addWidget(server_name_label, 0, 0)
+        main_screen_layout.addWidget(self.server_name_input, 1, 0)
+        main_screen_layout.addWidget(server_address_label, 2, 0)
+        main_screen_layout.addWidget(self.server_address_input, 3, 0)
+        main_screen_layout.addWidget(copy_button, 3, 1)
+        main_screen_layout.addWidget(server_port_label, 4, 0)
+        main_screen_layout.addWidget(server_port_input, 5, 0)
+        main_screen_layout.setRowStretch(6, 1)
+        main_screen_layout.addLayout(buttons_layout, 7, 0, 1, 2)
         sidebar_server_stat = QFrame()
         sidebar_server_stat_grid = QGridLayout(sidebar_server_stat)
         sidebar_server_stat_grid.setHorizontalSpacing(15)
@@ -156,8 +173,8 @@ class ServerSettings(QWidget):
                 font-weight: 600;
             }
         """)
-        sidebar_server_stat_connection_status = QLabel("Status")
-        sidebar_server_stat_connection_status.setStyleSheet("""
+        self.sidebar_server_stat_connection_status = QLabel("Status")
+        self.sidebar_server_stat_connection_status.setStyleSheet("""
             QLabel {
                 color: #86d48a;
                 font-size: 13px;
@@ -167,11 +184,11 @@ class ServerSettings(QWidget):
 
         sidebar_server_stat_grid.addWidget(self.sidebar_server_stat_icon, 0, 0, 2, 1)
         sidebar_server_stat_grid.addWidget(self.sidebar_server_stat_name, 0, 1)
-        sidebar_server_stat_grid.addWidget(sidebar_server_stat_connection_status, 1, 1)
+        sidebar_server_stat_grid.addWidget(self.sidebar_server_stat_connection_status, 1, 1)
 
         sidebar = QFrame()
         sidebar.setObjectName("sidebar")
-        sidebar.setFixedWidth(220)
+        sidebar.setFixedWidth(180)
         sidebar.setContentsMargins(0, 0, 0, 0)
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
@@ -238,6 +255,7 @@ class ServerSettings(QWidget):
 
         remove_server_button = QPushButton("Remove Server")
         remove_server_button.setIcon(QIcon(f"{file_root()}/trash.png"))
+        remove_server_button.clicked.connect(self.remove_server)
         remove_server_button.setIconSize(QSize(20, 20))
         remove_server_button.setStyleSheet("""
             QPushButton {
@@ -270,11 +288,22 @@ class ServerSettings(QWidget):
         layout.addLayout(header_layout)
         layout.addLayout(container_layout)
 
-    def get_server_info(self, server_name, server_address):
+    def get_server_info(self, server_name, server_address, status):
         self.server_name = server_name
         self.server_address = server_address
+        self.status = status
         self.fill_server_info()
 
     def fill_server_info(self):
         self.sidebar_server_stat_name.setText(self.server_name)
         self.sidebar_server_stat_icon.setPixmap(QPixmap(f"{app_directory()}/server_icons/{self.server_name}.png").scaled(60, 60, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        self.server_name_input.setText(self.server_name)
+        self.server_address_input.setText(self.server_address)
+        self.sidebar_server_stat_connection_status.setText(self.status)
+
+    def remove_server(self):
+        reply = QMessageBox.information(self, "Remove Server", "Remove Server", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
+            print("Removing Server")
+        else:
+            print("No")
