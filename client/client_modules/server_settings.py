@@ -1,16 +1,20 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-from client_modules.data_manipulation import app_directory
+from client_modules.data_manipulation import app_directory, delete_server, change_server_name
 from client_modules.path_finder import file_root
 
 class ServerSettings(QWidget):
-    def __init__(self):
+    def __init__(self, close_page, reload_servers):
         super().__init__()
 
         self.server_name = None
         self.server_address = None
         self.status = None
+        self.server_picture_path = None
+
+        self.close_page = close_page
+        self.reload_servers = reload_servers
 
         self.setFixedSize(800, 600)
         self.setStyleSheet("background-color: transparent;")
@@ -29,6 +33,7 @@ class ServerSettings(QWidget):
         """)
         exit_button = QPushButton("×")
         exit_button.setFixedSize(35, 35)
+        exit_button.clicked.connect(self.close_page)
 
         header_layout.addWidget(header_label)
         header_layout.addStretch()
@@ -43,8 +48,26 @@ class ServerSettings(QWidget):
                 border-radius: 10px;
             }
         """)
+
         main_screen_layout = QGridLayout(main_screen)
-        main_screen_layout.setVerticalSpacing(20)
+        main_screen_layout.setVerticalSpacing(10)
+
+        general_title = QLabel("General")
+        general_title.setStyleSheet("""
+            QLabel {
+                color: #f3f4f6;
+                font-size: 20px;
+                font-weight: 600;
+            }
+        """)
+
+        general_description = QLabel("Basic information about this server.")
+        general_description.setStyleSheet("""
+            QLabel {
+                color: #8b93a7;
+                font-size: 12px;
+            }
+        """)
 
         server_name_label = QLabel("Server Name")
         server_name_label.setStyleSheet("""
@@ -56,6 +79,7 @@ class ServerSettings(QWidget):
         """)
 
         self.server_name_input = QLineEdit()
+        self.server_name_input.textChanged.connect(self.update_save_button)
         self.server_name_input.setStyleSheet("""
             QLineEdit {
                 background-color: #151a24;
@@ -125,31 +149,61 @@ class ServerSettings(QWidget):
             }
         """)
 
-        save_button = QPushButton("Save Changes")
-        save_button.setStyleSheet("""
+        self.save_button = QPushButton("Save Changes")
+        self.save_button.setEnabled(False)
+        self.save_button.clicked.connect(self.save_changes)
+        self.save_button.setStyleSheet("""
             QPushButton {
                 background-color: #5865f2;
                 color: white;
                 border: none;
                 border-radius: 6px;
                 font-weight: 600;
-                padding: 10px
+                padding: 9px 18px;
+                font-size: 13px;
+            }
+            
+            QPushButton:hover {
+                background-color: #4752c4;
+            }
+            
+            QPushButton:pressed {
+                background-color: #3c45a5;
+            }
+            
+            QPushButton:disabled {
+                background-color: #3a3f4b;
+                color: #8b93a7;
+            }
+        """)
+
+        seperator = QFrame()
+        seperator.setFrameShape(QFrame.Shape.HLine)
+        seperator.setStyleSheet("""
+            QFrame {
+                border: none;
+                background-color: #2b3448;
+                max-height: 1px;
             }
         """)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
-        buttons_layout.addWidget(save_button)
+        buttons_layout.addWidget(self.save_button)
 
-        main_screen_layout.addWidget(server_name_label, 0, 0)
-        main_screen_layout.addWidget(self.server_name_input, 1, 0)
-        main_screen_layout.addWidget(server_address_label, 2, 0)
-        main_screen_layout.addWidget(self.server_address_input, 3, 0)
-        main_screen_layout.addWidget(copy_button, 3, 1)
-        main_screen_layout.addWidget(server_port_label, 4, 0)
-        main_screen_layout.addWidget(server_port_input, 5, 0)
-        main_screen_layout.setRowStretch(6, 1)
-        main_screen_layout.addLayout(buttons_layout, 7, 0, 1, 2)
+        main_screen_layout.addWidget(general_title, 0, 0)
+        main_screen_layout.addWidget(general_description, 1, 0)
+        main_screen_layout.addWidget(server_name_label, 2, 0)
+        main_screen_layout.addWidget(self.server_name_input, 3, 0)
+        main_screen_layout.addWidget(server_address_label, 4, 0)
+        main_screen_layout.addWidget(self.server_address_input, 5, 0)
+        main_screen_layout.addWidget(copy_button, 5, 1)
+        main_screen_layout.addWidget(server_port_label, 6, 0)
+        main_screen_layout.addWidget(server_port_input, 7, 0)
+        main_screen_layout.setRowStretch(8, 1)
+        main_screen_layout.addWidget(seperator, 9, 0, 1, 2)
+        main_screen_layout.addLayout(buttons_layout, 10, 0, 1, 2)
+
         sidebar_server_stat = QFrame()
         sidebar_server_stat_grid = QGridLayout(sidebar_server_stat)
         sidebar_server_stat_grid.setHorizontalSpacing(15)
@@ -160,7 +214,7 @@ class ServerSettings(QWidget):
         self.sidebar_server_stat_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.sidebar_server_stat_icon.setStyleSheet("""
             QLabel {
-                background-color: #1e2233;
+                background-color: transparent;
                 border: 1px solid #30364d;
                 border-radius: 10px;
             }
@@ -290,20 +344,39 @@ class ServerSettings(QWidget):
 
     def get_server_info(self, server_name, server_address, status):
         self.server_name = server_name
+        self.server_picture_path = f"{app_directory()}/server_icons/{self.server_name}.png"
         self.server_address = server_address
         self.status = status
         self.fill_server_info()
 
     def fill_server_info(self):
         self.sidebar_server_stat_name.setText(self.server_name)
-        self.sidebar_server_stat_icon.setPixmap(QPixmap(f"{app_directory()}/server_icons/{self.server_name}.png").scaled(60, 60, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         self.server_name_input.setText(self.server_name)
         self.server_address_input.setText(self.server_address)
         self.sidebar_server_stat_connection_status.setText(self.status)
 
+        pixmap = QPixmap(self.server_picture_path)
+        self.sidebar_server_stat_icon.setPixmap(pixmap)
+        self.sidebar_server_stat_icon.setScaledContents(True)
+
     def remove_server(self):
         reply = QMessageBox.information(self, "Remove Server", "Remove Server", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
-            print("Removing Server")
+            delete_server(self.server_address)
+            self.close_page()
+
+    def update_save_button(self):
+        if self.server_name != self.server_name_input.text():
+            self.save_button.setEnabled(True)
         else:
-            print("No")
+            self.save_button.setEnabled(False)
+
+    def save_changes(self):
+        new_server_name = self.server_name_input.text()
+        new_server_picture_path = f"{app_directory()}/server_icons/{new_server_name}.png"
+
+        self.sidebar_server_stat_name.setText(new_server_name)
+        change_server_name(new_server_name, self.server_address)
+        self.reload_servers()
+
+        self.save_button.setEnabled(False)

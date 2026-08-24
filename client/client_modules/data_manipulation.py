@@ -95,3 +95,15 @@ def check_duplicate_server(ip_address):
             return True
 
     return False
+
+def change_server_name(new_server_name, server_address):
+    file_path = server_file()
+    servers = []
+
+    for server in server_loader():
+        if server["ip_address"] == server_address:
+            server["name"] = new_server_name
+        servers.append(server)
+
+    with open (file_path, "w", encoding = "utf-8") as f:
+        json.dump(servers, f, indent = 4)

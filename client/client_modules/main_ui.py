@@ -49,7 +49,7 @@ class MainUi(QWidget):
         self.update_checker = UpdateChecker(self.image_path, self.update_window_show_main_ui)
         self.chat_ui = ChatUi(self.image_path, self.chat_handler, self.profile_cache, self.clear_chat_widget, self.tray)
         self.custom_title_bar = CustomTitleBar(self)
-        self.server_settings = ServerSettings()
+        self.server_settings = ServerSettings(self.server_settings_show_main_ui, self.reload_servers)
 
         self.chat_handler.history_message_received.connect(self.chat_ui.display_old_chat_history)
         self.chat_handler.first_history_message_received.connect(self.chat_ui.display_first_chat_history)
@@ -68,6 +68,7 @@ class MainUi(QWidget):
         self.overlay = QWidget(self)
         self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
         self.overlay.setGeometry(0, 0, self.width(), self.height())
+        self.overlay.hide()
 
         self.overlay_layout = QVBoxLayout(self.overlay)
 
@@ -481,7 +482,7 @@ class ServerButton(QFrame):
     def set_server_icon(self, decoded_bytes, server_name):
         pixmap = QPixmap()
         pixmap.loadFromData(decoded_bytes)
-        pixmap_scaled = pixmap.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+        pixmap_scaled = pixmap.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         rounded_image = QPixmap(40, 40)
         rounded_image.fill(Qt.GlobalColor.transparent)
 
@@ -496,7 +497,7 @@ class ServerButton(QFrame):
         painter.drawPixmap(0, 0, pixmap_scaled)
         painter.end()
 
-        save_server_icon(rounded_image, server_name)
+        save_server_icon(pixmap, server_name)
 
         self.server_icon.setPixmap(rounded_image)
 
