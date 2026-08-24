@@ -373,10 +373,11 @@ class ServerSettings(QWidget):
 
     def save_changes(self):
         new_server_name = self.server_name_input.text()
-        new_server_picture_path = f"{app_directory()}/server_icons/{new_server_name}.png"
+        self.server_name = new_server_name
 
         self.sidebar_server_stat_name.setText(new_server_name)
-        change_server_name(new_server_name, self.server_address)
+        change_server_name(new_server_name, self.server_address, self.server_picture_path)
+        self.server_picture_path = f"{app_directory()}/server_icons/{new_server_name}.png"
         self.reload_servers()
 
         self.save_button.setEnabled(False)

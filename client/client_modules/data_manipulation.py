@@ -96,8 +96,9 @@ def check_duplicate_server(ip_address):
 
     return False
 
-def change_server_name(new_server_name, server_address):
+def change_server_name(new_server_name, server_address, old_server_image_path):
     file_path = server_file()
+    icon_file_path = server_icons_file()
     servers = []
 
     for server in server_loader():
@@ -107,3 +108,5 @@ def change_server_name(new_server_name, server_address):
 
     with open (file_path, "w", encoding = "utf-8") as f:
         json.dump(servers, f, indent = 4)
+
+    os.rename(old_server_image_path, f"{icon_file_path}/{new_server_name}.png")
