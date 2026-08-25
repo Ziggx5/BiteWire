@@ -3,6 +3,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from client_modules.data_manipulation import app_directory, delete_server, change_server_name
 from client_modules.path_finder import file_root
+import os
 
 class ServerSettings(QWidget):
     def __init__(self, close_page, reload_servers):
@@ -12,6 +13,7 @@ class ServerSettings(QWidget):
         self.server_address = None
         self.status = None
         self.server_picture_path = None
+        self.placeholder_image_path = f"{file_root()}/server_image_placeholder.png"
 
         self.close_page = close_page
         self.reload_servers = reload_servers
@@ -211,6 +213,7 @@ class ServerSettings(QWidget):
 
         self.sidebar_server_stat_icon = QLabel()
         self.sidebar_server_stat_icon.setFixedSize(60, 60)
+        self.sidebar_server_stat_icon.setScaledContents(True)
         self.sidebar_server_stat_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.sidebar_server_stat_icon.setStyleSheet("""
             QLabel {
@@ -355,9 +358,10 @@ class ServerSettings(QWidget):
         self.server_address_input.setText(self.server_address)
         self.sidebar_server_stat_connection_status.setText(self.status)
 
-        pixmap = QPixmap(self.server_picture_path)
-        self.sidebar_server_stat_icon.setPixmap(pixmap)
-        self.sidebar_server_stat_icon.setScaledContents(True)
+        if self.server_picture_path and os.path.exists(self.server_picture_path):
+            self.sidebar_server_stat_icon.setPixmap(QPixmap(self.server_picture_path))
+        else:
+            self.sidebar_server_stat_icon.setPixmap(QPixmap(self.placeholder_image_path))
 
     def remove_server(self):
         reply = QMessageBox.information(self, "Remove Server", "Remove Server", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)

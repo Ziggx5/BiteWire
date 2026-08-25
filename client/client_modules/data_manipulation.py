@@ -109,4 +109,5 @@ def change_server_name(new_server_name, server_address, old_server_image_path):
     with open (file_path, "w", encoding = "utf-8") as f:
         json.dump(servers, f, indent = 4)
 
-    os.rename(old_server_image_path, f"{icon_file_path}/{new_server_name}.png")
+    if old_server_image_path and os.path.exists(old_server_image_path):
+        os.rename(old_server_image_path, f"{icon_file_path}/{new_server_name}.png")
