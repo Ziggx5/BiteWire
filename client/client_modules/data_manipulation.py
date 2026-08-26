@@ -1,13 +1,9 @@
-from platformdirs import user_data_dir
 import os
 import json
+from client_modules import bitewire
 
 def app_directory():
-    app_name = "BiteWire"
-    data_dir = user_data_dir(app_name)
-    os.makedirs(data_dir, exist_ok = True)
-
-    return data_dir
+    return bitewire.get_app_data_path()
 
 def server_file():
     data_dir = app_directory()
