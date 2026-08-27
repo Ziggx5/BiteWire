@@ -1,3 +1,5 @@
+from datetime import time
+
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -433,3 +435,32 @@ class UserWidget(QWidget):
 
     def set_profile_picture(self, pixmap):
         self.icon.setPixmap(pixmap)
+
+class JoinUserMessageWidget(QWidget):
+    def __init__(self, username, time):
+        super().__init__()
+        self.setObjectName("join_message_container")
+
+        self.setStyleSheet("""
+            QWidget#join_message_container {
+                background-color: transparent;
+                border-radius: 12px;
+            }
+            
+            QWidget#join_message_container:hover {
+                background-color: #333333;
+            }
+        """)
+
+        layout = QHBoxLayout()
+
+        arrow_icon = QLabel("➜")
+
+        text = QLabel(f"{username} has joined the server!")
+        text.setStyleSheet("color: e6edf3;")
+
+        joined_time = QLabel(time)
+
+        layout.addWidget(arrow_icon)
+        layout.addWidget(text)
+        layout.addWidget(joined_time)
