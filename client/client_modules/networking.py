@@ -6,7 +6,7 @@ from PySide6.QtCore import QObject, Signal
 import struct
 
 class ChatHandler(QObject):
-    message_received = Signal(str, str, str)
+    message_received = Signal(str, str, str, str)
     history_message_received = Signal(list)
     first_history_message_received = Signal(str, str, str, int)
     users_received = Signal(list)
@@ -72,10 +72,11 @@ class ChatHandler(QObject):
                 
                 message_type = message.get("type")
                 if message_type == "message":
+                    sender_type = message['sender_type']
                     username = message['user']
                     content = message['content']
                     time = message['time']
-                    self.message_received.emit(username, content, time)
+                    self.message_received.emit(sender_type, username, content, time)
                     
                 elif message_type == "users_list":
                     users = message['content']

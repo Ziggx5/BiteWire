@@ -215,13 +215,16 @@ class ChatUi(QWidget):
         self.message_input.clear()
         self.message_input.setFocus()
 
-    def create_message_widget(self, username, content, time):
-        cached_picture = self.profile_cache.get(username, "message_profile_picture")
-
-        if cached_picture:
-            return MessageWidget(username, content, time, cached_picture)
+    def create_message_widget(self, sender_type, username, content, sent_time):
+        if sender_type == "server":
+            return JoinUserMessageWidget(username, sent_time, f"{self.image_path}/right_arrow.png")
         else:
-            return MessageWidget(username, content, time, f"{self.image_path}/user_picture_placeholder.png")
+            cached_picture = self.profile_cache.get(username, "message_profile_picture")
+
+            if cached_picture:
+                return MessageWidget(username, content, sent_time, cached_picture)
+            else:
+                return MessageWidget(username, content, sent_time, f"{self.image_path}/user_picture_placeholder.png")
 
     def display_first_chat_history(self, username, content, time, message_id):
         message_widget = self.create_message_widget(username, content, time)
@@ -263,9 +266,9 @@ class ChatUi(QWidget):
         
         self.loading_history = False
 
-    def display_new_message(self, username, content, time):
+    def display_new_message(self,sender_type, username, content, sent_time):
         self.tray.show_notification(username, content)
-        message_widget = self.create_message_widget(username, content, time)
+        message_widget = self.create_message_widget(sender_type, username, content, sent_time)
 
         self.chat_layout.addWidget(message_widget)
         
@@ -437,8 +440,9 @@ class UserWidget(QWidget):
         self.icon.setPixmap(pixmap)
 
 class JoinUserMessageWidget(QWidget):
-    def __init__(self, username, time):
+    def __init__(self, username, joined_time, image):
         super().__init__()
+        self.setAttribute(Qt.WA_StyledBackground, True)
         self.setObjectName("join_message_container")
 
         self.setStyleSheet("""
@@ -452,15 +456,28 @@ class JoinUserMessageWidget(QWidget):
             }
         """)
 
-        layout = QHBoxLayout()
+        layout = QHBoxLayout(self)
 
-        arrow_icon = QLabel("➜")
+        arrow_icon = QLabel()
+        arrow_icon.setPixmap(QPixmap(image).scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
 
         text = QLabel(f"{username} has joined the server!")
-        text.setStyleSheet("color: e6edf3;")
+        text.setStyleSheet("""
+            QLabel {
+                color: #e6edf3;
+                font-weight: 600;
+            }
+        """)
 
-        joined_time = QLabel(time)
+        joined_time_label = QLabel(joined_time)
+        joined_time_label.setStyleSheet("""
+            QLabel {
+                color: #6b7280;
+                font-size: 10px;
+            }
+        """)
 
         layout.addWidget(arrow_icon)
         layout.addWidget(text)
-        layout.addWidget(joined_time)
+        layout.addWidget(joined_time_label)
+        layout.addStretch()
