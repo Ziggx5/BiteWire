@@ -459,7 +459,7 @@ class MainUi(QWidget):
             self.active_clients_card_first_clients_layout.addWidget(row)
 
     def refresh_active_clients_count(self, clients_count):
-        self.active_clients_label.setText(f"Active users ({clients_count})")
+        self.active_users_label.setText(f"Active users ({clients_count})")
 
 class StatCard(QFrame):
     def __init__(self, title, value, text_color):

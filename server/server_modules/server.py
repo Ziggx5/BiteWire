@@ -191,6 +191,21 @@ class ChatServer(QObject):
             if self.register_user(username, password, profile_picture):
                 client.send({"type": "register", "status": "ok"})
                 self.send_users_list_all_clients()
+
+                current_time = datetime.now().strftime("%l:%M %p, %m/%d/%y")
+                content = f"{username} has joined the server!"
+
+                self.save_message_to_database(username, content, current_time)
+                self.broadcast({
+                    "type": "message",
+                    "sender_type": "server",
+                    "user": username,
+                    "content": content,
+                    "time": current_time
+                })
+
+                self.message_count += 1
+                self.message_count_signal.emit(str(self.message_count))
             else:
                 client.send({"type": "register", "status": "fail"})
 
@@ -230,6 +245,7 @@ class ChatServer(QObject):
             self.save_message_to_database(client.username, content, current_time)
             self.broadcast({
                 "type": "message",
+                "sender_type": "client",
                 "user": client.username,
                 "content": content,
                 "time": current_time
