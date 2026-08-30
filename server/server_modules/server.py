@@ -123,7 +123,8 @@ class ChatServer(QObject):
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sender TEXT,
+                sender_type TEXT,
+                sender_username TEXT,
                 content TEXT,
                 created_at TEXT
             )
@@ -195,7 +196,7 @@ class ChatServer(QObject):
                 current_time = datetime.now().strftime("%l:%M %p, %m/%d/%y")
                 content = f"{username} has joined the server!"
 
-                self.save_message_to_database(username, content, current_time)
+                self.save_message_to_database("server", username, content, current_time)
                 self.broadcast({
                     "type": "message",
                     "sender_type": "server",
@@ -242,7 +243,7 @@ class ChatServer(QObject):
 
             current_time = datetime.now().strftime("%l:%M %p, %m/%d/%y")
 
-            self.save_message_to_database(client.username, content, current_time)
+            self.save_message_to_database("client", client.username, content, current_time)
             self.broadcast({
                 "type": "message",
                 "sender_type": "client",
@@ -406,14 +407,14 @@ class ChatServer(QObject):
             self.uptime_signal.emit(hours, minutes, seconds)
             time.sleep(1)
 
-    def save_message_to_database(self, username, content, time):
+    def save_message_to_database(self, sender_type, username, content, time):
         conn = sqlite3.connect(self.messages_database_path)
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO messages (sender, content, created_at)
-            VALUES (?, ?, ?)
-        """, (username, content, time))
+            INSERT INTO messages (sender_type, sender_username, content, created_at)
+            VALUES (?, ?, ?, ?)
+        """, (sender_type, username, content, time))
 
         conn.commit()
         conn.close()
@@ -440,9 +441,9 @@ class ChatServer(QObject):
 
         if old_id:
             cursor.execute("""
-            SELECT sender, content, created_at, id
+            SELECT sender_type, sender_username, content, created_at, id
             FROM (
-                SELECT sender, content, created_at, id
+                SELECT sender_type, sender_username, content, created_at, id
                 FROM messages
                 WHERE id < ?
                 ORDER BY id DESC            
@@ -456,15 +457,15 @@ class ChatServer(QObject):
             messages = []
 
             for message in result:
-                messages.append({"id": message[3], "user": message[0], "content": message[1], "time": message[2]})
+                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3]})
             
             client.send({"type": "message_history", "content": messages})
 
         else:
             cursor.execute("""
-                SELECT sender, content, created_at, id
+                SELECT sender_type, sender_username, content, created_at, id
                 FROM (
-	                SELECT sender, content, created_at, id
+	                SELECT sender_type, sender_username, content, created_at, id
 	                FROM messages
 	                ORDER BY id DESC
 	                LIMIT 20
@@ -477,7 +478,7 @@ class ChatServer(QObject):
             messages = []
 
             for message in result:
-                messages.append({"id": message[3], "user": message[0], "content": message[1], "time": message[2]})
+                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3]})
             
             client.send({"type": "first_message_history", "content": messages})
 
