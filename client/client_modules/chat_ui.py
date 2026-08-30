@@ -98,6 +98,7 @@ class ChatUi(QWidget):
 
         self.message_input = QTextEdit()
         self.message_input.setFixedHeight(30)
+        QTimer.singleShot(5000, lambda: self.message_input.setFocus())
         self.message_input.setStyleSheet("""
         QTextEdit {
             color: #e6edf3; 
@@ -193,7 +194,6 @@ class ChatUi(QWidget):
 
         main_layout.addWidget(chat_wrapper, 5)
         main_layout.addWidget(all_users_wrapper, 1)
-        self.message_input.setFocus()
 
     def set_server_name(self, server_name):
         self.server_name_label.setText(server_name)
@@ -226,8 +226,8 @@ class ChatUi(QWidget):
             else:
                 return MessageWidget(username, content, sent_time, f"{self.image_path}/user_picture_placeholder.png")
 
-    def display_first_chat_history(self, username, content, time, message_id):
-        message_widget = self.create_message_widget(username, content, time)
+    def display_first_chat_history(self, sender_type, sender_username, content, sent_time, message_id):
+        message_widget = self.create_message_widget(sender_type, sender_username, content, sent_time)
 
         self.chat_layout.addWidget(message_widget)
 
@@ -248,7 +248,8 @@ class ChatUi(QWidget):
         old_max = scrollbar.maximum()
 
         for message in reversed(data):
-            message_widget = self.create_message_widget(message['user'], message['content'], message['time'])
+            message_widget = self.create_message_widget(message['sender_type'], message['sender_username'], message['content'], message['sent_time'])
+
             self.chat_layout.insertWidget(0, message_widget)
 
             if not self.old_message_id:

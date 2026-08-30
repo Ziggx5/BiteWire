@@ -8,7 +8,7 @@ import struct
 class ChatHandler(QObject):
     message_received = Signal(str, str, str, str)
     history_message_received = Signal(list)
-    first_history_message_received = Signal(str, str, str, int)
+    first_history_message_received = Signal(str, str, str, str, int)
     users_received = Signal(list)
     server_status = Signal(str)
     users_count_signal = Signal(str)
@@ -91,7 +91,7 @@ class ChatHandler(QObject):
                 
                 elif message_type == "first_message_history":
                     for content in message['content']:
-                        self.first_history_message_received.emit(content['user'], content['content'], content['time'], content['id'])
+                        self.first_history_message_received.emit(content['sender_type'], content['sender_username'], content['content'], content['time'], content['id'])
                     
                 elif message_type == "message_history":
                     self.history_message_received.emit(message['content'])
