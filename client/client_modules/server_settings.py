@@ -9,6 +9,8 @@ class ServerSettings(QWidget):
     def __init__(self, close_page, reload_servers):
         super().__init__()
 
+        self.appearance_page = AppearancePage()
+
         self.server_name = None
         self.server_address = None
         self.status = None
@@ -22,6 +24,7 @@ class ServerSettings(QWidget):
         self.setStyleSheet("background-color: transparent;")
 
         layout = QVBoxLayout(self)
+        self.stack = QStackedLayout()
 
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(0, 0, 0, 10)
@@ -41,15 +44,20 @@ class ServerSettings(QWidget):
         header_layout.addStretch()
         header_layout.addWidget(exit_button)
 
-        main_screen = QFrame()
-        main_screen.setObjectName("main_screen")
-        main_screen.setStyleSheet("""
-            QFrame#main_screen {
+        main_page_container = QFrame()
+        main_page_container.setObjectName("main_page_container")
+        main_page_container.setStyleSheet("""
+            QFrame#main_page_container {
                 background-color: #1a1f2c;
                 border: 1px solid #252d40;
                 border-radius: 10px;
             }
         """)
+
+        main_page_container_layout = QVBoxLayout(main_page_container)
+        main_page_container_layout.addLayout(self.stack)
+
+        main_screen = QFrame()
 
         main_screen_layout = QGridLayout(main_screen)
         main_screen_layout.setVerticalSpacing(10)
@@ -233,7 +241,6 @@ class ServerSettings(QWidget):
         self.sidebar_server_stat_connection_status = QLabel("Status")
         self.sidebar_server_stat_connection_status.setStyleSheet("""
             QLabel {
-                color: #86d48a;
                 font-size: 13px;
                 font-weight: 500;
             }
@@ -249,10 +256,12 @@ class ServerSettings(QWidget):
         sidebar.setContentsMargins(0, 0, 0, 0)
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
-        general_button = QPushButton("General")
-        general_button.setIcon(QIcon(f"{file_root()}/settings.png"))
-        general_button.setIconSize(QSize(20, 20))
-        general_button.setStyleSheet("""
+
+        self.general_button = QPushButton("General")
+        self.general_button.setIcon(QIcon(f"{file_root()}/settings.png"))
+        self.general_button.setIconSize(QSize(20, 20))
+        self.general_button.clicked.connect(lambda: (self.set_active_button(self.general_button), self.stack.setCurrentWidget(main_screen)))
+        self.general_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 color: #d1d5db;
@@ -266,13 +275,18 @@ class ServerSettings(QWidget):
             
             QPushButton:hover {
                 background-color: #1d2638;
-                color: white;
+            }
+            
+            QPushButton[active="true"] {
+                background-color: #293452;
             }
         """)
-        appearance_button = QPushButton("Appearance")
-        appearance_button.setIcon(QIcon(f"{file_root()}/pallete.png"))
-        appearance_button.setIconSize(QSize(20, 20))
-        appearance_button.setStyleSheet("""
+
+        self.appearance_button = QPushButton("Appearance")
+        self.appearance_button.setIcon(QIcon(f"{file_root()}/pallete.png"))
+        self.appearance_button.setIconSize(QSize(20, 20))
+        self.appearance_button.clicked.connect(lambda: (self.set_active_button(self.appearance_button), self.stack.setCurrentWidget(self.appearance_page)))
+        self.appearance_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 color: #d1d5db;
@@ -286,13 +300,17 @@ class ServerSettings(QWidget):
 
             QPushButton:hover {
                 background-color: #1d2638;
-                color: white;
+            }
+            
+            QPushButton[active="true"] {
+                background-color: #293452;
             }
         """)
-        notification_button = QPushButton("Notification")
-        notification_button.setIcon(QIcon(f"{file_root()}/notification.png"))
-        notification_button.setIconSize(QSize(20, 20))
-        notification_button.setStyleSheet("""
+        self.notification_button = QPushButton("Notifications")
+        self.notification_button.setIcon(QIcon(f"{file_root()}/notification.png"))
+        self.notification_button.setIconSize(QSize(20, 20))
+        self.notification_button.clicked.connect(lambda: self.set_active_button(self.notification_button))
+        self.notification_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 color: #d1d5db;
@@ -306,7 +324,10 @@ class ServerSettings(QWidget):
 
             QPushButton:hover {
                 background-color: #1d2638;
-                color: white;
+            }
+            
+            QPushButton[active="true"] {
+                background-color: #293452;
             }
         """)
 
@@ -331,19 +352,25 @@ class ServerSettings(QWidget):
         """)
         sidebar_layout.addWidget(sidebar_server_stat)
         sidebar_layout.addSpacing(10)
-        sidebar_layout.addWidget(general_button)
-        sidebar_layout.addWidget(appearance_button)
-        sidebar_layout.addWidget(notification_button)
+        sidebar_layout.addWidget(self.general_button)
+        sidebar_layout.addWidget(self.appearance_button)
+        sidebar_layout.addWidget(self.notification_button)
         sidebar_layout.addStretch()
         sidebar_layout.addWidget(remove_server_button)
 
         container_layout = QHBoxLayout()
         container_layout.addWidget(sidebar)
         container_layout.addSpacing(10)
-        container_layout.addWidget(main_screen)
+        container_layout.addWidget(main_page_container)
 
         layout.addLayout(header_layout)
         layout.addLayout(container_layout)
+
+        self.set_active_button(self.general_button)
+
+        self.stack.addWidget(main_screen)
+        self.stack.addWidget(self.appearance_page)
+        self.stack.setCurrentWidget(main_screen)
 
     def get_server_info(self, server_name, server_address, status):
         self.server_name = server_name
@@ -357,6 +384,19 @@ class ServerSettings(QWidget):
         self.server_name_input.setText(self.server_name)
         self.server_address_input.setText(self.server_address)
         self.sidebar_server_stat_connection_status.setText(self.status)
+
+        if self.status == "Offline":
+            self.sidebar_server_stat_connection_status.setStyleSheet("""
+                QLabel {
+                    color: #d65e60;
+                }
+            """)
+        else:
+            self.sidebar_server_stat_connection_status.setStyleSheet("""
+                QLabel {
+                    color: #86d48a;
+                }
+            """)
 
         if self.server_picture_path and os.path.exists(self.server_picture_path):
             self.sidebar_server_stat_icon.setPixmap(QPixmap(self.server_picture_path))
@@ -385,3 +425,41 @@ class ServerSettings(QWidget):
         self.reload_servers()
 
         self.save_button.setEnabled(False)
+
+    def set_active_button(self, button):
+        buttons = [self.general_button, self.appearance_button, self.notification_button]
+
+        for current_button in buttons:
+            current_button.setProperty("active", current_button == button)
+            current_button.style().unpolish(current_button)
+            current_button.style().polish(current_button)
+
+class AppearancePage(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        grid_layout = QGridLayout(self)
+        grid_layout.setVerticalSpacing(10)
+
+        general_title = QLabel("Appearance")
+        general_title.setStyleSheet("""
+            QLabel {
+                color: #f3f4f6;
+                font-size: 20px;
+                font-weight: 600;
+            }
+        """)
+
+        general_description = QLabel("Customize how this server looks in the application.")
+        general_description.setStyleSheet("""
+            QLabel {
+                color: #8b93a7;
+                font-size: 12px;
+            }
+        """)
+
+        theme_color_label = QLabel("Theme Color")
+
+        grid_layout.addWidget(general_title, 0, 0)
+        grid_layout.addWidget(general_description, 1, 0)
+        grid_layout.addWidget(theme_color_label, 2, 0)
