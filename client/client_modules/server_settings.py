@@ -440,6 +440,7 @@ class AppearancePage(QWidget):
 
         grid_layout = QGridLayout(self)
         grid_layout.setVerticalSpacing(10)
+        grid_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         general_title = QLabel("Appearance")
         general_title.setStyleSheet("""
@@ -459,7 +460,138 @@ class AppearancePage(QWidget):
         """)
 
         theme_color_label = QLabel("Theme Color")
+        theme_color_label.setStyleSheet("""
+            QLabel {
+                color: #f3f4f6;
+                font-size: 13px;
+            }
+        """)
+
+        color_palette_layout = QHBoxLayout()
+
+        blue_color = QPushButton()
+        blue_color.setFixedSize(24, 24)
+        blue_color.setStyleSheet("""
+            QPushButton {
+                background-color: #5865F2;
+                border: none;
+                border-radius: 12px;
+            }
+            
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        green_color = QPushButton()
+        green_color.setFixedSize(24,24)
+        green_color.setStyleSheet("""
+            QPushButton {
+                background-color: #57D681;
+                border: none;
+                border-radius: 12px;
+            }
+            
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        red_color = QPushButton()
+        red_color.setFixedSize(24,24)
+        red_color.setStyleSheet("""
+            QPushButton {
+                background-color: #F25555;
+                border: none;
+                border-radius: 12px;
+            }
+
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        yellow_color = QPushButton()
+        yellow_color.setFixedSize(24, 24)
+        yellow_color.setStyleSheet("""
+            QPushButton {
+                background-color: #F5B942;
+                border: none;
+                border-radius: 12px;
+            }
+
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        purple_color = QPushButton()
+        purple_color.setFixedSize(24, 24)
+        purple_color.setStyleSheet("""
+            QPushButton {
+                background-color: #8B5CF6;
+                border: none;
+                border-radius: 12px;
+            }
+
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        pink_color = QPushButton()
+        pink_color.setFixedSize(24, 24)
+        pink_color.setStyleSheet("""
+            QPushButton {
+                background-color: #D946A8;
+                border: none;
+                border-radius: 12px;
+            }
+
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        cyan_color = QPushButton()
+        cyan_color.setFixedSize(24, 24)
+        cyan_color.setStyleSheet("""
+            QPushButton {
+                background-color: #35C5E5;
+                border: none;
+                border-radius: 12px;
+            }
+
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        custom_color = QPushButton("X")
+        custom_color.setFixedSize(24, 24)
+        custom_color.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: 1 px solid gray;
+                border-radius: 12px;
+            }
+            
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        color_palette_layout.addWidget(custom_color)
+        color_palette_layout.addWidget(blue_color)
+        color_palette_layout.addWidget(green_color)
+        color_palette_layout.addWidget(red_color)
+        color_palette_layout.addWidget(yellow_color)
+        color_palette_layout.addWidget(purple_color)
+        color_palette_layout.addWidget(pink_color)
+        color_palette_layout.addWidget(cyan_color)
 
         grid_layout.addWidget(general_title, 0, 0)
         grid_layout.addWidget(general_description, 1, 0)
         grid_layout.addWidget(theme_color_label, 2, 0)
+        grid_layout.addLayout(color_palette_layout, 3, 0)
+        grid_layout.setRowStretch(4, 1)
