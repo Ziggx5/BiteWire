@@ -28,7 +28,9 @@ def save_server_data(name, ip_address):
     data = {
         "name": name,
         "ip_address": ip_address,
-        "user_count": 0
+        "user_count": 0,
+        "theme_color": "transparent",
+        "border_color": "transparent"
     }
     servers = []
 

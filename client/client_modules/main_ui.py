@@ -267,7 +267,7 @@ class MainUi(QWidget):
         server_list = server_loader()
         self.server_buttons.clear()
         for server in server_list:
-            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], self.login_page_popup, self.image_path, self.server_settings_popup)
+            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], server['theme_color'], server['border_color'], self.login_page_popup, self.image_path, self.server_settings_popup)
             self.server_buttons[server["ip_address"]] = server_button
             if server['ip_address'] == self.current_server_ip:
                 server_button.connected_server()
@@ -293,12 +293,12 @@ class MainUi(QWidget):
         self.chat_ui.show()
         self.active_servers.append(self.current_server_ip)
 
-    def server_settings_popup(self, server_address, server_name):
+    def server_settings_popup(self, server_address, server_name, theme_color, border_color):
         self.show_popup(self.server_settings)
         if server_address in self.active_servers:
-            self.server_settings.get_server_info(server_name, server_address, "Online")
+            self.server_settings.get_server_info(server_name, server_address, theme_color, border_color, "Online")
         else:
-            self.server_settings.get_server_info(server_name, server_address, "Offline")
+            self.server_settings.get_server_info(server_name, server_address, theme_color, border_color, "Offline")
 
     def show_popup(self, widget):
         while self.popup_background_container_layout.count():
@@ -342,12 +342,14 @@ class MainUi(QWidget):
         button.set_server_icon(decoded_bytes, button.name)
 
 class ServerButton(QFrame):
-    def __init__(self, name, ip, user_count, on_click, image_path, server_settings_popup):
+    def __init__(self, name, ip, user_count, theme_color, border_color, on_click, image_path, server_settings_popup):
         super().__init__()
 
         self.name = name
         self.ip = ip
         self.user_count = user_count
+        self.theme_color = theme_color
+        self.border_color = border_color
         self.on_click = on_click
         self.connected = False
         self.server_settings_popup = server_settings_popup
@@ -502,7 +504,7 @@ class ServerButton(QFrame):
         self.server_icon.setPixmap(rounded_image)
 
     def open_server_settings(self):
-        self.server_settings_popup(self.ip, self.name)
+        self.server_settings_popup(self.ip, self.name, self.theme_color, self.border_color)
 
 class CustomTitleBar(QWidget):
     def __init__(self, parent):

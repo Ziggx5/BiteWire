@@ -1,3 +1,5 @@
+from _colorize import Theme
+
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -14,6 +16,8 @@ class ServerSettings(QWidget):
         self.server_name = None
         self.server_address = None
         self.status = None
+        self.theme_color = None
+        self.border_color = None
         self.server_picture_path = None
         self.placeholder_image_path = f"{file_root()}/server_image_placeholder.png"
 
@@ -372,11 +376,14 @@ class ServerSettings(QWidget):
         self.stack.addWidget(self.appearance_page)
         self.stack.setCurrentWidget(main_screen)
 
-    def get_server_info(self, server_name, server_address, status):
+    def get_server_info(self, server_name, server_address, status, theme_color, border_color):
         self.server_name = server_name
         self.server_picture_path = f"{app_directory()}/server_icons/{self.server_name}.png"
         self.server_address = server_address
+        self.theme_color = theme_color
+        self.border_color = border_color
         self.status = status
+
         self.fill_server_info()
 
     def fill_server_info(self):
@@ -446,7 +453,7 @@ class AppearancePage(QWidget):
         general_title.setStyleSheet("""
             QLabel {
                 color: #f3f4f6;
-                font-size: 20px;
+                font-size: 22px;
                 font-weight: 600;
             }
         """)
@@ -455,7 +462,7 @@ class AppearancePage(QWidget):
         general_description.setStyleSheet("""
             QLabel {
                 color: #8b93a7;
-                font-size: 12px;
+                font-size: 14px;
             }
         """)
 
@@ -463,47 +470,69 @@ class AppearancePage(QWidget):
         theme_color_label.setStyleSheet("""
             QLabel {
                 color: #f3f4f6;
-                font-size: 13px;
+                font-size: 15px;
+                font-weight: 600;
             }
         """)
 
-        color_palette_layout = QHBoxLayout()
+        border_color_label = QLabel("Border Color")
+        border_color_label.setStyleSheet("""
+            QLabel {
+                color: #f3f4f6;
+                font-size: 15px;
+                font-weight: 600;
+            }
+        """)
+
+        grid_layout.addWidget(general_title, 0, 0)
+        grid_layout.addWidget(general_description, 1, 0)
+        grid_layout.addWidget(theme_color_label, 2, 0)
+        grid_layout.addWidget(ThemeColors(), 3, 0)
+        grid_layout.addWidget(border_color_label, 4, 0)
+        grid_layout.addWidget(ThemeColors(), 5, 0)
+        grid_layout.setRowStretch(6, 1)
+
+class ThemeColors(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        layout = QHBoxLayout(self)
 
         blue_color = QPushButton()
-        blue_color.setFixedSize(24, 24)
+        blue_color.setFixedSize(26, 26)
         blue_color.setStyleSheet("""
             QPushButton {
                 background-color: #5865F2;
                 border: none;
-                border-radius: 12px;
+                border-radius: 13px;
             }
-            
+
             QPushButton:hover {
                 border: 2px solid white;
             }
         """)
 
         green_color = QPushButton()
-        green_color.setFixedSize(24,24)
+        green_color.setFixedSize(26, 26)
         green_color.setStyleSheet("""
             QPushButton {
                 background-color: #57D681;
                 border: none;
-                border-radius: 12px;
+                border-radius: 13px;
             }
-            
+
             QPushButton:hover {
                 border: 2px solid white;
             }
         """)
 
         red_color = QPushButton()
-        red_color.setFixedSize(24,24)
+        red_color.setFixedSize(26, 26)
         red_color.setStyleSheet("""
             QPushButton {
                 background-color: #F25555;
                 border: none;
-                border-radius: 12px;
+                border-radius: 13px;
             }
 
             QPushButton:hover {
@@ -512,12 +541,12 @@ class AppearancePage(QWidget):
         """)
 
         yellow_color = QPushButton()
-        yellow_color.setFixedSize(24, 24)
+        yellow_color.setFixedSize(26, 26)
         yellow_color.setStyleSheet("""
             QPushButton {
                 background-color: #F5B942;
                 border: none;
-                border-radius: 12px;
+                border-radius: 13px;
             }
 
             QPushButton:hover {
@@ -526,12 +555,12 @@ class AppearancePage(QWidget):
         """)
 
         purple_color = QPushButton()
-        purple_color.setFixedSize(24, 24)
+        purple_color.setFixedSize(26, 26)
         purple_color.setStyleSheet("""
             QPushButton {
                 background-color: #8B5CF6;
                 border: none;
-                border-radius: 12px;
+                border-radius: 13px;
             }
 
             QPushButton:hover {
@@ -540,12 +569,12 @@ class AppearancePage(QWidget):
         """)
 
         pink_color = QPushButton()
-        pink_color.setFixedSize(24, 24)
+        pink_color.setFixedSize(26, 26)
         pink_color.setStyleSheet("""
             QPushButton {
                 background-color: #D946A8;
                 border: none;
-                border-radius: 12px;
+                border-radius: 13px;
             }
 
             QPushButton:hover {
@@ -554,12 +583,12 @@ class AppearancePage(QWidget):
         """)
 
         cyan_color = QPushButton()
-        cyan_color.setFixedSize(24, 24)
+        cyan_color.setFixedSize(26, 26)
         cyan_color.setStyleSheet("""
             QPushButton {
                 background-color: #35C5E5;
                 border: none;
-                border-radius: 12px;
+                border-radius: 13px;
             }
 
             QPushButton:hover {
@@ -567,31 +596,45 @@ class AppearancePage(QWidget):
             }
         """)
 
-        custom_color = QPushButton("X")
-        custom_color.setFixedSize(24, 24)
+        transparent_color = QPushButton("X")
+        transparent_color.setFixedSize(26, 26)
+        transparent_color.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: 1 px solid gray;
+                border-radius: 13px;
+            }
+
+            QPushButton:hover {
+                border: 2px solid white;
+            }
+        """)
+
+        custom_color = QPushButton()
+        custom_color.setIcon(QIcon(f"{file_root()}/pen.png"))
+        custom_color.setIconSize(QSize(15, 15))
+        custom_color.setFixedSize(26, 26)
         custom_color.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 border: 1 px solid gray;
-                border-radius: 12px;
+                border-radius: 13px;
             }
-            
+
             QPushButton:hover {
                 border: 2px solid white;
             }
         """)
 
-        color_palette_layout.addWidget(custom_color)
-        color_palette_layout.addWidget(blue_color)
-        color_palette_layout.addWidget(green_color)
-        color_palette_layout.addWidget(red_color)
-        color_palette_layout.addWidget(yellow_color)
-        color_palette_layout.addWidget(purple_color)
-        color_palette_layout.addWidget(pink_color)
-        color_palette_layout.addWidget(cyan_color)
+        layout.addWidget(transparent_color)
+        layout.addWidget(blue_color)
+        layout.addWidget(green_color)
+        layout.addWidget(red_color)
+        layout.addWidget(yellow_color)
+        layout.addWidget(purple_color)
+        layout.addWidget(pink_color)
+        layout.addWidget(cyan_color)
+        layout.addWidget(custom_color)
 
-        grid_layout.addWidget(general_title, 0, 0)
-        grid_layout.addWidget(general_description, 1, 0)
-        grid_layout.addWidget(theme_color_label, 2, 0)
-        grid_layout.addLayout(color_palette_layout, 3, 0)
-        grid_layout.setRowStretch(4, 1)
+    def set_color(self):
+        pass
