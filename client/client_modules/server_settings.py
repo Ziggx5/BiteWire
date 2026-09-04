@@ -1,5 +1,3 @@
-from _colorize import Theme
-
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -11,8 +9,6 @@ class ServerSettings(QWidget):
     def __init__(self, close_page, reload_servers):
         super().__init__()
 
-        self.appearance_page = AppearancePage()
-
         self.server_name = None
         self.server_address = None
         self.status = None
@@ -20,6 +16,7 @@ class ServerSettings(QWidget):
         self.border_color = None
         self.server_picture_path = None
         self.placeholder_image_path = f"{file_root()}/server_image_placeholder.png"
+        self.appearance_page = None
 
         self.close_page = close_page
         self.reload_servers = reload_servers
@@ -373,10 +370,9 @@ class ServerSettings(QWidget):
         self.set_active_button(self.general_button)
 
         self.stack.addWidget(main_screen)
-        self.stack.addWidget(self.appearance_page)
         self.stack.setCurrentWidget(main_screen)
 
-    def get_server_info(self, server_name, server_address, status, theme_color, border_color):
+    def get_server_info(self, server_name, server_address, theme_color, border_color, status):
         self.server_name = server_name
         self.server_picture_path = f"{app_directory()}/server_icons/{self.server_name}.png"
         self.server_address = server_address
@@ -385,6 +381,8 @@ class ServerSettings(QWidget):
         self.status = status
 
         self.fill_server_info()
+        self.appearance_page = AppearancePage(self.get_theme_color, self.get_border_color)
+        self.stack.addWidget(self.appearance_page)
 
     def fill_server_info(self):
         self.sidebar_server_stat_name.setText(self.server_name)
@@ -441,9 +439,18 @@ class ServerSettings(QWidget):
             current_button.style().unpolish(current_button)
             current_button.style().polish(current_button)
 
+    def get_theme_color(self):
+        return self.theme_color
+
+    def get_border_color(self):
+        return self.border_color
+
 class AppearancePage(QWidget):
-    def __init__(self):
+    def __init__(self, theme_color, border_color):
         super().__init__()
+
+        self.theme_color = theme_color
+        self.border_color = border_color
 
         grid_layout = QGridLayout(self)
         grid_layout.setVerticalSpacing(10)
@@ -487,154 +494,70 @@ class AppearancePage(QWidget):
         grid_layout.addWidget(general_title, 0, 0)
         grid_layout.addWidget(general_description, 1, 0)
         grid_layout.addWidget(theme_color_label, 2, 0)
-        grid_layout.addWidget(ThemeColors(), 3, 0)
+        grid_layout.addWidget(ThemeColors(self.theme_color()), 3, 0)
         grid_layout.addWidget(border_color_label, 4, 0)
-        grid_layout.addWidget(ThemeColors(), 5, 0)
+        grid_layout.addWidget(ThemeColors(self.border_color()), 5, 0)
         grid_layout.setRowStretch(6, 1)
 
 class ThemeColors(QWidget):
-    def __init__(self):
+    def __init__(self, color):
         super().__init__()
 
-        layout = QHBoxLayout(self)
+        self.color = color
 
-        blue_color = QPushButton()
-        blue_color.setFixedSize(26, 26)
-        blue_color.setStyleSheet("""
-            QPushButton {
-                background-color: #5865F2;
-                border: none;
+        self.layout = QHBoxLayout(self)
+
+        self.transparent_button = self.create_color_button("X", "transparent", False)
+        self.blue_button = self.create_color_button(None , "#5865F2", False)
+        self.green_button = self.create_color_button(None, "#57D681", False)
+        self.red_button = self.create_color_button(None, "#F25555", False)
+        self.yellow_button = self.create_color_button(None, "#F5B942", False)
+        self.purple_button = self.create_color_button(None, "#8B5CF6", False)
+        self.pink_button = self.create_color_button(None, "#D946A8", False)
+        self.cyan_button = self.create_color_button(None, "#35C5E5", False)
+        self.custom_button = self.create_color_button(None, "transparent", True)
+
+        self.layout.addWidget(self.transparent_button)
+        self.layout.addWidget(self.blue_button)
+        self.layout.addWidget(self.green_button)
+        self.layout.addWidget(self.red_button)
+        self.layout.addWidget(self.yellow_button)
+        self.layout.addWidget(self.purple_button)
+        self.layout.addWidget(self.pink_button)
+        self.layout.addWidget(self.cyan_button)
+        self.layout.addWidget(self.custom_button)
+
+    def create_color_button(self, text, color, image):
+        color_button = QPushButton()
+        color_button.setFixedSize(26, 26)
+        color_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {color};
                 border-radius: 13px;
-            }
+            }}
 
-            QPushButton:hover {
+            QPushButton:hover {{
                 border: 2px solid white;
-            }
+            }}
+            
+            QPushButton[active="true"] {{
+                border: 2px solid white;
+            }}
         """)
 
-        green_color = QPushButton()
-        green_color.setFixedSize(26, 26)
-        green_color.setStyleSheet("""
-            QPushButton {
-                background-color: #57D681;
-                border: none;
-                border-radius: 13px;
-            }
+        if text:
+            color_button.setText(text)
+        if image:
+            color_button.setIcon(QIcon(f"{file_root()}/pen.png"))
+            color_button.setIconSize(QSize(15, 15))
 
-            QPushButton:hover {
-                border: 2px solid white;
-            }
-        """)
+        color_button.clicked.connect(lambda: self.set_color(color_button))
 
-        red_color = QPushButton()
-        red_color.setFixedSize(26, 26)
-        red_color.setStyleSheet("""
-            QPushButton {
-                background-color: #F25555;
-                border: none;
-                border-radius: 13px;
-            }
+        return color_button
 
-            QPushButton:hover {
-                border: 2px solid white;
-            }
-        """)
-
-        yellow_color = QPushButton()
-        yellow_color.setFixedSize(26, 26)
-        yellow_color.setStyleSheet("""
-            QPushButton {
-                background-color: #F5B942;
-                border: none;
-                border-radius: 13px;
-            }
-
-            QPushButton:hover {
-                border: 2px solid white;
-            }
-        """)
-
-        purple_color = QPushButton()
-        purple_color.setFixedSize(26, 26)
-        purple_color.setStyleSheet("""
-            QPushButton {
-                background-color: #8B5CF6;
-                border: none;
-                border-radius: 13px;
-            }
-
-            QPushButton:hover {
-                border: 2px solid white;
-            }
-        """)
-
-        pink_color = QPushButton()
-        pink_color.setFixedSize(26, 26)
-        pink_color.setStyleSheet("""
-            QPushButton {
-                background-color: #D946A8;
-                border: none;
-                border-radius: 13px;
-            }
-
-            QPushButton:hover {
-                border: 2px solid white;
-            }
-        """)
-
-        cyan_color = QPushButton()
-        cyan_color.setFixedSize(26, 26)
-        cyan_color.setStyleSheet("""
-            QPushButton {
-                background-color: #35C5E5;
-                border: none;
-                border-radius: 13px;
-            }
-
-            QPushButton:hover {
-                border: 2px solid white;
-            }
-        """)
-
-        transparent_color = QPushButton("X")
-        transparent_color.setFixedSize(26, 26)
-        transparent_color.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                border: 1 px solid gray;
-                border-radius: 13px;
-            }
-
-            QPushButton:hover {
-                border: 2px solid white;
-            }
-        """)
-
-        custom_color = QPushButton()
-        custom_color.setIcon(QIcon(f"{file_root()}/pen.png"))
-        custom_color.setIconSize(QSize(15, 15))
-        custom_color.setFixedSize(26, 26)
-        custom_color.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                border: 1 px solid gray;
-                border-radius: 13px;
-            }
-
-            QPushButton:hover {
-                border: 2px solid white;
-            }
-        """)
-
-        layout.addWidget(transparent_color)
-        layout.addWidget(blue_color)
-        layout.addWidget(green_color)
-        layout.addWidget(red_color)
-        layout.addWidget(yellow_color)
-        layout.addWidget(purple_color)
-        layout.addWidget(pink_color)
-        layout.addWidget(cyan_color)
-        layout.addWidget(custom_color)
-
-    def set_color(self):
-        pass
+    def set_color(self, button):
+        buttons = [self.transparent_button, self.blue_button, self.green_button, self.red_button, self.yellow_button, self.purple_button, self.pink_button, self.cyan_button, self.custom_button]
+        for current_button in buttons:
+            current_button.setProperty("active", button == current_button)
+            current_button.style().unpolish(current_button)
+            current_button.style().polish(current_button)
