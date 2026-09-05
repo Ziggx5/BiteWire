@@ -491,6 +491,48 @@ class AppearancePage(QWidget):
             }
         """)
 
+        seperator = QFrame()
+        seperator.setFrameShape(QFrame.Shape.HLine)
+        seperator.setStyleSheet("""
+            QFrame {
+                border: none;
+                background-color: #2b3448;
+                max-height: 1px;
+            }
+        """)
+
+        self.save_button = QPushButton("Save Changes")
+        self.save_button.setEnabled(False)
+        self.save_button.clicked.connect(self.save_changes)
+        self.save_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5865f2;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-weight: 600;
+                padding: 9px 18px;
+                font-size: 13px;
+            }
+
+            QPushButton:hover {
+                background-color: #4752c4;
+            }
+
+            QPushButton:pressed {
+                background-color: #3c45a5;
+            }
+
+            QPushButton:disabled {
+                background-color: #3a3f4b;
+                color: #8b93a7;
+            }
+        """)
+
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(self.save_button)
+
         grid_layout.addWidget(general_title, 0, 0)
         grid_layout.addWidget(general_description, 1, 0)
         grid_layout.addWidget(theme_color_label, 2, 0)
@@ -498,6 +540,11 @@ class AppearancePage(QWidget):
         grid_layout.addWidget(border_color_label, 4, 0)
         grid_layout.addWidget(ThemeColors(self.border_color()), 5, 0)
         grid_layout.setRowStretch(6, 1)
+        grid_layout.addWidget(seperator, 7, 0)
+        grid_layout.addLayout(buttons_layout, 8, 0)
+
+    def save_changes(self):
+        pass
 
 class ThemeColors(QWidget):
     def __init__(self, color):
@@ -527,9 +574,14 @@ class ThemeColors(QWidget):
         self.layout.addWidget(self.cyan_button)
         self.layout.addWidget(self.custom_button)
 
+        self.buttons = [self.transparent_button, self.blue_button, self.green_button, self.red_button, self.yellow_button, self.purple_button, self.pink_button, self.cyan_button, self.custom_button]
+
+        self.set_color()
+
     def create_color_button(self, text, color, image):
         color_button = QPushButton()
         color_button.setFixedSize(26, 26)
+        color_button.setProperty("color", color)
         color_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {color};
@@ -551,13 +603,21 @@ class ThemeColors(QWidget):
             color_button.setIcon(QIcon(f"{file_root()}/pen.png"))
             color_button.setIconSize(QSize(15, 15))
 
-        color_button.clicked.connect(lambda: self.set_color(color_button))
+        color_button.clicked.connect(lambda: self.select_color(color_button))
 
         return color_button
 
-    def set_color(self, button):
-        buttons = [self.transparent_button, self.blue_button, self.green_button, self.red_button, self.yellow_button, self.purple_button, self.pink_button, self.cyan_button, self.custom_button]
-        for current_button in buttons:
+    def select_color(self, button):
+        for current_button in self.buttons:
             current_button.setProperty("active", button == current_button)
             current_button.style().unpolish(current_button)
             current_button.style().polish(current_button)
+
+    def set_color(self):
+        for button in self.buttons:
+            if self.color == button.property("color"):
+                button.setProperty("active", True)
+                button.style().unpolish(button)
+                button.style().polish(button)
+
+                break
