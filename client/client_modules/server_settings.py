@@ -528,95 +528,6 @@ class AppearancePage(QWidget):
                 color: #8b93a7;
             }
         """)
-        theme_color_opacity_label = QLabel("Opacity")
-        theme_color_opacity_label.setStyleSheet("""
-            QLabel {
-                color: #f3f4f6;
-                font-size: 13px;
-                font-weight: 600;
-            }
-        """)
-
-        self.theme_color_slider = QSlider(Qt.Orientation.Horizontal, self)
-        self.theme_color_slider.setRange(0, 100)
-        self.theme_color_slider.setValue(100)
-        self.theme_color_slider.setPageStep(5)
-        self.theme_color_slider.setStyleSheet("""
-            QSlider {
-                background-color: transparent;
-            }
-            
-            QSlider::groove:horizontal {
-                background-color: #2b3448;
-                height: 6px;
-                border-radius: 3px;
-            }
-            
-            QSlider::handle:horizontal {
-                background-color: #5865F2;
-                width: 16px;
-                height: 16px;
-                border-radius: 8px;
-                margin: -5px 0;
-            }
-            
-            QSlider::handle:horizontal:hover {
-                background-color: #6d78f5;
-            }
-            
-            QSlider::sub-page:horizontal {
-                background-color: #5865F2;
-            }
-            
-            QSlider::add-page:horizontal {
-                background-color: #2b3448;
-            }
-        """)
-
-        border_color_opacity_label = QLabel("Opacity")
-        border_color_opacity_label.setStyleSheet("""
-            QLabel {
-                color: #f3f4f6;
-                font-size: 13px;
-                font-weight: 600;
-            }
-        """)
-
-        self.border_color_slider = QSlider(Qt.Orientation.Horizontal, self)
-        self.border_color_slider.setRange(0, 100)
-        self.border_color_slider.setValue(100)
-        self.border_color_slider.setPageStep(5)
-        self.border_color_slider.setStyleSheet("""
-            QSlider {
-                background-color: transparent;
-            }
-
-            QSlider::groove:horizontal {
-                background-color: #2b3448;
-                height: 6px;
-                border-radius: 3px;
-            }
-
-            QSlider::handle:horizontal {
-                background-color: #5865F2;
-                width: 16px;
-                height: 16px;
-                border-radius: 8px;
-                margin: -5px 0;
-            }
-
-            QSlider::handle:horizontal:hover {
-                background-color: #6d78f5;
-            }
-
-            QSlider::sub-page:horizontal {
-                background-color: #5865F2;
-            }
-
-            QSlider::add-page:horizontal {
-                background-color: #2b3448;
-            }
-        """)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
@@ -626,15 +537,11 @@ class AppearancePage(QWidget):
         grid_layout.addWidget(general_description, 1, 0)
         grid_layout.addWidget(theme_color_label, 2, 0)
         grid_layout.addWidget(ThemeColors(self.theme_color()), 3, 0)
-        grid_layout.addWidget(theme_color_opacity_label, 4, 0)
-        grid_layout.addWidget(self.theme_color_slider, 5, 0)
-        grid_layout.addWidget(border_color_label, 6, 0)
-        grid_layout.addWidget(ThemeColors(self.border_color()), 7, 0)
-        grid_layout.addWidget(border_color_opacity_label, 8, 0)
-        grid_layout.addWidget(self.border_color_slider, 9, 0)
-        grid_layout.setRowStretch(10, 1)
-        grid_layout.addWidget(seperator, 11, 0)
-        grid_layout.addLayout(buttons_layout, 12, 0)
+        grid_layout.addWidget(border_color_label, 4, 0)
+        grid_layout.addWidget(ThemeColors(self.border_color()), 5, 0)
+        grid_layout.setRowStretch(6, 1)
+        grid_layout.addWidget(seperator, 7, 0)
+        grid_layout.addLayout(buttons_layout, 8, 0)
 
     def save_changes(self):
         pass
@@ -645,7 +552,8 @@ class ThemeColors(QWidget):
 
         self.color = color
 
-        self.layout = QHBoxLayout(self)
+        self.vertical_layout = QVBoxLayout(self)
+        self.horizontal_layout = QHBoxLayout()
 
         self.transparent_button = self.create_color_button("X", "transparent", False)
         self.blue_button = self.create_color_button(None , "#5865F2", False)
@@ -658,15 +566,80 @@ class ThemeColors(QWidget):
         self.custom_button = self.create_color_button(None, "transparent", True)
         self.custom_button.clicked.connect(self.open_color_picker)
 
-        self.layout.addWidget(self.transparent_button)
-        self.layout.addWidget(self.blue_button)
-        self.layout.addWidget(self.green_button)
-        self.layout.addWidget(self.red_button)
-        self.layout.addWidget(self.yellow_button)
-        self.layout.addWidget(self.purple_button)
-        self.layout.addWidget(self.pink_button)
-        self.layout.addWidget(self.cyan_button)
-        self.layout.addWidget(self.custom_button)
+        opacity_label = QLabel("Opacity")
+        opacity_label.setStyleSheet("""
+            QLabel {
+                color: #f3f4f6;
+                font-size: 13px;
+                font-weight: 600;
+            }
+        """)
+
+        self.opacity_slider = QSlider(Qt.Orientation.Horizontal, self)
+        self.opacity_slider.setRange(0, 100)
+        self.opacity_slider.setValue(100)
+        self.opacity_slider.setPageStep(5)
+        self.opacity_slider.setStyleSheet("""
+            QSlider {
+                background-color: transparent;
+            }
+
+            QSlider::groove:horizontal {
+                background-color: #2b3448;
+                height: 6px;
+                border-radius: 3px;
+            }
+
+            QSlider::handle:horizontal {
+                background-color: #5865F2;
+                width: 16px;
+                height: 16px;
+                border-radius: 8px;
+                margin: -5px 0;
+            }
+
+            QSlider::handle:horizontal:hover {
+                background-color: #6d78f5;
+            }
+
+            QSlider::sub-page:horizontal {
+                background-color: #5865F2;
+            }
+
+            QSlider::add-page:horizontal {
+                background-color: #2b3448;
+            }
+            
+            QSlider::groove:horizontal:disabled {
+                background-color: #252b3a;
+            }
+            
+            QSlider::handle:horizontal:disabled {
+                background-color: #3a4050;
+            }
+            
+            QSlider::sub-page:horizontal:disabled {
+                background-color: #303646;
+            }
+            
+            QSlider::add-page:horizontal:disabled {
+                background-color: #252b3a;
+            }
+        """)
+
+        self.horizontal_layout.addWidget(self.transparent_button)
+        self.horizontal_layout.addWidget(self.blue_button)
+        self.horizontal_layout.addWidget(self.green_button)
+        self.horizontal_layout.addWidget(self.red_button)
+        self.horizontal_layout.addWidget(self.yellow_button)
+        self.horizontal_layout.addWidget(self.purple_button)
+        self.horizontal_layout.addWidget(self.pink_button)
+        self.horizontal_layout.addWidget(self.cyan_button)
+        self.horizontal_layout.addWidget(self.custom_button)
+
+        self.vertical_layout.addLayout(self.horizontal_layout)
+        self.vertical_layout.addWidget(opacity_label)
+        self.vertical_layout.addWidget(self.opacity_slider)
 
         self.buttons = [self.transparent_button, self.blue_button, self.green_button, self.red_button, self.yellow_button, self.purple_button, self.pink_button, self.cyan_button, self.custom_button]
 
@@ -674,7 +647,7 @@ class ThemeColors(QWidget):
 
     def create_color_button(self, text, color, image):
         color_button = QPushButton()
-        color_button.setFixedSize(26, 26)
+        color_button.setFixedSize(30, 30)
         color_button.setProperty("color", color)
         color_button.setStyleSheet(f"""
             QPushButton {{
@@ -702,6 +675,12 @@ class ThemeColors(QWidget):
 
         return color_button
 
+    def update_opacity_slider(self, button):
+        if button == self.transparent_button or button == self.custom_button:
+            self.opacity_slider.setEnabled(False)
+        else:
+            self.opacity_slider.setEnabled(True)
+
     def select_color(self, button):
         self.color = button.property("color")
 
@@ -710,13 +689,15 @@ class ThemeColors(QWidget):
             current_button.style().unpolish(current_button)
             current_button.style().polish(current_button)
 
+        self.update_opacity_slider(button)
+
     def set_color(self):
         for button in self.buttons:
             if self.color == button.property("color"):
                 button.setProperty("active", True)
                 button.style().unpolish(button)
                 button.style().polish(button)
-
+                self.update_opacity_slider(button)
                 break
 
     def open_color_picker(self):
@@ -743,5 +724,4 @@ class ThemeColors(QWidget):
                 border: 2px solid white;
             }}
         """)
-        self.custom_button.setIcon(QIcon(None))
         self.select_color(self.custom_button)
