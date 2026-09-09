@@ -15,7 +15,7 @@ class ServerSettings(QWidget):
         self.theme_color = None
         self.border_color = None
         self.server_picture_path = None
-        self.placeholder_image_path = f"{file_root()}/server_image_placeholder.png"
+        self.placeholder_image_path = f"{file_root()}/client_pictures/server_image_placeholder.png"
         self.appearance_page = None
 
         self.close_page = close_page
@@ -127,7 +127,7 @@ class ServerSettings(QWidget):
         """)
 
         copy_button = QPushButton("Copy")
-        copy_button.setIcon(QIcon(f"{file_root()}/clipboard.png"))
+        copy_button.setIcon(QIcon(f"{file_root()}/client_pictures/clipboard.png"))
         copy_button.setIconSize(QSize(20, 20))
         copy_button.setStyleSheet("""
             QPushButton {
@@ -259,7 +259,7 @@ class ServerSettings(QWidget):
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
 
         self.general_button = QPushButton("General")
-        self.general_button.setIcon(QIcon(f"{file_root()}/settings.png"))
+        self.general_button.setIcon(QIcon(f"{file_root()}/client_pictures/settings.png"))
         self.general_button.setIconSize(QSize(20, 20))
         self.general_button.clicked.connect(lambda: (self.set_active_button(self.general_button), self.stack.setCurrentWidget(main_screen)))
         self.general_button.setStyleSheet("""
@@ -284,7 +284,7 @@ class ServerSettings(QWidget):
         """)
 
         self.appearance_button = QPushButton("Appearance")
-        self.appearance_button.setIcon(QIcon(f"{file_root()}/pallete.png"))
+        self.appearance_button.setIcon(QIcon(f"{file_root()}/client_pictures/pallete.png"))
         self.appearance_button.setIconSize(QSize(20, 20))
         self.appearance_button.clicked.connect(lambda: (self.set_active_button(self.appearance_button), self.stack.setCurrentWidget(self.appearance_page)))
         self.appearance_button.setStyleSheet("""
@@ -308,7 +308,7 @@ class ServerSettings(QWidget):
             }
         """)
         self.notification_button = QPushButton("Notifications")
-        self.notification_button.setIcon(QIcon(f"{file_root()}/notification.png"))
+        self.notification_button.setIcon(QIcon(f"{file_root()}/client_pictures/notification.png"))
         self.notification_button.setIconSize(QSize(20, 20))
         self.notification_button.clicked.connect(lambda: self.set_active_button(self.notification_button))
         self.notification_button.setStyleSheet("""
@@ -333,7 +333,7 @@ class ServerSettings(QWidget):
         """)
 
         remove_server_button = QPushButton("Remove Server")
-        remove_server_button.setIcon(QIcon(f"{file_root()}/trash.png"))
+        remove_server_button.setIcon(QIcon(f"{file_root()}/client_pictures/trash.png"))
         remove_server_button.clicked.connect(self.remove_server)
         remove_server_button.setIconSize(QSize(20, 20))
         remove_server_button.setStyleSheet("""
@@ -668,7 +668,7 @@ class ThemeColors(QWidget):
         if text:
             color_button.setText(text)
         if image:
-            color_button.setIcon(QIcon(f"{file_root()}/pen.png"))
+            color_button.setIcon(QIcon(f"{file_root()}/client_pictures/pen.png"))
             color_button.setIconSize(QSize(15, 15))
 
         color_button.clicked.connect(lambda: self.select_color(color_button))

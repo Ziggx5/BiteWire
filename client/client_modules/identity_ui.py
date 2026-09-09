@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPixmap, QPainter, QPainterPath
-import os
 import base64
 from client_modules.path_finder import file_root
 from client_modules.data_manipulation import save_server_data
@@ -14,7 +13,7 @@ class AddIdentityUi(QWidget):
         self.on_cancel = on_cancel
         self.on_confirm = on_confirm
         self.rounded = None
-        self.picture_path = file_root()
+        self.root_path = file_root()
         self.no_register = no_register
         self.chat_handler = ChatHandler()
         self.ip_address = ""
@@ -70,7 +69,7 @@ class AddIdentityUi(QWidget):
         profile_picture_layout = QVBoxLayout(self.profile_picture_widget)
 
         self.profile_picture = QLabel()
-        self.profile_picture.setPixmap(QPixmap(f"{self.picture_path}/camera.png").scaled(80, 80))
+        self.profile_picture.setPixmap(QPixmap(f"{self.root_path}/client_pictures/camera.png").scaled(80, 80))
         self.profile_picture.setStyleSheet("border: None; background-color: transparent;")
         self.profile_picture.setCursor(Qt.PointingHandCursor)
 

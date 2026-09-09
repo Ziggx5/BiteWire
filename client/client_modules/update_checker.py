@@ -1,5 +1,3 @@
-from operator import truediv
-
 import requests
 import os
 from packaging import version
@@ -8,14 +6,15 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 import platform
 import threading
+from client_modules.path_finder import file_root
 
 class UpdateChecker(QWidget):
     update_found = Signal(str)
     download_percent_signal = Signal(str)
 
-    def __init__(self, image_path, on_cancel):
+    def __init__(self, file_root, on_cancel):
         super().__init__()
-        self.current_release = "2.2.0"
+        self.current_release = "2.1.0"
         self.url = "https://api.github.com/repos/Ziggx5/BiteWire/releases"
         self.on_cancel = on_cancel
         self.download_link = None
@@ -46,7 +45,7 @@ class UpdateChecker(QWidget):
 
         update_image = QLabel()
         update_image.setFixedSize(60, 60)
-        update_image.setPixmap(QPixmap(f"{image_path}/update_wheel.png").scaled(60, 60, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation))
+        update_image.setPixmap(QPixmap(f"{file_root}/client_pictures/update_wheel.png").scaled(60, 60, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation))
 
         update_image_layout.addWidget(update_image, alignment = Qt.AlignmentFlag.AlignCenter)
 
@@ -166,10 +165,11 @@ class UpdateChecker(QWidget):
 
         self.update_button = QPushButton("Download")
         self.update_button.setFixedSize(110, 35)
-        self.update_button.setIcon(QIcon(f"{image_path}/update_white.png"))
+        self.update_button.setIcon(QIcon(f"{file_root}/client_pictures/update_white.png"))
         self.update_button.setIconSize(QSize(18, 18))
         self.update_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.update_button.clicked.connect(lambda: self.start_download())
+        #self.update_button.clicked.connect(lambda: self.start_download())
+        self.update_button.clicked.connect(lambda: self.open_updater())
         self.update_button.setStyleSheet("""
             QPushButton {
                 background-color: #1f6feb;
@@ -345,3 +345,14 @@ class UpdateChecker(QWidget):
         self.update_button.setVisible(True)
         self.later_button.setVisible(True)
         self.edit_download_path_button.setEnabled(True)
+
+    def open_updater(self):
+        if self.system == ".exe":
+            updater_name = "BiteWireUpdater.exe"
+        else:
+            updater_name = "BiteWireUpdater"
+
+        updater_path = os.path.join(file_root(), "..", "updater", updater_name)
+        print(updater_path)
+        QProcess.startDetached(updater_path)
+        QApplication.quit()

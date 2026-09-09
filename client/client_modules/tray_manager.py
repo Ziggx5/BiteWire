@@ -7,9 +7,9 @@ class TrayManager:
     def __init__(self, parent):
         self.parent = parent
 
-        picture_path = file_root()
+        root_path = file_root()
 
-        self.tray_icon = QSystemTrayIcon(QIcon(f"{picture_path}/icon.png"), self.parent)
+        self.tray_icon = QSystemTrayIcon(QIcon(f"{root_path}/client_pictures/icon.png"), self.parent)
         self.tray_icon.setToolTip("BiteWire")
 
         tray_menu = QMenu()

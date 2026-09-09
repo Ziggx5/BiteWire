@@ -40,14 +40,14 @@ class MainUi(QWidget):
         }
         """)
 
-        self.image_path = file_root()
+        self.root_path = file_root()
         self.profile_cache = ProfileCache()
         self.add_server_window = AddServerUi(self.add_server_window_show_main_ui)
         self.chat_handler = ChatHandler(self.profile_cache)
         self.login_server_window = Login(self.login_server_window_show_main_ui, self.on_success_login, self.chat_handler)
         self.tray = TrayManager(self)
-        self.update_checker = UpdateChecker(self.image_path, self.update_window_show_main_ui)
-        self.chat_ui = ChatUi(self.image_path, self.chat_handler, self.profile_cache, self.clear_chat_widget, self.tray)
+        self.update_checker = UpdateChecker(self.root_path, self.update_window_show_main_ui)
+        self.chat_ui = ChatUi(self.root_path, self.chat_handler, self.profile_cache, self.clear_chat_widget, self.tray)
         self.custom_title_bar = CustomTitleBar(self)
         self.server_settings = ServerSettings(self.server_settings_show_main_ui, self.reload_servers)
 
@@ -144,7 +144,7 @@ class MainUi(QWidget):
         self.add_server_label.setStyleSheet("color: white; border: none; font-size: 17px;")
 
         self.add_button = QPushButton()
-        self.add_button.setIcon(QIcon(f"{self.image_path}/plus.png"))
+        self.add_button.setIcon(QIcon(f"{self.root_path}/client_pictures/plus.png"))
         self.add_button.setIconSize(QSize(15, 15))
         self.add_button.setStyleSheet("""
             QPushButton {
@@ -173,7 +173,7 @@ class MainUi(QWidget):
         self.username_label = QLabel("User")
 
         self.settings_button = QPushButton()
-        self.settings_button.setIcon(QIcon(f"{self.image_path}/settings.png"))
+        self.settings_button.setIcon(QIcon(f"{self.root_path}/client_pictures/settings.png"))
         self.settings_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -197,13 +197,13 @@ class MainUi(QWidget):
         self.user_picture = QLabel()
         self.user_picture.setFixedSize(30, 30)
         self.user_picture.setStyleSheet("background-color: white; border-radius: 15px")
-        self.user_pixmap = QPixmap(f"{self.image_path}/user_picture_placeholder.png").scaled(30, 30, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+        self.user_pixmap = QPixmap(f"{self.root_path}/client_pictures/user_picture_placeholder.png").scaled(30, 30, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
         self.user_picture.setPixmap(self.user_pixmap)
 
         self.update_client_button = QPushButton()
         self.update_client_button.setFixedSize(30, 30)
         self.update_client_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.update_client_button.setIcon(QIcon(f"{self.image_path}/update.png"))
+        self.update_client_button.setIcon(QIcon(f"{self.root_path}/client_pictures/update.png"))
         self.update_client_button.setIconSize(QSize(18, 18))
         self.update_client_button.setVisible(False)
         self.update_client_button.clicked.connect(lambda: self.show_popup(self.update_checker))
@@ -267,7 +267,7 @@ class MainUi(QWidget):
         server_list = server_loader()
         self.server_buttons.clear()
         for server in server_list:
-            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], server['theme_color'], server['border_color'], self.login_page_popup, self.image_path, self.server_settings_popup)
+            server_button = ServerButton(server["name"], server["ip_address"], server["user_count"], server['theme_color'], server['border_color'], self.login_page_popup, self.root_path, self.server_settings_popup)
             self.server_buttons[server["ip_address"]] = server_button
             if server['ip_address'] == self.current_server_ip:
                 server_button.connected_server()
@@ -315,7 +315,7 @@ class MainUi(QWidget):
     def server_close_message(self, message):
         QMessageBox.warning(self, "Server Message", message)
         self.message_input.setEnabled(False)
-        pixmap = QPixmap(f"{self.image_path}/disconnected.png").scaled(20, 20, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+        pixmap = QPixmap(f"{self.root_path}/client_pictures/disconnected.png").scaled(20, 20, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
         self.status_icon.setPixmap(pixmap)
         self.connection_status_label.setText("Disconnected")
 
@@ -342,7 +342,7 @@ class MainUi(QWidget):
         button.set_server_icon(decoded_bytes, button.name)
 
 class ServerButton(QFrame):
-    def __init__(self, name, ip, user_count, theme_color, border_color, on_click, image_path, server_settings_popup):
+    def __init__(self, name, ip, user_count, theme_color, border_color, on_click, root_path, server_settings_popup):
         super().__init__()
 
         self.name = name
@@ -387,7 +387,7 @@ class ServerButton(QFrame):
         if os.path.exists(f"{app_directory()}/server_icons/{self.name}.png"):
             pixmap = QPixmap(f"{app_directory()}/server_icons/{self.name}.png").scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
         else:
-            pixmap = QPixmap(f"{file_root()}/server_image_placeholder.png").scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+            pixmap = QPixmap(f"{file_root()}/client_pictures/server_image_placeholder.png").scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
 
         rounded_image = QPixmap(40, 40)
         rounded_image.fill(Qt.GlobalColor.transparent)
@@ -429,7 +429,7 @@ class ServerButton(QFrame):
         self.resize_server_name()
 
         self.options_button = QPushButton()
-        self.options_button.setIcon(QIcon(f"{image_path}/dots.png"))
+        self.options_button.setIcon(QIcon(f"{root_path}/client_pictures/dots.png"))
         self.options_button.setIconSize(QSize(15, 15))
         self.options_button.setFixedSize(30, 30)
         self.options_button.setVisible(False)

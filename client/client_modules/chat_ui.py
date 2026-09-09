@@ -1,15 +1,13 @@
-from datetime import time
-
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 
 class ChatUi(QWidget):
     own_profile_picture = Signal(object)
-    def __init__(self, image_path, chat_handler, profile_cache, reset, tray):
+    def __init__(self, root_path, chat_handler, profile_cache, reset, tray):
         super().__init__()
 
-        self.image_path = image_path
+        self.root_path = root_path
         self.chat_handler = chat_handler
         self.profile_cache = profile_cache
         self.username = None
@@ -53,7 +51,7 @@ class ChatUi(QWidget):
         """)
 
         self.status_icon = QLabel()
-        pixmap = QPixmap(f"{self.image_path}/online.png").scaled(20, 20, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+        pixmap = QPixmap(f"{self.root_path}/client_pictures/online.png").scaled(20, 20, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
         self.status_icon.setPixmap(pixmap)
         self.status_icon.setFixedSize(20, 20)
 
@@ -109,21 +107,21 @@ class ChatUi(QWidget):
         self.message_input.installEventFilter(self)
 
         file_button = QPushButton()
-        file_button.setIcon(QIcon(f"{self.image_path}/paperclip.png"))
+        file_button.setIcon(QIcon(f"{self.root_path}/client_pictures/paperclip.png"))
         file_button.setIconSize(QSize(20, 20))
         file_button.setFixedSize(40, 40)
         file_button.setCursor(Qt.PointingHandCursor)
         file_button.setToolTip("Currently not available.")
 
         emoji_button = QPushButton()
-        emoji_button.setIcon(QIcon(f"{self.image_path}/emoji.png"))
+        emoji_button.setIcon(QIcon(f"{self.root_path}/client_pictures/emoji.png"))
         emoji_button.setIconSize(QSize(25, 25))
         emoji_button.setFixedSize(40, 40)
         emoji_button.setCursor(Qt.PointingHandCursor)
         emoji_button.setToolTip("Currently not available.")
 
         send_button = QPushButton()
-        send_button.setIcon(QIcon(f"{self.image_path}/send.png"))
+        send_button.setIcon(QIcon(f"{self.root_path}/client_pictures/send.png"))
         send_button.setFixedSize(40, 40)
         send_button.clicked.connect(self.client_send_message)
         send_button.setStyleSheet("""
@@ -217,14 +215,14 @@ class ChatUi(QWidget):
 
     def create_message_widget(self, sender_type, username, content, sent_time):
         if sender_type == "server":
-            return JoinUserMessageWidget(username, sent_time, f"{self.image_path}/right_arrow.png")
+            return JoinUserMessageWidget(username, sent_time, f"{self.root_path}/client_pictures/right_arrow.png")
         else:
             cached_picture = self.profile_cache.get(username, "message_profile_picture")
 
             if cached_picture:
                 return MessageWidget(username, content, sent_time, cached_picture)
             else:
-                return MessageWidget(username, content, sent_time, f"{self.image_path}/user_picture_placeholder.png")
+                return MessageWidget(username, content, sent_time, f"{self.root_path}/client_pictures/user_picture_placeholder.png")
 
     def display_first_chat_history(self, sender_type, sender_username, content, sent_time, message_id):
         message_widget = self.create_message_widget(sender_type, sender_username, content, sent_time)
@@ -294,9 +292,9 @@ class ChatUi(QWidget):
                 
         for user in users:
             if user['status']:
-                user_widget = UserWidget(user['username'], f"{self.image_path}/user_picture_placeholder.png", "Online")
+                user_widget = UserWidget(user['username'], f"{self.root_path}/client_pictures/user_picture_placeholder.png", "Online")
             else:
-                user_widget = UserWidget(user['username'], f"{self.image_path}/user_picture_placeholder.png", "Offline")
+                user_widget = UserWidget(user['username'], f"{self.root_path}/client_pictures/user_picture_placeholder.png", "Offline")
 
             self.all_users_layout.addWidget(user_widget)
 
