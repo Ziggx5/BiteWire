@@ -10,7 +10,9 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 qt_standard_project_setup()
 
 qt_add_executable(BiteWireUpdater
+    main.cpp
     updater_ui.cpp
+    updater_logic.cpp
 )
 
 target_link_libraries(BiteWireUpdater PRIVATE

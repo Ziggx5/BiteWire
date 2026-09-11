@@ -353,6 +353,8 @@ class UpdateChecker(QWidget):
             updater_name = "BiteWireUpdater"
 
         updater_path = os.path.join(file_root(), "..", "updater", updater_name)
-        print(updater_path)
-        QProcess.startDetached(updater_path)
-        QApplication.quit()
+
+        started = QProcess.startDetached(updater_path, ["--url", self.download_link])
+
+        if started:
+            QTimer.singleShot(100, QApplication.quit)
