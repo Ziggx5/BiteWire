@@ -7,17 +7,17 @@
 
 class UpdaterUI : public QWidget {
 public:
-    UpdaterUI(QWidget *parent = nullptr);
+    UpdaterUI(const QString &downloadUrl, QWidget *parent = nullptr);
 
 private:
     QVBoxLayout *layout;
-    QLabel *updating_label;
+    QLabel *updatingLabel;
 
     int dots = 0;
 
     void UpdateText();
 };
 
-void UpdateApp();
+void downloadUpdate(const QString &downloadUrl);
 
 #endif

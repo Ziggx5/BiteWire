@@ -1,3 +1,4 @@
+#include <iostream>
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -6,7 +7,7 @@
 #include "updater.h"
 #include <QHBoxLayout>
 
-UpdaterUI::UpdaterUI(QWidget *parent) : QWidget(parent) {
+UpdaterUI::UpdaterUI(const QString &downloadUrl, QWidget *parent) : QWidget(parent) {
     resize(200, 250);
     setWindowFlag(Qt::FramelessWindowHint);
     setObjectName("updater");
@@ -31,38 +32,37 @@ UpdaterUI::UpdaterUI(QWidget *parent) : QWidget(parent) {
     line->setFixedSize(120, 2);
     line->setStyleSheet("background-color: #3b82f6; border-radius: 1px;");
 
-    updating_label = new QLabel("Updating");
-    updating_label->setStyleSheet("font-size: 12px;"
+    updatingLabel = new QLabel("Updating");
+    updatingLabel->setStyleSheet("font-size: 12px;"
                                      "color: #a5a8ad;");
 
-    QHBoxLayout * footer_layout = new QHBoxLayout();
+    QHBoxLayout * footerLayout = new QHBoxLayout();
 
-    QLabel *version_label = new QLabel("version => version");
-    version_label->setStyleSheet("color: #a5a8ad; font: 10px;");
+    QLabel *versionLabel = new QLabel("version => version");
+    versionLabel->setStyleSheet("color: #a5a8ad; font: 10px;");
 
-    QLabel *creator_label = new QLabel("Created by Ziggx5");
-    creator_label->setStyleSheet("color: #a5a8ad; font: 10px;");
+    QLabel *creatorLabel = new QLabel("Created by Ziggx5");
+    creatorLabel->setStyleSheet("color: #a5a8ad; font: 10px;");
 
-    footer_layout->addWidget(version_label);
-    footer_layout->addStretch();
-    footer_layout->addWidget(creator_label);
+    footerLayout->addWidget(versionLabel);
+    footerLayout->addStretch();
+    footerLayout->addWidget(creatorLabel);
 
     layout->addStretch();
     layout->addWidget(title, 0, Qt::AlignCenter);
     layout->addSpacing(10);
     layout->addWidget(line, 0, Qt::AlignCenter);
     layout->addSpacing(10);
-    layout->addWidget(updating_label, 0, Qt::AlignCenter);
+    layout->addWidget(updatingLabel, 0, Qt::AlignCenter);
     layout->addStretch();
-    layout->addLayout(footer_layout);
+    layout->addLayout(footerLayout);
 
     QTimer *timer = new QTimer(this);
 
     connect(timer, &QTimer::timeout, this, &UpdaterUI::UpdateText);
     timer->start(500);
 
-    UpdateApp();
-
+    downloadUpdate(downloadUrl);
 };
 
 void UpdaterUI::UpdateText() {
@@ -72,5 +72,5 @@ void UpdaterUI::UpdateText() {
         dots = 0;
     }
 
-    updating_label->setText("Updating" + QString(dots, '.'));
+    updatingLabel->setText("Updating" + QString(dots, '.'));
 }

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <ostream>
 #include <QApplication>
 #include "updater.h"
 #include <QCommandLineParser>
@@ -10,17 +9,15 @@ int main(int argc, char *argv[]) {
 
     QCommandLineParser parser;
 
-    QCommandLineOption url_option("url", "URL of the update file", "url");
+    QCommandLineOption urlOption("url", "URL of the update file", "url");
 
-    parser.addOption(url_option);
+    parser.addOption(urlOption);
     parser.process(app);
 
-    QString download_url = parser.value(url_option);
+    QString downloadUrl = parser.value(urlOption);
 
-    UpdaterUI window;
+    UpdaterUI window(downloadUrl);
     window.show();
-
-    std::cout << download_url.toStdString() << std::endl;
 
     return app.exec();
 }
