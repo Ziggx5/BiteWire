@@ -7,34 +7,50 @@
 #include "updater.h"
 #include <QHBoxLayout>
 
-UpdaterUI::UpdaterUI(const QString &downloadUrl, QWidget *parent) : QWidget(parent) {
+UpdaterUI::UpdaterUI(QWidget *parent) : QWidget(parent) {
     resize(200, 250);
     setWindowFlag(Qt::FramelessWindowHint);
     setObjectName("updater");
     setStyleSheet("QWidget#updater {"
-                        "background-color: qlineargradient("
-                            "x1:0, y1:0, x2:1, y2:1,"
-                            "stop:0 #0e1117,"
-                            "stop:0.5 #151a22,"
-                            "stop:1 #1a1f2b"
-                        ")"
-                        "};"
-                        );
+                    "background-color: qlineargradient("
+                        "x1:0, y1:0, x2:1, y2:1,"
+                        "stop:0 #0e1117,"
+                        "stop:0.5 #151a22,"
+                        "stop:1 #1a1f2b"
+                    ")"
+                 "};"
+                );
     layout = new QVBoxLayout(this);
 
     QLabel *title =new QLabel("BiteWire");
     title->setStyleSheet("color: #e6edf3;"
-                            "font-size: 28px;"
-                            "font-weight: 600;"
-                            "letter-spacing: 1px;");
+                         "font-size: 28px;"
+                         "font-weight: 600;"
+                         "letter-spacing: 1px;");
 
     QLabel *line = new QLabel();
     line->setFixedSize(120, 2);
     line->setStyleSheet("background-color: #3b82f6; border-radius: 1px;");
 
-    updatingLabel = new QLabel("Updating");
+    updatingLabel = new QLabel("Downloading");
     updatingLabel->setStyleSheet("font-size: 12px;"
-                                     "color: #a5a8ad;");
+                                 "color: #a5a8ad;");
+
+    progressBar = new QProgressBar();
+    progressBar->setRange(0, 100);
+    progressBar->setValue(0);
+    progressBar->setFixedSize(80, 5);
+    progressBar->setTextVisible(false);
+    progressBar->setStyleSheet("QProgressBar { "
+                                    "background-color: #1c1f26; "
+                                    "border-radius: 1px;"
+                                "}"
+
+                               "QProgressBar::chunk { "
+                                    "background-color: #3b82f6;"
+                                    "border-radius: 2px;"
+                                "}"
+                              );
 
     QHBoxLayout * footerLayout = new QHBoxLayout();
 
@@ -53,6 +69,7 @@ UpdaterUI::UpdaterUI(const QString &downloadUrl, QWidget *parent) : QWidget(pare
     layout->addSpacing(10);
     layout->addWidget(line, 0, Qt::AlignCenter);
     layout->addSpacing(10);
+    layout->addWidget(progressBar, 0, Qt::AlignCenter);
     layout->addWidget(updatingLabel, 0, Qt::AlignCenter);
     layout->addStretch();
     layout->addLayout(footerLayout);
@@ -62,7 +79,6 @@ UpdaterUI::UpdaterUI(const QString &downloadUrl, QWidget *parent) : QWidget(pare
     connect(timer, &QTimer::timeout, this, &UpdaterUI::UpdateText);
     timer->start(500);
 
-    downloadUpdate(downloadUrl);
 };
 
 void UpdaterUI::UpdateText() {
@@ -73,4 +89,9 @@ void UpdaterUI::UpdateText() {
     }
 
     updatingLabel->setText("Updating" + QString(dots, '.'));
+}
+
+void UpdaterUI::setProgress(int percent) {
+    progressBar->setValue(percent);
+    std::cout << std::to_string(percent) << std::endl;
 }

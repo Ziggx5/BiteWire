@@ -16,8 +16,14 @@ int main(int argc, char *argv[]) {
 
     QString downloadUrl = parser.value(urlOption);
 
-    UpdaterUI window(downloadUrl);
+    UpdaterLogic logic;
+
+    UpdaterUI window;
     window.show();
+
+    QObject::connect(&logic, &UpdaterLogic::progressChanged, &window, &UpdaterUI::setProgress);
+
+    logic.downloadUpdate(downloadUrl);
 
     return app.exec();
 }
