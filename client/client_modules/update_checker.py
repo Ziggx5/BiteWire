@@ -213,8 +213,11 @@ class UpdateChecker(QWidget):
 
     def detect_os(self):
         if platform.system() == "Windows":
+            self.system = "windows"
             return ".exe"
         else:
+            self.system = "linux"
+
             if os.path.exists("/usr/bin/apt"):
                 return ".deb"
             else:
@@ -222,7 +225,7 @@ class UpdateChecker(QWidget):
 
     def check_update(self):
         try:
-            self.system = self.detect_os()
+            file_type = self.detect_os()
             response = requests.get(self.url, timeout = 2)
             data = response.json()
 
@@ -235,7 +238,7 @@ class UpdateChecker(QWidget):
                     for asset in release["assets"]:
                         self.download_link = asset["browser_download_url"]
                         self.file_size.setText(f"{asset['size'] / 1024 / 1024:.2f} MB")
-                        if self.download_link.endswith(self.system):
+                        if self.download_link.endswith(file_type):
                             break
                     split_release = tag[1:]
                     if version.parse(split_release) > version.parse(self.current_release):
@@ -250,7 +253,7 @@ class UpdateChecker(QWidget):
             return None
 
     def open_updater(self):
-        if self.system == ".exe":
+        if self.system == "windows":
             updater_name = "BiteWireUpdater.exe"
         else:
             updater_name = "BiteWireUpdater"
