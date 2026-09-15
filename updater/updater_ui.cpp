@@ -7,7 +7,7 @@
 #include "updater.h"
 #include <QHBoxLayout>
 
-UpdaterUI::UpdaterUI(QWidget *parent) : QWidget(parent) {
+UpdaterUI::UpdaterUI(const QString &currentVersion, const QString &latestVersion, QWidget *parent) : QWidget(parent) {
     resize(200, 250);
     setWindowFlag(Qt::FramelessWindowHint);
     setObjectName("updater");
@@ -32,7 +32,7 @@ UpdaterUI::UpdaterUI(QWidget *parent) : QWidget(parent) {
     line->setFixedSize(120, 2);
     line->setStyleSheet("background-color: #3b82f6; border-radius: 1px;");
 
-    updatingLabel = new QLabel("Downloading");
+    updatingLabel = new QLabel("Updating");
     updatingLabel->setStyleSheet("font-size: 12px;"
                                  "color: #a5a8ad;");
 
@@ -54,7 +54,7 @@ UpdaterUI::UpdaterUI(QWidget *parent) : QWidget(parent) {
 
     QHBoxLayout * footerLayout = new QHBoxLayout();
 
-    QLabel *versionLabel = new QLabel("version => version");
+    QLabel *versionLabel = new QLabel(currentVersion + " => " + latestVersion);
     versionLabel->setStyleSheet("color: #a5a8ad; font: 10px;");
 
     QLabel *creatorLabel = new QLabel("Created by Ziggx5");
@@ -78,7 +78,6 @@ UpdaterUI::UpdaterUI(QWidget *parent) : QWidget(parent) {
 
     connect(timer, &QTimer::timeout, this, &UpdaterUI::UpdateText);
     timer->start(500);
-
 };
 
 void UpdaterUI::UpdateText() {

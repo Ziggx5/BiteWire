@@ -9,7 +9,7 @@
 
 class UpdaterUI : public QWidget {
 public:
-    UpdaterUI(QWidget *parent = nullptr);
+    UpdaterUI(const QString &currentVersion, const QString &latestVersion, QWidget *parent = nullptr);
 
     void setProgress(int percent);
 
@@ -28,13 +28,14 @@ class UpdaterLogic : public QObject {
 public:
     UpdaterLogic(QObject *parent = nullptr);
 
-    void downloadUpdate(const QString &downloadUrl);
+    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem);
 
 signals:
     void progressChanged(int percent);
 
 private:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void updateApp(const QString &currentSystem, const QString &savePath);
 };
 
 #endif
