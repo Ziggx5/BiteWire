@@ -46,7 +46,7 @@ class MainUi(QWidget):
         self.chat_handler = ChatHandler(self.profile_cache)
         self.login_server_window = Login(self.login_server_window_show_main_ui, self.on_success_login, self.chat_handler)
         self.tray = TrayManager(self)
-        self.update_checker = UpdateChecker(self.root_path, self.update_window_show_main_ui)
+        self.update_checker = UpdateChecker(self, self.root_path, self.update_window_show_main_ui)
         self.chat_ui = ChatUi(self.root_path, self.chat_handler, self.profile_cache, self.clear_chat_widget, self.tray)
         self.custom_title_bar = CustomTitleBar(self)
         self.server_settings = ServerSettings(self.server_settings_show_main_ui, self.reload_servers)
