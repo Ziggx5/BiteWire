@@ -32,8 +32,8 @@ UpdaterUI::UpdaterUI(const QString &currentVersion, const QString &latestVersion
     line->setFixedSize(120, 2);
     line->setStyleSheet("background-color: #3b82f6; border-radius: 1px;");
 
-    updatingLabel = new QLabel("Updating");
-    updatingLabel->setStyleSheet("font-size: 12px;"
+    statusLabel = new QLabel("Updating");
+    statusLabel->setStyleSheet("font-size: 12px;"
                                  "color: #a5a8ad;");
 
     progressBar = new QProgressBar();
@@ -70,14 +70,14 @@ UpdaterUI::UpdaterUI(const QString &currentVersion, const QString &latestVersion
     layout->addWidget(line, 0, Qt::AlignCenter);
     layout->addSpacing(10);
     layout->addWidget(progressBar, 0, Qt::AlignCenter);
-    layout->addWidget(updatingLabel, 0, Qt::AlignCenter);
+    layout->addWidget(statusLabel, 0, Qt::AlignCenter);
     layout->addStretch();
     layout->addLayout(footerLayout);
 
-    QTimer *timer = new QTimer(this);
+    updateTimer = new QTimer(this);
 
-    connect(timer, &QTimer::timeout, this, &UpdaterUI::UpdateText);
-    timer->start(500);
+    connect(updateTimer, &QTimer::timeout, this, &UpdaterUI::UpdateText);
+    updateTimer->start(500);
 };
 
 void UpdaterUI::UpdateText() {
@@ -87,10 +87,20 @@ void UpdaterUI::UpdateText() {
         dots = 0;
     }
 
-    updatingLabel->setText("Updating" + QString(dots, '.'));
+    statusLabel->setText("Updating" + QString(dots, '.'));
 }
 
 void UpdaterUI::setProgress(int percent) {
     progressBar->setValue(percent);
     std::cout << std::to_string(percent) << std::endl;
+}
+
+void UpdaterUI::setStatus(bool status) {
+    updateTimer->stop();
+    if (status == true) {
+        statusLabel->setText("Update successful");
+    }
+    else {
+        statusLabel->setText("Update failed");
+    }
 }

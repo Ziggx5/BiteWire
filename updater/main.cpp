@@ -3,6 +3,7 @@
 #include "updater.h"
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QTimer>
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -31,8 +32,11 @@ int main(int argc, char *argv[]) {
     window.show();
 
     QObject::connect(&logic, &UpdaterLogic::progressChanged, &window, &UpdaterUI::setProgress);
+    QObject::connect(&logic, &UpdaterLogic::setStatus, &window, &UpdaterUI::setStatus);
 
-    logic.downloadUpdate(downloadUrl, currentSystem);
+    QTimer::singleShot(50 , [&logic, downloadUrl, currentSystem]() {
+        logic.downloadUpdate(downloadUrl, currentSystem);
+    });
 
     return app.exec();
 }

@@ -76,6 +76,18 @@ void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePa
         if (savePath.endsWith(".rpm")) {
             QProcess *process = new QProcess(this);
 
+            QObject::connect(process, &QProcess::finished, process, &QProcess::deleteLater);
+            QObject::connect(process, &QProcess::finished, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+                if (exitCode == 0) {
+                    std::cout << "Update successful" << std::endl;
+                    emit setStatus(true);
+                }
+                else {
+                    std::cout << "Update failed" << std::endl;
+                    emit setStatus(true);
+                }
+            });
+
             QStringList arguments;
             arguments << "dnf5" << "install" << "-y" << savePath;
 
@@ -83,6 +95,24 @@ void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePa
         }
         else if (savePath.endsWith(".deb")) {
             std::cout << "deb update" << std::endl;
+            QProcess *process = new QProcess(this);
+
+            QObject::connect(process, &QProcess::finished, process, &QProcess::deleteLater);
+            QObject::connect(process, &QProcess::finished, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+                if (exitCode == 0) {
+                    std::cout << "Update successful" << std::endl;
+                    emit setStatus(true);
+                }
+                else {
+                    std::cout << "Update failed" << std::endl;
+                    emit setStatus(true);
+                }
+            });
+
+            QStringList arguments;
+            arguments << "apt" << "install" << "-y" << savePath;
+
+            process->start("pkexec", arguments);
         }
         else {
             std::cout << "update error" << std::endl;
