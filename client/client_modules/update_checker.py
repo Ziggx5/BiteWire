@@ -5,6 +5,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import platform
+from client_modules.path_finder import root_path
 
 class UpdateChecker(QWidget):
     update_found = Signal(str)
@@ -258,9 +259,23 @@ class UpdateChecker(QWidget):
         else:
             updater_name = "BiteWireUpdater"
 
-        updater_path = os.path.join(self.file_root, "..", "updater", updater_name)
+        updater_path = os.path.join(root_path(), updater_name)
 
-        started = QProcess.startDetached(updater_path, ["--url", self.download_link, "--current_version", self.current_release, "--new_version", self.latest_release, "--system", self.system])
+        process = QProcess()
+
+        env = QProcessEnvironment.systemEnvironment()
+        env.remove("LD_LIBRARY_PATH")
+        env.remove("QT_PLUGIN_PATH")
+        env.remove("QT_QPA_PLATFORM_PLUGIN_PATH")
+
+        process.setProcessEnvironment(env)
+        process.setProgram(updater_path)
+        process.setArguments(["--url", self.download_link,
+                              "--current_version", self.current_release,
+                              "--new_version", self.latest_release,
+                              "--system", self.system])
+
+        started = process.startDetached()
 
         if started:
             self.parent.hide()
