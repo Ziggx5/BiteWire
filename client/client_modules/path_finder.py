@@ -1,11 +1,17 @@
 import os
 import sys
 
-def root_path():
+def updater_executable_path():
     if getattr(sys, "frozen", False):
         return os.path.dirname(sys.executable)
 
     return os.path.join(os.path.dirname(__file__), "..", "..", "updater")
+
+def bitewire_executable_path():
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+
+    return os.path.join(os.path.dirname(__file__), "..")
 
 def resource_path():
     if getattr(sys, "frozen", False):

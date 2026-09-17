@@ -5,7 +5,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import platform
-from client_modules.path_finder import root_path
+from client_modules.path_finder import updater_executable_path, bitewire_executable_path
 
 class UpdateChecker(QWidget):
     update_found = Signal(str)
@@ -255,25 +255,33 @@ class UpdateChecker(QWidget):
 
     def open_updater(self):
         if self.system == "windows":
-            updater_name = "BiteWireUpdater.exe"
+            updater_executable = "BiteWireUpdater.exe"
+            bitewire_executable = "BiteWire.exe"
         else:
-            updater_name = "BiteWireUpdater"
+            updater_executable = "BiteWireUpdater"
+            bitewire_executable = "bitewire"
 
-        updater_path = os.path.join(root_path(), updater_name)
+        updater_path = os.path.join(updater_executable_path(), updater_executable)
+        bitewire_path = os.path.join(bitewire_executable_path(), bitewire_executable)
+
+        qt_library_path = QLibraryInfo.path(QLibraryInfo.LibraryPath.LibrariesPath)
+        qt_plugin_path = QLibraryInfo.path(QLibraryInfo.LibraryPath.PluginsPath)
 
         process = QProcess()
 
         env = QProcessEnvironment.systemEnvironment()
         env.remove("LD_LIBRARY_PATH")
         env.remove("QT_PLUGIN_PATH")
-        env.remove("QT_QPA_PLATFORM_PLUGIN_PATH")
 
         process.setProcessEnvironment(env)
         process.setProgram(updater_path)
         process.setArguments(["--url", self.download_link,
                               "--current_version", self.current_release,
                               "--new_version", self.latest_release,
-                              "--system", self.system])
+                              "--system", self.system,
+                              "--bitewire_path", bitewire_path,
+                              "--qt_library_path", qt_library_path,
+                              "--qt_plugin_path", qt_plugin_path])
 
         started = process.startDetached()
 
