@@ -36,6 +36,7 @@ public:
 signals:
     void progressChanged(int percent);
     void setStatus(bool success);
+    void closeUpdater();
 
 private:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);

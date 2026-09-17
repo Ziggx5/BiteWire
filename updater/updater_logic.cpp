@@ -81,10 +81,12 @@ void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePa
                 if (exitCode == 0) {
                     std::cout << "Update successful" << std::endl;
                     emit setStatus(true);
+                    emit closeUpdater();
                 }
                 else {
                     std::cout << "Update failed" << std::endl;
                     emit setStatus(true);
+                    emit closeUpdater();
                 }
             });
 
@@ -102,10 +104,12 @@ void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePa
                 if (exitCode == 0) {
                     std::cout << "Update successful" << std::endl;
                     emit setStatus(true);
+                    emit closeUpdater();
                 }
                 else {
                     std::cout << "Update failed" << std::endl;
                     emit setStatus(true);
+                    emit closeUpdater();
                 }
             });
 
@@ -116,11 +120,13 @@ void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePa
         }
         else {
             std::cout << "update error" << std::endl;
+            emit closeUpdater();
             return;
         }
     }
     else {
         std::cout << "update error" << std::endl;
+        emit closeUpdater();
         return;
     }
 }
