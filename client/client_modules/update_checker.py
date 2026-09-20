@@ -162,6 +162,16 @@ class UpdateChecker(QWidget):
         bottom_line.setFrameShape(QFrame.Shape.HLine)
         bottom_line.setStyleSheet("color: #30363d;")
 
+        self.note_label = QLabel()
+        self.note_label.setWordWrap(True)
+        self.note_label.setFixedWidth(350)
+        self.note_label.setStyleSheet("""
+        QLabel {
+            color: #8b949e;
+            font-size: 10px;
+        }
+        """)
+
         self.update_button = QPushButton("Download")
         self.update_button.setFixedSize(110, 35)
         self.update_button.setIcon(QIcon(f"{self.file_root}/client_pictures/update_white.png"))
@@ -199,6 +209,7 @@ class UpdateChecker(QWidget):
             }
         """)
 
+        update_button_layout.addWidget(self.note_label)
         update_button_layout.addStretch()
         update_button_layout.addWidget(self.later_button)
         update_button_layout.addSpacing(8)
@@ -215,9 +226,13 @@ class UpdateChecker(QWidget):
     def detect_os(self):
         if platform.system() == "Windows":
             self.system = "windows"
-            return ".exe"
+            self.note_label.setText("NOTE: Windows may block the updater because it is not yet recognized or digitally signed."
+                                    " Make sure the app was downloaded from official BiteWire source and allow it through the Windows security prompt.")
+
+            return "update.zip"
         else:
             self.system = "linux"
+            self.note_label.setText("NOTE: Linux may ask for your password during the update.")
 
             if os.path.exists("/usr/bin/apt"):
                 return ".deb"
@@ -255,7 +270,7 @@ class UpdateChecker(QWidget):
 
     def open_updater(self):
         if self.system == "windows":
-            updater_executable = "BiteWireUpdater.exe"
+            updater_executable = "release/BiteWireUpdater.exe"
             bitewire_executable = "BiteWire.exe"
         else:
             updater_executable = "BiteWireUpdater"
