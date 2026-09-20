@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QProgressBar>
+#include <QTimer>
 
 class UpdaterUI : public QWidget {
 public:
@@ -31,7 +32,7 @@ class UpdaterLogic : public QObject {
 public:
     UpdaterLogic(QObject *parent = nullptr);
 
-    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem);
+    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath);
 
 signals:
     void progressChanged(int percent);
@@ -40,7 +41,9 @@ signals:
 
 private:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-    void updateApp(const QString &currentSystem, const QString &savePath);
+    void updateApp(const QString &currentSystem, const QString &savePath, const QString &bitewirePath);
+    void extractZip(const QString &savePath, const QString &unZipDirectory, const QString &appDirectory);
+    void updateWindowsApp(const QString& unZipDirectory, const QString& appDirectory);
 };
 
 #endif

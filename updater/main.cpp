@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
         });
     });
 
-    QTimer::singleShot(50 , [&logic, downloadUrl, currentSystem, env, bitewirePath]() {
-        logic.downloadUpdate(downloadUrl, currentSystem);
+    QTimer::singleShot(50 , [&logic, downloadUrl, currentSystem, bitewirePath]() {
+        logic.downloadUpdate(downloadUrl, currentSystem, bitewirePath);
     });
 
     return app.exec();
