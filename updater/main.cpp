@@ -48,6 +48,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(&logic, &UpdaterLogic::progressChanged, &window, &UpdaterUI::setProgress);
     QObject::connect(&logic, &UpdaterLogic::setStatus, &window, &UpdaterUI::setStatus);
+    QObject::connect(&logic, &UpdaterLogic::downloadFinished, &window, &UpdaterUI::downloadFinished);
     QObject::connect(&logic, &UpdaterLogic::closeUpdater, [&window, bitewirePath, env, &app]() {
         QTimer::singleShot(2000, [&window, &app, bitewirePath, env]() {
             window.hide();

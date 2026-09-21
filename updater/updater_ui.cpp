@@ -32,9 +32,15 @@ UpdaterUI::UpdaterUI(const QString &currentVersion, const QString &latestVersion
     line->setFixedSize(120, 2);
     line->setStyleSheet("background-color: #3b82f6; border-radius: 1px;");
 
-    statusLabel = new QLabel("Updating");
+    statusLabel = new QLabel("Downloading");
     statusLabel->setStyleSheet("font-size: 12px;"
                                  "color: #a5a8ad;");
+
+    totalDownloaded = new QLabel("0 / 0 MB");
+    totalDownloaded->setStyleSheet(
+        "color: #8b949e;"
+        "font-size: 9px;"
+    );
 
     progressBar = new QProgressBar();
     progressBar->setRange(0, 100);
@@ -70,6 +76,7 @@ UpdaterUI::UpdaterUI(const QString &currentVersion, const QString &latestVersion
     layout->addWidget(line, 0, Qt::AlignCenter);
     layout->addSpacing(10);
     layout->addWidget(progressBar, 0, Qt::AlignCenter);
+    layout->addWidget(totalDownloaded, 0, Qt::AlignCenter);
     layout->addWidget(statusLabel, 0, Qt::AlignCenter);
     layout->addStretch();
     layout->addLayout(footerLayout);
@@ -87,12 +94,12 @@ void UpdaterUI::UpdateText() {
         dots = 0;
     }
 
-    statusLabel->setText("Updating" + QString(dots, '.'));
+    statusLabel->setText(downloadStatus + QString(dots, '.'));
 }
 
-void UpdaterUI::setProgress(int percent) {
+void UpdaterUI::setProgress(int percent, double receivedMB, double totalMB) {
     progressBar->setValue(percent);
-    std::cout << std::to_string(percent) << std::endl;
+    totalDownloaded->setText(QString::number(receivedMB, 'f', 1) + " / " + QString::number(totalMB, 'f', 1) + " MB");
 }
 
 void UpdaterUI::setStatus(bool status) {
@@ -103,4 +110,10 @@ void UpdaterUI::setStatus(bool status) {
     else {
         statusLabel->setText("Update failed");
     }
+}
+
+void UpdaterUI::downloadFinished() {
+    progressBar->hide();
+    totalDownloaded->hide();
+    downloadStatus = "Download completed";
 }

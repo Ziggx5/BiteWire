@@ -53,6 +53,7 @@ void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &cur
 
         reply->deleteLater();
         manager->deleteLater();
+        emit downloadFinished();
     }
     );
 }
@@ -63,9 +64,10 @@ void UpdaterLogic::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
 
     int percent = static_cast<int>(bytesReceived * 100 / bytesTotal);
 
-    std::cout << "percent " << percent << "%" << std::endl;
+    double receivedMB = bytesReceived / (1024.0 * 1024.0);
+    double totalMB = bytesTotal / (1024.0 * 1024.0);
 
-    emit progressChanged(percent);
+    emit progressChanged(percent, receivedMB, totalMB);
 }
 
 void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePath, const QString &bitewirePath) {
@@ -77,49 +79,16 @@ void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePa
     }
     else if (currentSystem == "linux") {
         if (savePath.endsWith(".rpm")) {
-            QProcess *process = new QProcess(this);
-
-            QObject::connect(process, &QProcess::finished, process, &QProcess::deleteLater);
-            QObject::connect(process, &QProcess::finished, [this](int exitCode, QProcess::ExitStatus exitStatus) {
-                if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-                    std::cout << "Update successful" << std::endl;
-                    emit setStatus(true);
-                    emit closeUpdater();
-                }
-                else {
-                    std::cout << "Update failed" << std::endl;
-                    emit setStatus(false);
-                    emit closeUpdater();
-                }
-            });
-
             QStringList arguments;
             arguments << "dnf5" << "install" << "-y" << savePath;
 
-            process->start("pkexec", arguments);
+            updateLinuxApp(arguments);
         }
         else if (savePath.endsWith(".deb")) {
-            std::cout << "deb update" << std::endl;
-            QProcess *process = new QProcess(this);
-
-            QObject::connect(process, &QProcess::finished, process, &QProcess::deleteLater);
-            QObject::connect(process, &QProcess::finished, [this](int exitCode, QProcess::ExitStatus exitStatus) {
-                if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-                    std::cout << "Update successful" << std::endl;
-                    emit setStatus(true);
-                    emit closeUpdater();
-                }
-                else {
-                    std::cout << "Update failed" << std::endl;
-                    emit setStatus(false);
-                    emit closeUpdater();
-                }
-            });
-
             QStringList arguments;
             arguments << "apt" << "install" << "-y" << savePath;
 
-            process->start("pkexec", arguments);
+            updateLinuxApp(arguments);
         }
         else {
             std::cout << "update error" << std::endl;
@@ -187,4 +156,24 @@ void UpdaterLogic::updateWindowsApp(const QString &unZipDirectory, const QString
     arguments << "-NoProfile" << "-NonInteractive" << "-Command" << QString("Copy-Item -Path '%1\\*' -Destination '%2' -Recurse -Force").arg(unZipDirectory, appDirectory);
 
     process->start("powershell.exe", arguments);
+}
+
+void UpdaterLogic::updateLinuxApp(const QStringList &arguments) {
+    QProcess *process = new QProcess(this);
+
+    QObject::connect(process, &QProcess::finished, process, &QProcess::deleteLater);
+    QObject::connect(process, &QProcess::finished, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+        if (exitCode ==0 && exitStatus == QProcess::NormalExit) {
+            std::cout << "update successful" << std::endl;
+            emit setStatus(true);
+            emit closeUpdater();
+        }
+        else {
+            std::cout << "update failed" << std::endl;
+            emit setStatus(false);
+            emit closeUpdater();
+        }
+    });
+
+    process->start("pkexec", arguments);
 }
