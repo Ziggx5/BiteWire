@@ -20,6 +20,7 @@ class UpdateChecker(QWidget):
         self.system = None
         self.file_root = file_root
         self.parent = parent
+        self.sha256 = None
 
         self.setFixedSize(650, 550)
         self.setStyleSheet("background-color: transparent;")
@@ -253,6 +254,7 @@ class UpdateChecker(QWidget):
                 if tag.startswith("c"):
                     for asset in release["assets"]:
                         self.download_link = asset["browser_download_url"]
+                        self.sha256 = asset['digest'].split(":")[1]
                         self.file_size.setText(f"{asset['size'] / 1024 / 1024:.2f} MB")
                         if self.download_link.endswith(file_type):
                             break
@@ -295,6 +297,7 @@ class UpdateChecker(QWidget):
                               "--new_version", self.latest_release,
                               "--system", self.system,
                               "--bitewire_path", bitewire_path,
+                              "--sha256", self.sha256,
                               "--qt_library_path", qt_library_path,
                               "--qt_plugin_path", qt_plugin_path])
 
