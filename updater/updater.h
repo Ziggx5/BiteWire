@@ -1,6 +1,7 @@
 #ifndef UPDATER_H
 #define UPDATER_H
 
+#include <qfile.h>
 #include <QWidget>
 #include <QObject>
 #include <QVBoxLayout>
@@ -13,7 +14,7 @@ public:
     UpdaterUI(const QString &currentVersion, const QString &latestVersion, QWidget *parent = nullptr);
 
     void setProgress(int percent, double receivedMB, double totalMB);
-    void setStatus(bool success);
+    void setStatus(const QString &status);
     void downloadFinished();
 
 private:
@@ -35,11 +36,11 @@ class UpdaterLogic : public QObject {
 public:
     UpdaterLogic(QObject *parent = nullptr);
 
-    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath);
+    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256);
 
 signals:
     void progressChanged(int percent, double receivedMB, double totalMB);
-    void setStatus(bool success);
+    void setStatus(const QString &status);
     void closeUpdater();
     void downloadFinished();
 
@@ -49,6 +50,7 @@ private:
     void extractZip(const QString &savePath, const QString &unZipDirectory, const QString &appDirectory);
     void updateWindowsApp(const QString& unZipDirectory, const QString& appDirectory);
     void updateLinuxApp(const QStringList &arguments);
+    bool calculateSha256(const QString &sha256, QFile &file);
 };
 
 #endif

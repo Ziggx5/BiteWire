@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
     QCommandLineOption newVersionOption("new_version", "New BiteWire version", "new_version");
     QCommandLineOption currentSystemOption("system", "Current operating system", "system");
     QCommandLineOption bitewirePathOption("bitewire_path", "BiteWire Path", "bitewire_path");
+    QCommandLineOption sha256Option("sha256", "Sha256", "sha256");
     QCommandLineOption qtLibraryPathOption("qt_library_path", "BiteWire Library path", "qt_library_path");
     QCommandLineOption qtPluginPathOption("qt_plugin_path", "BiteWire plugin path", "qt_plugin_path");
 
@@ -24,6 +25,7 @@ int main(int argc, char *argv[]) {
     parser.addOption(newVersionOption);
     parser.addOption(currentSystemOption);
     parser.addOption(bitewirePathOption);
+    parser.addOption(sha256Option);
     parser.addOption(qtLibraryPathOption);
     parser.addOption(qtPluginPathOption);
     parser.process(app);
@@ -33,6 +35,7 @@ int main(int argc, char *argv[]) {
     QString newVersion = parser.value(newVersionOption);
     QString currentSystem = parser.value(currentSystemOption);
     QString bitewirePath = parser.value(bitewirePathOption);
+    QString sha256 = parser.value(sha256Option);
     QString qtLibraryPath = parser.value(qtLibraryPathOption);
     QString qtPluginPath = parser.value(qtPluginPathOption);
 
@@ -63,8 +66,8 @@ int main(int argc, char *argv[]) {
         });
     });
 
-    QTimer::singleShot(50 , [&logic, downloadUrl, currentSystem, bitewirePath]() {
-        logic.downloadUpdate(downloadUrl, currentSystem, bitewirePath);
+    QTimer::singleShot(50 , [&logic, downloadUrl, currentSystem, bitewirePath, sha256]() {
+        logic.downloadUpdate(downloadUrl, currentSystem, bitewirePath, sha256);
     });
 
     return app.exec();

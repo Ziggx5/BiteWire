@@ -102,17 +102,14 @@ void UpdaterUI::setProgress(int percent, double receivedMB, double totalMB) {
     totalDownloaded->setText(QString::number(receivedMB, 'f', 1) + " / " + QString::number(totalMB, 'f', 1) + " MB");
 }
 
-void UpdaterUI::setStatus(bool status) {
+void UpdaterUI::setStatus(const QString &status) {
     updateTimer->stop();
-    if (status == true) {
-        statusLabel->setText("Update successful");
-    }
-    else {
-        statusLabel->setText("Update failed");
-    }
+    downloadStatus = status;
+    statusLabel->setText(downloadStatus);
 }
 
 void UpdaterUI::downloadFinished() {
+    updateTimer->stop();
     progressBar->hide();
     totalDownloaded->hide();
     downloadStatus = "Download completed";

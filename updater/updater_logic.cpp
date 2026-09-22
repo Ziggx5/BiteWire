@@ -6,12 +6,13 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
+#include <QCryptographicHash>
 
 UpdaterLogic::UpdaterLogic(QObject *parent) : QObject(parent) {
 
 }
 
-void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath) {
+void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256) {
     QUrl url(downloadUrl);
 
     QString fileName = QFileInfo(url.path()).fileName();
@@ -23,11 +24,10 @@ void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &cur
 
     QObject::connect(reply, &QNetworkReply::downloadProgress, this, &UpdaterLogic::downloadProgress);
 
-    QObject::connect(reply,  &QNetworkReply::finished, [reply, manager, savePath, this, currentSystem, bitewirePath]() {
-        std::cout << "download finished" << std::endl;
+    QObject::connect(reply,  &QNetworkReply::finished, [reply, manager, savePath, this, currentSystem, bitewirePath, sha256]() {
 
         if (reply->error() != QNetworkReply::NoError) {
-            std::cout << "download error" << std::endl;
+            emit setStatus("Download failed");
 
             reply->deleteLater();
             manager->deleteLater();
@@ -37,7 +37,7 @@ void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &cur
         QFile file(savePath);
 
         if (!file.open(QIODevice::WriteOnly)) {
-            std::cout << "file open error" << std::endl;
+            emit setStatus("File write error");
 
             reply->deleteLater();
             manager->deleteLater();
@@ -47,13 +47,16 @@ void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &cur
         file.write(reply->readAll());
         file.close();
 
-        std::cout << "download complete" << std::endl;
-
-        updateApp(currentSystem, savePath, bitewirePath);
-
         reply->deleteLater();
         manager->deleteLater();
+
         emit downloadFinished();
+
+        if (calculateSha256(sha256, file)) {
+            QTimer::singleShot(2000, this, [this, currentSystem, savePath, bitewirePath]() {
+            updateApp(currentSystem, savePath, bitewirePath);
+        });
+        }
     }
     );
 }
@@ -91,14 +94,12 @@ void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePa
             updateLinuxApp(arguments);
         }
         else {
-            std::cout << "update error" << std::endl;
-            emit setStatus(false);
+            emit setStatus("Update failed");
             emit closeUpdater();
         }
     }
     else {
-        std::cout << "update error" << std::endl;
-        emit setStatus(false);
+        emit setStatus("Update failed");
         emit closeUpdater();
     }
 }
@@ -119,8 +120,7 @@ void UpdaterLogic::extractZip(const QString &savePath, const QString &unZipDirec
             updateWindowsApp(unZipDirectory, appDirectory);
         }
         else {
-            std::cout << "Update failed" << std::endl;
-            emit setStatus(false);
+            emit setStatus("Update failed");
             emit closeUpdater();
         }
 
@@ -139,12 +139,11 @@ void UpdaterLogic::updateWindowsApp(const QString &unZipDirectory, const QString
 
     QObject::connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus exitStatus) {
         if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-            emit setStatus(true);
+            emit setStatus("Update successful");
             emit closeUpdater();
         }
         else {
-            std::cout << "update failed" << std::endl;
-            emit setStatus(false);
+            emit setStatus("Update failed");
             emit closeUpdater();
         }
 
@@ -164,16 +163,45 @@ void UpdaterLogic::updateLinuxApp(const QStringList &arguments) {
     QObject::connect(process, &QProcess::finished, process, &QProcess::deleteLater);
     QObject::connect(process, &QProcess::finished, [this](int exitCode, QProcess::ExitStatus exitStatus) {
         if (exitCode ==0 && exitStatus == QProcess::NormalExit) {
-            std::cout << "update successful" << std::endl;
-            emit setStatus(true);
+            emit setStatus("update successful");
             emit closeUpdater();
         }
         else {
-            std::cout << "update failed" << std::endl;
-            emit setStatus(false);
+            emit setStatus("update failed");
             emit closeUpdater();
         }
     });
 
     process->start("pkexec", arguments);
+}
+
+bool UpdaterLogic::calculateSha256(const QString &sha256, QFile &file) {
+    emit setStatus("Calculating sha256");
+
+    if (!file.open(QIODevice::ReadOnly)) {
+        emit setStatus("Can't read file");
+        emit closeUpdater();
+        return false;
+    }
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+
+    while (!file.atEnd()) {
+        hash.addData(file.read(1024 * 1024));
+    }
+
+    file.close();
+
+    if (sha256.toLower() == hash.result().toHex().toLower()) {
+        emit setStatus("Sha256 valid!");
+        return true;
+    }
+    else {
+        emit setStatus("Sha256 mismatch!");
+
+        file.remove();
+        emit closeUpdater();
+
+        return false;
+    }
 }
