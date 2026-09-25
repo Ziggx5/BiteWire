@@ -48,8 +48,8 @@ private:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void updateApp(const QString &currentSystem, const QString &savePath, const QString &bitewirePath);
     void extractZip(const QString &savePath, const QString &unZipDirectory, const QString &appDirectory);
-    void updateWindowsApp(const QString& unZipDirectory, const QString& appDirectory);
-    void updateLinuxApp(const QStringList &arguments);
+    void updateWindowsApp(const QString& unZipDirectory, const QString& appDirectory, const QString &savePath);
+    void updateLinuxApp(const QStringList &arguments, const QString &savePath);
     bool calculateSha256(const QString &sha256, QFile &file);
 };
 
