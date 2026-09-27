@@ -7,29 +7,69 @@
 #include <QNetworkRequest>
 #include <QProcess>
 #include <QCryptographicHash>
+#include <QStorageInfo>
 
 UpdaterLogic::UpdaterLogic(QObject *parent) : QObject(parent) {
 
 }
 
-void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256) {
+void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256, qint64 updateSize) {
+    QStorageInfo storage(QDir::tempPath());
+    qint64 bytesAvailable = storage.bytesAvailable();
+
+    if (bytesAvailable <= 0) {
+        emit setStatus("Unable to determine free disk space");
+        emit closeUpdater();
+        return;
+    }
+
+    if (bytesAvailable < static_cast<qint64>(updateSize * 1.1)) {
+        emit setStatus("Not enough free disk space");
+        emit closeUpdater();
+        return;
+    }
+
     QUrl url(downloadUrl);
+
+    if (url.scheme() != "https") {
+        emit setStatus("Insecure download URL");
+        emit closeUpdater();
+        return;
+    }
+
+    QNetworkRequest request(url);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 
     QString fileName = QFileInfo(url.path()).fileName();
     QString savePath = QDir::tempPath() + "/" + fileName;
 
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
-    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+    QNetworkReply *reply = manager->get(request);
+
+    QTimer *timeoutTimer = new QTimer(reply);
+    timeoutTimer->setSingleShot(true);
+    timeoutTimer->start(20000);
+
+    QObject::connect(timeoutTimer, &QTimer::timeout, reply, &QNetworkReply::abort);
+
+    QObject::connect(reply, &QNetworkReply::downloadProgress, timeoutTimer, [timeoutTimer] () {
+        timeoutTimer->start(20000);
+    });
 
     QObject::connect(reply, &QNetworkReply::downloadProgress, this, &UpdaterLogic::downloadProgress);
 
-    QObject::connect(reply,  &QNetworkReply::finished, [reply, manager, savePath, this, currentSystem, bitewirePath, sha256]() {
+    QObject::connect(reply,  &QNetworkReply::finished, [reply, manager, savePath, this, currentSystem, bitewirePath, sha256, timeoutTimer]() {
+        timeoutTimer->stop();
 
         int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
         if (reply->error() != QNetworkReply::NoError) {
             QFile::remove(savePath);
+
+            if (reply->error() == QNetworkReply::OperationCanceledError) {
+                emit setStatus("Download timed out");
+            }
 
             if (httpStatus == 404) {
                 emit setStatus("Update file not found (404)");

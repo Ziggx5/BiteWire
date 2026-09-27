@@ -36,7 +36,7 @@ class UpdaterLogic : public QObject {
 public:
     UpdaterLogic(QObject *parent = nullptr);
 
-    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256);
+    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256, const qint64 updateSize);
 
 signals:
     void progressChanged(int percent, double receivedMB, double totalMB);
