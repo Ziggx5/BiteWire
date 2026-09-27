@@ -21,6 +21,7 @@ class UpdateChecker(QWidget):
         self.file_root = file_root
         self.parent = parent
         self.sha256 = None
+        self.file_size_bytes = None
 
         self.setFixedSize(650, 550)
         self.setStyleSheet("background-color: transparent;")
@@ -95,9 +96,9 @@ class UpdateChecker(QWidget):
         file_size_layout = QHBoxLayout(file_size_widget)
         file_size_layout.setContentsMargins(10, 0, 10, 0)
 
-        self.file_size = QLabel("size")
-        self.file_size.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.file_size.setStyleSheet("""
+        self.file_size_label = QLabel("size")
+        self.file_size_label.file_size.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.file_size_label.file_size.setStyleSheet("""
         QLabel {
             color: #60a5fa;
             font-size: 14px;
@@ -107,7 +108,7 @@ class UpdateChecker(QWidget):
             }
         """)
 
-        file_size_layout.addWidget(self.file_size)
+        file_size_layout.addWidget(self.file_size_label.file_size)
 
         cards_layout = QHBoxLayout()
         cards_layout.setSpacing(10)
@@ -255,7 +256,8 @@ class UpdateChecker(QWidget):
                     for asset in release["assets"]:
                         self.download_link = asset["browser_download_url"]
                         self.sha256 = asset['digest'].split(":")[1]
-                        self.file_size.setText(f"{asset['size'] / 1024 / 1024:.2f} MB")
+                        self.file_size_bytes = asset["size"]
+                        self.file_size_label.setText(f"{self.file_size_bytes / 1024 / 1024:.2f} MB")
                         if self.download_link.endswith(file_type):
                             break
                     split_release = tag[1:]
@@ -299,6 +301,7 @@ class UpdateChecker(QWidget):
                               "--bitewire_path", bitewire_path,
                               "--sha256", self.sha256,
                               "--qt_library_path", qt_library_path,
+                              "--update_size", self.file_size_bytes,
                               "--qt_plugin_path", qt_plugin_path])
 
         started = process.startDetached()
