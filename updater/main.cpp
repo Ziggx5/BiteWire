@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
     QCommandLineOption sha256Option("sha256", "Sha256", "sha256");
     QCommandLineOption qtLibraryPathOption("qt_library_path", "BiteWire Library path", "qt_library_path");
     QCommandLineOption updateSizeOption("update_size", "Update size", "update_size");
+    QCommandLineOption appDirectoryOption("app_directory", "App directory", "app_directory");
     QCommandLineOption qtPluginPathOption("qt_plugin_path", "BiteWire plugin path", "qt_plugin_path");
 
     parser.addOption(urlOption);
@@ -29,6 +30,7 @@ int main(int argc, char *argv[]) {
     parser.addOption(sha256Option);
     parser.addOption(qtLibraryPathOption);
     parser.addOption(updateSizeOption);
+    parser.addOption(appDirectoryOption);
     parser.addOption(qtPluginPathOption);
     parser.process(app);
 
@@ -40,6 +42,7 @@ int main(int argc, char *argv[]) {
     QString sha256 = parser.value(sha256Option);
     QString qtLibraryPath = parser.value(qtLibraryPathOption);
     qint64 updateSize = parser.value(updateSizeOption).toInt();
+    QString appDirectory = parser.value(appDirectoryOption);
     QString qtPluginPath = parser.value(qtPluginPathOption);
 
     UpdaterLogic logic;
@@ -69,8 +72,8 @@ int main(int argc, char *argv[]) {
         });
     });
 
-    QTimer::singleShot(50 , [&logic, downloadUrl, currentSystem, bitewirePath, sha256, updateSize]() {
-        logic.downloadUpdate(downloadUrl, currentSystem, bitewirePath, sha256, updateSize);
+    QTimer::singleShot(50 , [&logic, downloadUrl, currentSystem, bitewirePath, sha256, updateSize, appDirectory]() {
+        logic.downloadUpdate(downloadUrl, currentSystem, bitewirePath, sha256, updateSize, appDirectory);
     });
 
     return app.exec();

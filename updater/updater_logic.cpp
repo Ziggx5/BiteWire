@@ -8,12 +8,16 @@
 #include <QProcess>
 #include <QCryptographicHash>
 #include <QStorageInfo>
+#include <QStandardPaths>
+#include <QDateTime>
+#include <QTextStream>
+#include <QTimer>
 
 UpdaterLogic::UpdaterLogic(QObject *parent) : QObject(parent) {
 
 }
 
-void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256, qint64 updateSize) {
+void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256, qint64 updateSize, const QString &appDirectory) {
     QStorageInfo storage(QDir::tempPath());
     qint64 bytesAvailable = storage.bytesAvailable();
 
@@ -59,47 +63,53 @@ void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &cur
 
     QObject::connect(reply, &QNetworkReply::downloadProgress, this, &UpdaterLogic::downloadProgress);
 
-    QObject::connect(reply,  &QNetworkReply::finished, [reply, manager, savePath, this, currentSystem, bitewirePath, sha256, timeoutTimer]() {
+    QObject::connect(reply,  &QNetworkReply::finished, [reply, manager, savePath, this, currentSystem, bitewirePath, sha256, timeoutTimer, appDirectory]() {
         timeoutTimer->stop();
 
         int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
         if (reply->error() != QNetworkReply::NoError) {
             QFile::remove(savePath);
+            QString statusText;
 
             if (reply->error() == QNetworkReply::OperationCanceledError) {
-                emit setStatus("Download timed out");
+                statusText = "Download timed out";
             }
 
-            if (httpStatus == 404) {
-                emit setStatus("Update file not found (404)");
+            else if (httpStatus == 404) {
+                statusText = "Update file not found (404)";
             }
             else if (httpStatus == 403) {
-                emit setStatus("Access denied (403)");
+                statusText = "Access denied (403)";
             }
             else if (httpStatus >= 500) {
-                emit setStatus(QString("GitHub server error (%1)").arg(httpStatus));
+                statusText = QString("GitHub server error (%1)").arg(httpStatus);
             }
             else {
-                emit setStatus("Download failed");
+                statusText = "Download failed";
             }
 
+            emit setStatus(statusText);
+            logMessage("ERROR", "Can't download file", reply->errorString(), appDirectory);
             emit closeUpdater();
 
             reply->deleteLater();
             manager->deleteLater();
+
             return;
         }
 
         QFile file(savePath);
 
         if (!file.open(QIODevice::WriteOnly)) {
-            emit setStatus("File write error");
             file.remove();
+
+            emit setStatus("File write error");
+            logMessage("ERROR", "Can't open file for writing", file.errorString(), appDirectory);
+            emit closeUpdater();
+
             reply->deleteLater();
             manager->deleteLater();
-
-            emit closeUpdater();
             return;
         }
 
@@ -110,6 +120,7 @@ void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &cur
             file.remove();
 
             emit setStatus("File write error");
+            logMessage("ERROR", "Incomplete file write", file.errorString(), appDirectory);
             emit closeUpdater();
 
             reply->deleteLater();
@@ -122,10 +133,10 @@ void UpdaterLogic::downloadUpdate(const QString &downloadUrl, const QString &cur
         reply->deleteLater();
         manager->deleteLater();
 
-        if (calculateSha256(sha256, file)) {
+        if (calculateSha256(sha256, file, appDirectory)) {
             emit downloadFinished();
-            QTimer::singleShot(2000, this, [this, currentSystem, savePath, bitewirePath]() {
-            updateApp(currentSystem, savePath, bitewirePath);
+            QTimer::singleShot(2000, this, [this, currentSystem, savePath, bitewirePath, appDirectory]() {
+            updateApp(currentSystem, savePath, bitewirePath, appDirectory);
         });
         }
     }
@@ -144,39 +155,43 @@ void UpdaterLogic::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     emit progressChanged(percent, receivedMB, totalMB);
 }
 
-void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePath, const QString &bitewirePath) {
+void UpdaterLogic::updateApp(const QString &currentSystem, const QString &savePath, const QString &bitewirePath, const QString &appDirectory) {
     if (currentSystem == "windows") {
-        QString appDirectory = QFileInfo(bitewirePath).absolutePath();
+        QString fileDirectory = QFileInfo(bitewirePath).absolutePath();
         QString unZipDirectory = QDir::tempPath() + "/BiteWireUpdate";
 
-        extractZip(savePath, unZipDirectory, appDirectory);
+        extractZip(savePath, unZipDirectory, fileDirectory, appDirectory);
     }
     else if (currentSystem == "linux") {
         if (savePath.endsWith(".rpm")) {
             QStringList arguments;
             arguments << "dnf5" << "install" << "-y" << savePath;
 
-            updateLinuxApp(arguments, savePath);
+            updateLinuxApp(arguments, savePath, appDirectory);
         }
         else if (savePath.endsWith(".deb")) {
             QStringList arguments;
             arguments << "apt" << "install" << "-y" << savePath;
-            updateLinuxApp(arguments, savePath);
+            updateLinuxApp(arguments, savePath, appDirectory);
         }
         else {
-            emit setStatus("Update failed");
             QFile::remove(savePath);
+
+            emit setStatus("Update failed");
+            logMessage("ERROR", "Unrecognised file format", savePath, appDirectory);
             emit closeUpdater();
         }
     }
     else {
-        emit setStatus("Update failed");
         QFile::remove(savePath);
+
+        emit setStatus("Update failed");
+        logMessage("ERROR", "Unsupported operating system", currentSystem, appDirectory);
         emit closeUpdater();
     }
 }
 
-void UpdaterLogic::extractZip(const QString &savePath, const QString &unZipDirectory, const QString &appDirectory) {
+void UpdaterLogic::extractZip(const QString &savePath, const QString &unZipDirectory, const QString &appDirectory, const QString &localFilePath) {
     QDir dir(unZipDirectory);
 
     if (dir.exists()) {
@@ -187,12 +202,13 @@ void UpdaterLogic::extractZip(const QString &savePath, const QString &unZipDirec
 
     QProcess *process = new QProcess(this);
 
-    QObject::connect(process, &QProcess::finished, this, [this, process, unZipDirectory, appDirectory, savePath](int exitCode, QProcess::ExitStatus exitStatus) {
+    QObject::connect(process, &QProcess::finished, this, [this, process, unZipDirectory, appDirectory, savePath, localFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
         if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-            updateWindowsApp(unZipDirectory, appDirectory, savePath);
+            updateWindowsApp(unZipDirectory, appDirectory, savePath, localFilePath);
         }
         else {
             emit setStatus("Update failed");
+            logMessage("ERROR", "PowerShell Expand-Archive failed, exit code" + QString::number(exitCode), QString::fromUtf8(process->readAllStandardError()), localFilePath);
             emit closeUpdater();
         }
 
@@ -206,20 +222,24 @@ void UpdaterLogic::extractZip(const QString &savePath, const QString &unZipDirec
     process->start("powershell.exe", arguments);
 }
 
-void UpdaterLogic::updateWindowsApp(const QString &unZipDirectory, const QString &appDirectory, const QString &savePath) {
+void UpdaterLogic::updateWindowsApp(const QString &unZipDirectory, const QString &appDirectory, const QString &savePath, const QString &localFilePath) {
     QProcess *process = new QProcess(this);
 
-    QObject::connect(process, &QProcess::finished, this, [this, process, savePath, unZipDirectory](int exitCode, QProcess::ExitStatus exitStatus) {
+    QObject::connect(process, &QProcess::finished, this, [this, process, savePath, unZipDirectory, localFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
+        QString statusText;
+
         if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-            emit setStatus("Update successful");
+            statusText = "Update successful";
         }
         else {
-            emit setStatus("Update failed");
+            statusText = "Update failed";
+            logMessage("ERROR", "PowerShell Copy-Item failed, exit code" + QString::number(exitCode), QString::fromUtf8(process->readAllStandardError()), localFilePath);
         }
 
         QFile::remove(savePath);
         QDir(unZipDirectory).removeRecursively();
 
+        emit setStatus(statusText);
         emit closeUpdater();
 
         process->deleteLater();
@@ -232,30 +252,36 @@ void UpdaterLogic::updateWindowsApp(const QString &unZipDirectory, const QString
     process->start("powershell.exe", arguments);
 }
 
-void UpdaterLogic::updateLinuxApp(const QStringList &arguments, const QString &savePath) {
+void UpdaterLogic::updateLinuxApp(const QStringList &arguments, const QString &savePath, const QString &localFilePath) {
     QProcess *process = new QProcess(this);
 
     QObject::connect(process, &QProcess::finished, process, &QProcess::deleteLater);
-    QObject::connect(process, &QProcess::finished, [this, savePath](int exitCode, QProcess::ExitStatus exitStatus) {
+    QObject::connect(process, &QProcess::finished, [this, savePath, process, localFilePath](int exitCode, QProcess::ExitStatus exitStatus) {
+        QString statusText;
+
         if (exitCode ==0 && exitStatus == QProcess::NormalExit) {
-            emit setStatus("update successful");
+            statusText = "Update successful";
         }
         else {
-            emit setStatus("update failed");
+            statusText = "Update failed";
+            logMessage("ERROR", "pkexec failed, exit code" + QString::number(exitCode), QString::fromUtf8(process->readAllStandardError()), localFilePath);
         }
 
         QFile::remove(savePath);
+
+        emit setStatus(statusText);
         emit closeUpdater();
     });
 
     process->start("pkexec", arguments);
 }
 
-bool UpdaterLogic::calculateSha256(const QString &sha256, QFile &file) {
+bool UpdaterLogic::calculateSha256(const QString &sha256, QFile &file, const QString &appDirectory) {
     emit setStatus("Calculating sha256");
 
     if (!file.open(QIODevice::ReadOnly)) {
         emit setStatus("Can't read file");
+        logMessage("ERROR", "Can't open file for reading", file.errorString(), appDirectory);
         emit closeUpdater();
         return false;
     }
@@ -269,15 +295,34 @@ bool UpdaterLogic::calculateSha256(const QString &sha256, QFile &file) {
     file.close();
 
     if (sha256.toLower() == hash.result().toHex().toLower()) {
-        emit setStatus("Sha256 valid!");
+        emit setStatus("SHA-256 valid");
         return true;
     }
     else {
-        emit setStatus("Sha256 mismatch!");
-
         file.remove();
+
+        emit setStatus("SHA-256 mismatch");
+        logMessage("ERROR", "Hash mismatch", file.errorString(), appDirectory);
         emit closeUpdater();
 
         return false;
+    }
+}
+
+void UpdaterLogic::logMessage(const QString &level, const QString &stage, const QString &message, const QString &appDirectory) {
+    QFile file(appDirectory + "/Updater_log.txt");
+    if (!file.open(QIODevice::Append | QIODevice::Text)) {
+        return;
+    }
+
+    QTextStream out(&file);
+    out << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss") << " [ " << level << " ] " << stage << ":" << "\n";
+
+    if (!message.trimmed().isEmpty()) {
+        const QStringList lines = message.trimmed().split("\n");
+
+        for (const QString &line : lines) {
+            out << "    " << line << "\n";
+        }
     }
 }

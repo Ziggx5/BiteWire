@@ -36,7 +36,7 @@ class UpdaterLogic : public QObject {
 public:
     UpdaterLogic(QObject *parent = nullptr);
 
-    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256, const qint64 updateSize);
+    void downloadUpdate(const QString &downloadUrl, const QString &currentSystem, const QString &bitewirePath, const QString &sha256, const qint64 updateSize, const QString &appDirectory);
 
 signals:
     void progressChanged(int percent, double receivedMB, double totalMB);
@@ -46,11 +46,12 @@ signals:
 
 private:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-    void updateApp(const QString &currentSystem, const QString &savePath, const QString &bitewirePath);
-    void extractZip(const QString &savePath, const QString &unZipDirectory, const QString &appDirectory);
-    void updateWindowsApp(const QString& unZipDirectory, const QString& appDirectory, const QString &savePath);
-    void updateLinuxApp(const QStringList &arguments, const QString &savePath);
-    bool calculateSha256(const QString &sha256, QFile &file);
+    void updateApp(const QString &currentSystem, const QString &savePath, const QString &bitewirePath, const QString &appDirectory);
+    void extractZip(const QString &savePath, const QString &unZipDirectory, const QString &appDirectory, const QString &localFilePath);
+    void updateWindowsApp(const QString& unZipDirectory, const QString& appDirectory, const QString &savePath, const QString &localFilePath);
+    void updateLinuxApp(const QStringList &arguments, const QString &savePath, const QString &localFilePath);
+    bool calculateSha256(const QString &sha256, QFile &file, const QString &appDirectory);
+    void logMessage(const QString &level, const QString &stage, const QString &message, const QString &appDirectory);
 };
 
 #endif
