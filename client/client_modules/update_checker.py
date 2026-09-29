@@ -6,6 +6,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 import platform
 from client_modules.path_finder import updater_executable_path, bitewire_executable_path
+from client_modules.data_manipulation import app_directory
 
 class UpdateChecker(QWidget):
     update_found = Signal(str)
@@ -97,8 +98,8 @@ class UpdateChecker(QWidget):
         file_size_layout.setContentsMargins(10, 0, 10, 0)
 
         self.file_size_label = QLabel("size")
-        self.file_size_label.file_size.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.file_size_label.file_size.setStyleSheet("""
+        self.file_size_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.file_size_label.setStyleSheet("""
         QLabel {
             color: #60a5fa;
             font-size: 14px;
@@ -108,7 +109,7 @@ class UpdateChecker(QWidget):
             }
         """)
 
-        file_size_layout.addWidget(self.file_size_label.file_size)
+        file_size_layout.addWidget(self.file_size_label)
 
         cards_layout = QHBoxLayout()
         cards_layout.setSpacing(10)
@@ -302,6 +303,7 @@ class UpdateChecker(QWidget):
                               "--sha256", self.sha256,
                               "--qt_library_path", qt_library_path,
                               "--update_size", self.file_size_bytes,
+                              "--app_directory", app_directory(),
                               "--qt_plugin_path", qt_plugin_path])
 
         started = process.startDetached()
