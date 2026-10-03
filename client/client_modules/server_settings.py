@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-from client_modules.data_manipulation import app_directory, delete_server, change_server_name
+from client_modules.data_manipulation import app_directory, delete_server, change_server_name, change_server_color
 from client_modules.path_finder import resource_path
 import os
 
@@ -381,7 +381,7 @@ class ServerSettings(QWidget):
         self.status = status
 
         self.fill_server_info()
-        self.appearance_page = AppearancePage(self.get_theme_color, self.get_border_color)
+        self.appearance_page = AppearancePage(self.get_theme_color, self.get_border_color, self.server_address)
         self.stack.addWidget(self.appearance_page)
 
     def fill_server_info(self):
@@ -446,8 +446,9 @@ class ServerSettings(QWidget):
         return self.border_color
 
 class AppearancePage(QWidget):
-    def __init__(self, theme_color, border_color):
+    def __init__(self, theme_color, border_color, server_address):
         super().__init__()
+        self.server_address = server_address
 
         self.theme_color = theme_color
         self.border_color = border_color
@@ -460,6 +461,9 @@ class AppearancePage(QWidget):
 
         self.border_color_widget = ThemeColors(self.border_color())
         self.border_color_widget.color_changed.connect(self.on_border_color_changed)
+
+        self.new_theme_color = None
+        self.new_border_color = None
 
         grid_layout = QGridLayout(self)
         grid_layout.setVerticalSpacing(10)
@@ -552,22 +556,33 @@ class AppearancePage(QWidget):
         grid_layout.addWidget(seperator, 7, 0)
         grid_layout.addLayout(buttons_layout, 8, 0)
 
-    def on_theme_color_changed(self, changed):
+    def on_theme_color_changed(self, changed, color):
         self.theme_color_changed = changed
         self.update_save_button()
+        self.new_theme_color = color
 
-    def on_border_color_changed(self, changed):
+    def on_border_color_changed(self, changed, color):
         self.border_color_changed = changed
         self.update_save_button()
+        self.new_border_color = color
 
     def update_save_button(self):
+        print(self.theme_color_changed or self.border_color_changed)
         self.save_button.setEnabled(self.theme_color_changed or self.border_color_changed)
 
     def save_changes(self):
-        pass
+        if self.theme_color_changed:
+            change_server_color(self.new_theme_color, "theme_color", self.server_address)
+            self.theme_color_widget.initial_color = self.new_theme_color
+
+        if self.border_color_changed:
+            change_server_color(self.new_border_color, "border_color", self.server_address)
+            self.border_color_widget.initial_color = self.new_border_color
+
+        self.save_button.setEnabled(False)
 
 class ThemeColors(QWidget):
-    color_changed = Signal(bool)
+    color_changed = Signal(bool, str)
 
     def __init__(self, color):
         super().__init__()
@@ -713,7 +728,7 @@ class ThemeColors(QWidget):
             current_button.style().polish(current_button)
 
         self.update_opacity_slider(button)
-        self.color_changed.emit(self.color != self.initial_color)
+        self.color_changed.emit(self.color != self.initial_color, self.color)
 
     def set_color(self):
         for button in self.buttons:

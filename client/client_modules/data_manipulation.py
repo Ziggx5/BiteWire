@@ -109,3 +109,15 @@ def change_server_name(new_server_name, server_address, old_server_image_path):
 
     if old_server_image_path and os.path.exists(old_server_image_path):
         os.rename(old_server_image_path, f"{icon_file_path}/{new_server_name}.png")
+
+def change_server_color(color, color_type, server_address):
+    file_path = server_file()
+    servers = []
+
+    for server in server_loader():
+        if server["ip_address"] == server_address:
+            server[color_type] = color
+        servers.append(server)
+
+    with open (file_path, "w", encoding = "utf-8") as f:
+        json.dump(servers, f, indent = 4)
