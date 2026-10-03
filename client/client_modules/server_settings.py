@@ -452,6 +452,15 @@ class AppearancePage(QWidget):
         self.theme_color = theme_color
         self.border_color = border_color
 
+        self.theme_color_changed = False
+        self.border_color_changed = False
+
+        self.theme_color_widget = ThemeColors(self.theme_color())
+        self.theme_color_widget.color_changed.connect(self.on_theme_color_changed)
+
+        self.border_color_widget = ThemeColors(self.border_color())
+        self.border_color_widget.color_changed.connect(self.on_border_color_changed)
+
         grid_layout = QGridLayout(self)
         grid_layout.setVerticalSpacing(10)
         grid_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -536,17 +545,30 @@ class AppearancePage(QWidget):
         grid_layout.addWidget(general_title, 0, 0)
         grid_layout.addWidget(general_description, 1, 0)
         grid_layout.addWidget(theme_color_label, 2, 0)
-        grid_layout.addWidget(ThemeColors(self.theme_color()), 3, 0)
+        grid_layout.addWidget(self.theme_color_widget, 3, 0)
         grid_layout.addWidget(border_color_label, 4, 0)
-        grid_layout.addWidget(ThemeColors(self.border_color()), 5, 0)
+        grid_layout.addWidget(self.border_color_widget, 5, 0)
         grid_layout.setRowStretch(6, 1)
         grid_layout.addWidget(seperator, 7, 0)
         grid_layout.addLayout(buttons_layout, 8, 0)
+
+    def on_theme_color_changed(self, changed):
+        self.theme_color_changed = changed
+        self.update_save_button()
+
+    def on_border_color_changed(self, changed):
+        self.border_color_changed = changed
+        self.update_save_button()
+
+    def update_save_button(self):
+        self.save_button.setEnabled(self.theme_color_changed or self.border_color_changed)
 
     def save_changes(self):
         pass
 
 class ThemeColors(QWidget):
+    color_changed = Signal(bool)
+
     def __init__(self, color):
         super().__init__()
 
@@ -554,6 +576,7 @@ class ThemeColors(QWidget):
 
         self.vertical_layout = QVBoxLayout(self)
         self.horizontal_layout = QHBoxLayout()
+        self.initial_color = color
 
         self.transparent_button = self.create_color_button("X", "transparent", False)
         self.blue_button = self.create_color_button(None , "#5865F2", False)
@@ -690,6 +713,7 @@ class ThemeColors(QWidget):
             current_button.style().polish(current_button)
 
         self.update_opacity_slider(button)
+        self.color_changed.emit(self.color != self.initial_color)
 
     def set_color(self):
         for button in self.buttons:
