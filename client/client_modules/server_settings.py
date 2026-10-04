@@ -602,6 +602,13 @@ class ThemeColors(QWidget):
 
         self.color = color
 
+        template_colors = ["transparent", "#5865F2", "#57D681", "#F25555", "#F5B942", "#8B5CF6", "#D946A8", "#35C5E5"]
+
+        if self.color not in template_colors:
+            custom_color = self.color
+        else:
+            custom_color = "transparent"
+
         self.vertical_layout = QVBoxLayout(self)
         self.horizontal_layout = QHBoxLayout()
         self.initial_color = color
@@ -614,69 +621,8 @@ class ThemeColors(QWidget):
         self.purple_button = self.create_color_button(None, "#8B5CF6", False)
         self.pink_button = self.create_color_button(None, "#D946A8", False)
         self.cyan_button = self.create_color_button(None, "#35C5E5", False)
-        self.custom_button = self.create_color_button(None, "transparent", True)
+        self.custom_button = self.create_color_button(None, custom_color, True)
         self.custom_button.clicked.connect(self.open_color_picker)
-
-        opacity_label = QLabel("Opacity")
-        opacity_label.setStyleSheet("""
-            QLabel {
-                color: #f3f4f6;
-                font-size: 13px;
-                font-weight: 600;
-            }
-        """)
-
-        self.opacity_slider = QSlider(Qt.Orientation.Horizontal, self)
-        self.opacity_slider.setRange(0, 100)
-        self.opacity_slider.setValue(100)
-        self.opacity_slider.setPageStep(5)
-        self.opacity_slider.setStyleSheet("""
-            QSlider {
-                background-color: transparent;
-            }
-
-            QSlider::groove:horizontal {
-                background-color: #2b3448;
-                height: 6px;
-                border-radius: 3px;
-            }
-
-            QSlider::handle:horizontal {
-                background-color: #5865F2;
-                width: 16px;
-                height: 16px;
-                border-radius: 8px;
-                margin: -5px 0;
-            }
-
-            QSlider::handle:horizontal:hover {
-                background-color: #6d78f5;
-            }
-
-            QSlider::sub-page:horizontal {
-                background-color: #5865F2;
-            }
-
-            QSlider::add-page:horizontal {
-                background-color: #2b3448;
-            }
-            
-            QSlider::groove:horizontal:disabled {
-                background-color: #252b3a;
-            }
-            
-            QSlider::handle:horizontal:disabled {
-                background-color: #3a4050;
-            }
-            
-            QSlider::sub-page:horizontal:disabled {
-                background-color: #303646;
-            }
-            
-            QSlider::add-page:horizontal:disabled {
-                background-color: #252b3a;
-            }
-        """)
 
         self.horizontal_layout.addWidget(self.transparent_button)
         self.horizontal_layout.addWidget(self.blue_button)
@@ -689,8 +635,6 @@ class ThemeColors(QWidget):
         self.horizontal_layout.addWidget(self.custom_button)
 
         self.vertical_layout.addLayout(self.horizontal_layout)
-        self.vertical_layout.addWidget(opacity_label)
-        self.vertical_layout.addWidget(self.opacity_slider)
 
         self.buttons = [self.transparent_button, self.blue_button, self.green_button, self.red_button, self.yellow_button, self.purple_button, self.pink_button, self.cyan_button, self.custom_button]
 
@@ -726,12 +670,6 @@ class ThemeColors(QWidget):
 
         return color_button
 
-    def update_opacity_slider(self, button):
-        if button == self.transparent_button or button == self.custom_button:
-            self.opacity_slider.setEnabled(False)
-        else:
-            self.opacity_slider.setEnabled(True)
-
     def select_color(self, button):
         self.color = button.property("color")
 
@@ -740,7 +678,6 @@ class ThemeColors(QWidget):
             current_button.style().unpolish(current_button)
             current_button.style().polish(current_button)
 
-        self.update_opacity_slider(button)
         self.color_changed.emit(self.color != self.initial_color, self.color)
 
     def set_color(self):
@@ -749,7 +686,6 @@ class ThemeColors(QWidget):
                 button.setProperty("active", True)
                 button.style().unpolish(button)
                 button.style().polish(button)
-                self.update_opacity_slider(button)
                 break
 
     def open_color_picker(self):
