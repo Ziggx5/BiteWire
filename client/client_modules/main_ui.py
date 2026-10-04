@@ -356,20 +356,20 @@ class ServerButton(QFrame):
 
         self.setFixedHeight(60)
         self.setCursor(Qt.PointingHandCursor)
-        self.setStyleSheet("""
-            QFrame {
-                background-color: transparent;
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: {self.theme_color};
                 border-radius: 10px;
-                border none;
-            }
+                border: 1px solid {self.border_color};
+            }}
 
-            QFrame:hover {
+            QFrame:hover {{
                 background-color: #333333;
-            }
+            }}
 
-            QFrame[current_server="true"] {
+            QFrame[current_server="true"] {{
                 background-color: #333333;
-            }
+            }}
         """)
 
         layout = QHBoxLayout(self)

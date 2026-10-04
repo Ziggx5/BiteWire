@@ -39,7 +39,7 @@ class ServerSettings(QWidget):
         """)
         exit_button = QPushButton("×")
         exit_button.setFixedSize(35, 35)
-        exit_button.clicked.connect(self.close_page)
+        exit_button.clicked.connect(self.close_popup)
 
         header_layout.addWidget(header_label)
         header_layout.addStretch()
@@ -61,7 +61,8 @@ class ServerSettings(QWidget):
         main_screen = QFrame()
 
         main_screen_layout = QGridLayout(main_screen)
-        main_screen_layout.setVerticalSpacing(10)
+        main_screen_layout.setVerticalSpacing(15)
+        main_screen_layout.setContentsMargins(20, 20, 20, 20)
 
         general_title = QLabel("General")
         general_title.setStyleSheet("""
@@ -118,9 +119,9 @@ class ServerSettings(QWidget):
         self.server_address_input.setReadOnly(True)
         self.server_address_input.setStyleSheet("""
             QLineEdit {
-                background-color: #151a24;
-                color: #e5e7eb;
-                border: 1px solid #2b3448;
+                background-color: #12151d;
+                color: #6b7280;
+                border: 1px solid #1f2533;
                 border-radius: 6px;
                 padding: 8px;
             }
@@ -152,9 +153,9 @@ class ServerSettings(QWidget):
         server_port_input.setReadOnly(True)
         server_port_input.setStyleSheet("""
             QLineEdit {
-                background-color: #151a24;
-                color: #e5e7eb;
-                border: 1px solid #2b3448;
+                background-color: #12151d;
+                color: #6b7280;
+                border: 1px solid #1f2533;
                 border-radius: 6px;
                 padding: 8px;
             }
@@ -258,7 +259,7 @@ class ServerSettings(QWidget):
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.general_button = QPushButton("General")
+        self.general_button = QPushButton("  General")
         self.general_button.setIcon(QIcon(f"{resource_path()}/client_pictures/settings.png"))
         self.general_button.setIconSize(QSize(20, 20))
         self.general_button.clicked.connect(lambda: (self.set_active_button(self.general_button), self.stack.setCurrentWidget(main_screen)))
@@ -283,7 +284,7 @@ class ServerSettings(QWidget):
             }
         """)
 
-        self.appearance_button = QPushButton("Appearance")
+        self.appearance_button = QPushButton("  Appearance")
         self.appearance_button.setIcon(QIcon(f"{resource_path()}/client_pictures/pallete.png"))
         self.appearance_button.setIconSize(QSize(20, 20))
         self.appearance_button.clicked.connect(lambda: (self.set_active_button(self.appearance_button), self.stack.setCurrentWidget(self.appearance_page)))
@@ -307,7 +308,7 @@ class ServerSettings(QWidget):
                 background-color: #293452;
             }
         """)
-        self.notification_button = QPushButton("Notifications")
+        self.notification_button = QPushButton("  Notifications")
         self.notification_button.setIcon(QIcon(f"{resource_path()}/client_pictures/notification.png"))
         self.notification_button.setIconSize(QSize(20, 20))
         self.notification_button.clicked.connect(lambda: self.set_active_button(self.notification_button))
@@ -381,6 +382,7 @@ class ServerSettings(QWidget):
         self.status = status
 
         self.fill_server_info()
+
         self.appearance_page = AppearancePage(self.get_theme_color, self.get_border_color, self.server_address)
         self.stack.addWidget(self.appearance_page)
 
@@ -445,6 +447,16 @@ class ServerSettings(QWidget):
     def get_border_color(self):
         return self.border_color
 
+    def close_popup(self):
+        if self.appearance_page is not None:
+            self.stack.removeWidget(self.appearance_page)
+            self.appearance_page.deleteLater()
+            self.appearance_page = None
+
+        self.close_page()
+        self.set_active_button(self.general_button)
+        self.stack.setCurrentIndex(0)
+
 class AppearancePage(QWidget):
     def __init__(self, theme_color, border_color, server_address):
         super().__init__()
@@ -466,8 +478,9 @@ class AppearancePage(QWidget):
         self.new_border_color = None
 
         grid_layout = QGridLayout(self)
-        grid_layout.setVerticalSpacing(10)
+        grid_layout.setVerticalSpacing(15)
         grid_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        grid_layout.setContentsMargins(20, 20, 20, 20)
 
         general_title = QLabel("Appearance")
         general_title.setStyleSheet("""
@@ -740,12 +753,12 @@ class ThemeColors(QWidget):
                 break
 
     def open_color_picker(self):
-        color = QColorDialog.getColor(QColor(self.color), self, "Color Picker")
+        color = QColorDialog.getColor(QColor(self.color), self, "Color Picker", QColorDialog.ColorDialogOption.ShowAlphaChannel)
 
         if not color.isValid():
             return
 
-        self.color = color.name()
+        self.color = color.name(QColor.NameFormat.HexArgb)
         self.custom_button.setProperty( "color", self.color)
 
         self.custom_button.setStyleSheet(f"""
