@@ -111,7 +111,8 @@ class ChatUi(QWidget):
         file_button.setIconSize(QSize(20, 20))
         file_button.setFixedSize(40, 40)
         file_button.setCursor(Qt.PointingHandCursor)
-        file_button.setToolTip("Currently not available.")
+        file_button.clicked.connect(self.select_file)
+        file_button.setToolTip("Send a file")
 
         emoji_button = QPushButton()
         emoji_button.setIcon(QIcon(f"{self.root_path}/client_pictures/emoji.png"))
@@ -311,6 +312,14 @@ class ChatUi(QWidget):
     
     def set_username(self, username):
         self.username = username
+
+    def select_file(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Select file", "", "Images (*.png *.jpg *.jpeg *.gif *.webp)")
+
+        if not path:
+            return
+
+        self.chat_handler.send_file(path)
 
 class MessageWidget(QWidget):
     def __init__(self, username, data, time, image):
