@@ -15,6 +15,7 @@ class ChatUi(QWidget):
         self.old_message_id = None
         self.loading_history = None
         self.tray = tray
+        self.pending_image_path = None
 
         self.user_widgets = {}
 
@@ -135,12 +136,38 @@ class ChatUi(QWidget):
                 background-color: #2563eb;
             }
         """)
-        send_button.setCursor(Qt.PointingHandCursor)
+        send_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         input_layout.addWidget(self.message_input, 1)
         input_layout.addWidget(file_button)
         input_layout.addWidget(emoji_button)
         input_layout.addWidget(send_button)
+
+        self.preview_container = QFrame()
+        self.preview_container.setFixedHeight(90)
+        self.preview_container.setStyleSheet("""
+            QFrame {
+                background-color: #0f172a;
+                border: 1px solid #1e293b;
+                border-radius: 10px;
+            }
+        """)
+        self.preview_container.hide()
+
+        preview_layout = QHBoxLayout(self.preview_container)
+        preview_layout.setSpacing(0)
+
+        self.preview_picture = QLabel()
+        self.preview_picture.setFixedSize(70, 70)
+
+        remove_preview_button = QPushButton("x")
+        remove_preview_button.setFixedSize(20, 20)
+        remove_preview_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        remove_preview_button.clicked.connect(self.clear_attachment)
+
+        preview_layout.addWidget(self.preview_picture)
+        preview_layout.addWidget(remove_preview_button, alignment = Qt.AlignmentFlag.AlignTop)
+        preview_layout.addStretch()
 
         chat_wrapper = QFrame()
 
@@ -150,6 +177,7 @@ class ChatUi(QWidget):
         
         chat_wrapper_layout.addWidget(header)
         chat_wrapper_layout.addWidget(scroll_container)
+        chat_wrapper_layout.addWidget(self.preview_container)
         chat_wrapper_layout.addWidget(input_container)
 
         all_users_wrapper = QFrame()
@@ -207,10 +235,16 @@ class ChatUi(QWidget):
 
     def client_send_message(self):
         message = self.message_input.toPlainText().strip()
-        if not message:
+        if not message and not self.pending_image_path:
             self.message_input.setFocus()
             return
-        self.chat_handler.send_message(message)
+
+        if self.pending_image_path:
+            self.chat_handler.send_file(self.pending_image_path)
+            self.clear_attachment()
+        else:
+            self.chat_handler.send_message(message)
+
         self.message_input.clear()
         self.message_input.setFocus()
 
@@ -319,7 +353,21 @@ class ChatUi(QWidget):
         if not path:
             return
 
-        self.chat_handler.send_file(path)
+        pixmap = QPixmap(path)
+
+        if pixmap.isNull():
+            QMessageBox.warning(self, "Invalid image", "Could not load this image.")
+            return
+
+        self.pending_image_path = path
+        self.preview_picture.setPixmap(pixmap.scaled(70, 70, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        self.preview_container.show()
+        self.message_input.setFocus()
+
+    def clear_attachment(self):
+        self.pending_image_path = None
+        self.preview_container.hide()
+        self.preview_picture.clear()
 
 class MessageWidget(QWidget):
     def __init__(self, username, data, time, image):
