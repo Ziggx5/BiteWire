@@ -3,7 +3,7 @@ import socket
 import threading
 import json
 import ssl
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, QFileInfo
 import struct
 
 class ChatHandler(QObject):
@@ -196,8 +196,15 @@ class ChatHandler(QObject):
         self.send_json_message({"type": "get_profile_picture", "username": username})
 
     def send_file(self, file_path):
+        picture_extension = QFileInfo(file_path).suffix().lower()
+
         with open(file_path, 'rb') as f:
             image_bytes = f.read()
 
-            encoded_image_bytes = base64.b64encode(image_bytes).decode("utf-8")
-            print(encoded_image_bytes)
+            base64_image = base64.b64encode(image_bytes).decode("utf-8")
+
+            self.send_json_message({
+                "type": "picture",
+                "content": base64_image,
+                "extension": picture_extension
+            })
