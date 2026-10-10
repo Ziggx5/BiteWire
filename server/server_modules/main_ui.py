@@ -32,6 +32,7 @@ class MainUi(QWidget):
         self.files = files_check()
         self.settings_page.fill_inputs(self.files)
         expiry_date, remaining_days, cert_issued, cert_status = validate_certificate()
+        self.chat_server.init_database()
 
         self.cpu_usage = "0"
         self.ram_usage = "0"

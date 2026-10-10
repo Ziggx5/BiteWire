@@ -3,7 +3,6 @@ import os
 import ssl
 from datetime import datetime
 import psutil
-import sqlite3
 
 process = psutil.Process()
 process.cpu_percent()
@@ -65,3 +64,10 @@ def validate_certificate():
 
 def resouce_statistic():
     return str(process.cpu_percent()), str(process.memory_info().rss // 1024 // 1024)
+
+def images_file():
+    data_dir = local_data_file()
+    path = f"{data_dir}/images"
+    os.makedirs(path, exist_ok = True)
+
+    return path

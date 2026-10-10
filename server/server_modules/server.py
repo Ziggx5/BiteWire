@@ -6,10 +6,11 @@ import sqlite3
 import time
 import base64
 from datetime import datetime
-from server_modules.data_manipulation import files_check, database_files, profile_pictures_file
+from server_modules.data_manipulation import files_check, database_files, profile_pictures_file, images_file
 from PySide6.QtCore import Signal, QObject
 import bcrypt
 import struct
+import uuid
 
 class Client:
     def __init__(self, conn, address, server):
@@ -90,6 +91,7 @@ class ChatServer(QObject):
         self.load_files()
         self.users_database_path, self.messages_database_path = database_files()
         self.profile_pictures_path = profile_pictures_file()
+        self.images_path = images_file()
 
     def load_files(self):
         for file_path in files_check():
@@ -126,7 +128,8 @@ class ChatServer(QObject):
                 sender_type TEXT,
                 sender_username TEXT,
                 content TEXT,
-                created_at TEXT
+                created_at TEXT,
+                image_file TEXT
             )
         """)
 
@@ -263,6 +266,18 @@ class ChatServer(QObject):
             
             self.send_message_history(client, content)
 
+        elif message_type == "picture":
+            content = data.get("content")
+            extension = data.get("extension")
+
+            if not client.username:
+                return
+
+            if not isinstance(content, str):
+                return
+
+            filename = self.save_image(content, extension)
+
         else:
             self.remove_client(client)
             self.safe_client_close(client)
@@ -302,8 +317,6 @@ class ChatServer(QObject):
 
         threading.Thread(target = self.server_uptime, daemon = True).start()
         threading.Thread(target = self.ping_client, daemon = True).start()
-
-        self.init_database()
 
         while not self.stop_event.is_set():
             try:
@@ -599,3 +612,11 @@ class ChatServer(QObject):
             })
 
         return user_list
+
+    def save_image(self, base64_image, extension):
+        save_path = f"{self.images_path}/{uuid.uuid4().hex}.{extension}"
+
+        decoded_image = base64.b64decode(base64_image)
+
+        with open(save_path, "wb") as f:
+            f.write(decoded_image)
