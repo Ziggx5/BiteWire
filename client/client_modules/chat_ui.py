@@ -239,11 +239,8 @@ class ChatUi(QWidget):
             self.message_input.setFocus()
             return
 
-        if self.pending_image_path:
-            self.chat_handler.send_file(self.pending_image_path)
-            self.clear_attachment()
-        else:
-            self.chat_handler.send_message(message)
+        self.chat_handler.send_message(message, self.pending_image_path)
+        self.clear_attachment()
 
         self.message_input.clear()
         self.message_input.setFocus()

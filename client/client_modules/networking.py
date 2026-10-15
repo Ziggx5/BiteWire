@@ -162,15 +162,23 @@ class ChatHandler(QObject):
         except socket.timeout:
             return {"type": "error", "message": "Server not responding."}
         except Exception as e:
-            return {"type": "error", "message": str(e)}
             self.handle_disconnect()
+            return {"type": "error", "message": str(e)}
 
         return response
 
-    def send_message(self, message):
+    def send_message(self, message, image_path = None):
+        base64_image = None
+        picture_extension = None
+
+        if image_path:
+            base64_image, picture_extension = self.convert_file_into_base64(image_path)
+
         self.send_json_message({
             "type": "message",
-            "content": message
+            "content": message,
+            "image": base64_image,
+            "extension": picture_extension
         })
     
     def handle_disconnect(self):
@@ -195,7 +203,7 @@ class ChatHandler(QObject):
     def get_profile_pictures(self, username):
         self.send_json_message({"type": "get_profile_picture", "username": username})
 
-    def send_file(self, file_path):
+    def convert_file_into_base64(self, file_path):
         picture_extension = QFileInfo(file_path).suffix().lower()
 
         with open(file_path, 'rb') as f:
@@ -203,8 +211,4 @@ class ChatHandler(QObject):
 
             base64_image = base64.b64encode(image_bytes).decode("utf-8")
 
-            self.send_json_message({
-                "type": "picture",
-                "content": base64_image,
-                "extension": picture_extension
-            })
+        return base64_image, picture_extension
