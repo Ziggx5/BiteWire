@@ -236,7 +236,17 @@ class ChatServer(QObject):
             if not client.username:
                 return
 
-            content = data.get("content")
+            content = data.get("content", "")
+            image = data.get("image")
+            extension = data.get("extension")
+
+            filename = None
+
+            if image is not None:
+                filename = self.save_image(image, extension)
+
+                if not filename:
+                    return
 
             if not isinstance(content, str):
                 return
@@ -246,13 +256,15 @@ class ChatServer(QObject):
 
             current_time = datetime.now().strftime("%l:%M %p, %m/%d/%y")
 
-            self.save_message_to_database("client", client.username, content, current_time)
+            self.save_message_to_database("client", client.username, content, current_time, filename)
+
             self.broadcast({
                 "type": "message",
                 "sender_type": "client",
                 "user": client.username,
+                "time": current_time,
                 "content": content,
-                "time": current_time
+                "image": image
             })
 
             self.message_count += 1
@@ -265,18 +277,6 @@ class ChatServer(QObject):
             content = data.get("content")
             
             self.send_message_history(client, content)
-
-        elif message_type == "picture":
-            content = data.get("content")
-            extension = data.get("extension")
-
-            if not client.username:
-                return
-
-            if not isinstance(content, str):
-                return
-
-            filename = self.save_image(content, extension)
 
         else:
             self.remove_client(client)
@@ -296,6 +296,7 @@ class ChatServer(QObject):
                     break
 
                 self.process_message(client, data)
+                print(data)
 
             except Exception as e:
                 print(e)
@@ -420,14 +421,14 @@ class ChatServer(QObject):
             self.uptime_signal.emit(hours, minutes, seconds)
             time.sleep(1)
 
-    def save_message_to_database(self, sender_type, username, content, time):
+    def save_message_to_database(self, sender_type, username, content, sent_time, image_file = None):
         conn = sqlite3.connect(self.messages_database_path)
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO messages (sender_type, sender_username, content, created_at)
-            VALUES (?, ?, ?, ?)
-        """, (sender_type, username, content, time))
+            INSERT INTO messages (sender_type, sender_username, content, created_at, image_file)
+            VALUES (?, ?, ?, ?, ?)
+        """, (sender_type, username, content, sent_time, image_file))
 
         conn.commit()
         conn.close()
@@ -620,3 +621,5 @@ class ChatServer(QObject):
 
         with open(save_path, "wb") as f:
             f.write(decoded_image)
+
+        return save_path
