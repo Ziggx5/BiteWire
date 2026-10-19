@@ -455,9 +455,9 @@ class ChatServer(QObject):
 
         if old_id:
             cursor.execute("""
-            SELECT sender_type, sender_username, content, created_at, id
+            SELECT sender_type, sender_username, content, created_at, id, image_file
             FROM (
-                SELECT sender_type, sender_username, content, created_at, id
+                SELECT sender_type, sender_username, content, created_at, id, image_file
                 FROM messages
                 WHERE id < ?
                 ORDER BY id DESC            
@@ -477,9 +477,9 @@ class ChatServer(QObject):
 
         else:
             cursor.execute("""
-                SELECT sender_type, sender_username, content, created_at, id
+                SELECT sender_type, sender_username, content, created_at, id, image_file
                 FROM (
-	                SELECT sender_type, sender_username, content, created_at, id
+	                SELECT sender_type, sender_username, content, created_at, id, image_file
 	                FROM messages
 	                ORDER BY id DESC
 	                LIMIT 20
@@ -492,7 +492,7 @@ class ChatServer(QObject):
             messages = []
 
             for message in result:
-                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3]})
+                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3], "image": self.load_image(message[5])})
             
             client.send({"type": "first_message_history", "content": messages})
 
@@ -623,3 +623,11 @@ class ChatServer(QObject):
             f.write(decoded_image)
 
         return save_path
+
+    def load_image(self, file_path):
+        print(file_path)
+        if not file_path:
+            return None
+
+        with open (file_path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
