@@ -7,9 +7,9 @@ from PySide6.QtCore import QObject, Signal, QFileInfo
 import struct
 
 class ChatHandler(QObject):
-    message_received = Signal(str, str, str, str)
+    message_received = Signal(str, str, str, str, object)
     history_message_received = Signal(list)
-    first_history_message_received = Signal(str, str, str, str, int)
+    first_history_message_received = Signal(str, str, str, str, int, object)
     users_received = Signal(list)
     server_status = Signal(str)
     users_count_signal = Signal(str)
@@ -72,12 +72,14 @@ class ChatHandler(QObject):
                 print(message['type'])
                 
                 message_type = message.get("type")
+
                 if message_type == "message":
                     sender_type = message['sender_type']
                     username = message['user']
                     content = message['content']
                     time = message['time']
-                    self.message_received.emit(sender_type, username, content, time)
+
+                    self.message_received.emit(sender_type, username, content, time, self.convert_base64_to_image(message.get("image")))
                     
                 elif message_type == "users_list":
                     users = message['content']
@@ -92,10 +94,13 @@ class ChatHandler(QObject):
                 
                 elif message_type == "first_message_history":
                     for content in message['content']:
-                        self.first_history_message_received.emit(content['sender_type'], content['sender_username'], content['content'], content['time'], content['id'])
-                    
+                        self.first_history_message_received.emit(content['sender_type'], content['sender_username'], content['content'], content['time'], content['id'], self.convert_base64_to_image(content['image']  ))
+
                 elif message_type == "message_history":
-                    self.history_message_received.emit(message['content'])
+                    message = message['content']
+                    for item in message:
+                        item['image'] = self.convert_base64_to_image(item['image'])
+                    self.history_message_received.emit(message)
                     
                 elif message_type == "profile_picture_data":
                     self.profile_cache.save(message['content'])
@@ -172,7 +177,7 @@ class ChatHandler(QObject):
         picture_extension = None
 
         if image_path:
-            base64_image, picture_extension = self.convert_file_into_base64(image_path)
+            base64_image, picture_extension = self.encode_file_into_base64(image_path)
 
         self.send_json_message({
             "type": "message",
@@ -203,7 +208,7 @@ class ChatHandler(QObject):
     def get_profile_pictures(self, username):
         self.send_json_message({"type": "get_profile_picture", "username": username})
 
-    def convert_file_into_base64(self, file_path):
+    def encode_file_into_base64(self, file_path):
         picture_extension = QFileInfo(file_path).suffix().lower()
 
         with open(file_path, 'rb') as f:
@@ -212,3 +217,9 @@ class ChatHandler(QObject):
             base64_image = base64.b64encode(image_bytes).decode("utf-8")
 
         return base64_image, picture_extension
+
+    def convert_base64_to_image(self, base64_image):
+        if not base64_image:
+            return None
+
+        return base64.b64decode(base64_image)

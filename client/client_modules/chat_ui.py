@@ -245,19 +245,19 @@ class ChatUi(QWidget):
         self.message_input.clear()
         self.message_input.setFocus()
 
-    def create_message_widget(self, sender_type, username, content, sent_time):
+    def create_message_widget(self, sender_type, username, content, sent_time, image_bytes):
         if sender_type == "server":
             return JoinUserMessageWidget(username, sent_time, f"{self.root_path}/client_pictures/right_arrow.png")
         else:
             cached_picture = self.profile_cache.get(username, "message_profile_picture")
 
             if cached_picture:
-                return MessageWidget(username, content, sent_time, cached_picture)
+                return MessageWidget(username, content, sent_time, cached_picture, image_bytes)
             else:
-                return MessageWidget(username, content, sent_time, f"{self.root_path}/client_pictures/user_picture_placeholder.png")
+                return MessageWidget(username, content, sent_time, f"{self.root_path}/client_pictures/user_picture_placeholder.png", image_bytes)
 
-    def display_first_chat_history(self, sender_type, sender_username, content, sent_time, message_id):
-        message_widget = self.create_message_widget(sender_type, sender_username, content, sent_time)
+    def display_first_chat_history(self, sender_type, sender_username, content, sent_time, message_id, image_bytes):
+        message_widget = self.create_message_widget(sender_type, sender_username, content, sent_time, image_bytes)
 
         self.chat_layout.addWidget(message_widget)
 
@@ -278,7 +278,7 @@ class ChatUi(QWidget):
         old_max = scrollbar.maximum()
 
         for message in reversed(data):
-            message_widget = self.create_message_widget(message['sender_type'], message['sender_username'], message['content'], message['sent_time'])
+            message_widget = self.create_message_widget(message['sender_type'], message['sender_username'], message['content'], message['time'], message['image'])
 
             self.chat_layout.insertWidget(0, message_widget)
 
@@ -297,9 +297,9 @@ class ChatUi(QWidget):
         
         self.loading_history = False
 
-    def display_new_message(self,sender_type, username, content, sent_time):
+    def display_new_message(self,sender_type, username, content, sent_time, image_bytes):
         self.tray.show_notification(username, content)
-        message_widget = self.create_message_widget(sender_type, username, content, sent_time)
+        message_widget = self.create_message_widget(sender_type, username, content, sent_time, image_bytes)
 
         self.chat_layout.addWidget(message_widget)
         
@@ -367,7 +367,7 @@ class ChatUi(QWidget):
         self.preview_picture.clear()
 
 class MessageWidget(QWidget):
-    def __init__(self, username, data, time, image):
+    def __init__(self, username, data, time, image, attachment):
         super().__init__() 
         self.setObjectName("message_container")
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -418,7 +418,17 @@ class MessageWidget(QWidget):
         message.setStyleSheet("color: #e6edf3;")
 
         right_layout.addLayout(top_row)
-        right_layout.addWidget(message)
+
+        if data:
+            right_layout.addWidget(message)
+
+        if attachment:
+            attachment_pixmap = QPixmap()
+            attachment_pixmap.loadFromData(attachment)
+
+            attachment_label = QLabel()
+            attachment_label.setPixmap(attachment_pixmap)
+            right_layout.addWidget(attachment_label)
 
         left_layout.addWidget(icon, alignment = Qt.AlignTop)
 
