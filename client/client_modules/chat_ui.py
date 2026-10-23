@@ -424,11 +424,17 @@ class MessageWidget(QWidget):
 
         if attachment:
             attachment_pixmap = QPixmap()
-            attachment_pixmap.loadFromData(attachment)
 
-            attachment_label = QLabel()
-            attachment_label.setPixmap(attachment_pixmap)
-            right_layout.addWidget(attachment_label)
+            if attachment_pixmap.loadFromData(attachment):
+                if attachment_pixmap.height() > 300:
+                    attachment_pixmap = attachment_pixmap.scaledToHeight(300, Qt.TransformationMode.SmoothTransformation)
+
+                attachment_label = QLabel()
+                attachment_label.setPixmap(attachment_pixmap)
+                right_layout.addWidget(attachment_label)
+            else:
+                failed_label = QLabel("Image failed to load.")
+                right_layout.addWidget(failed_label)
 
         left_layout.addWidget(icon, alignment = Qt.AlignTop)
 

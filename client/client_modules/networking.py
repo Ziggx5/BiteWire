@@ -94,7 +94,7 @@ class ChatHandler(QObject):
                 
                 elif message_type == "first_message_history":
                     for content in message['content']:
-                        self.first_history_message_received.emit(content['sender_type'], content['sender_username'], content['content'], content['time'], content['id'], self.convert_base64_to_image(content['image']  ))
+                        self.first_history_message_received.emit(content['sender_type'], content['sender_username'], content['content'], content['time'], content['id'], self.convert_base64_to_image(content['image']))
 
                 elif message_type == "message_history":
                     message = message['content']
