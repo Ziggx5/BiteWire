@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
+from client_modules.path_finder import resource_path
 
 class ChatUi(QWidget):
     own_profile_picture = Signal(object)
@@ -423,18 +424,7 @@ class MessageWidget(QWidget):
             right_layout.addWidget(message)
 
         if attachment:
-            attachment_pixmap = QPixmap()
-
-            if attachment_pixmap.loadFromData(attachment):
-                if attachment_pixmap.height() > 300:
-                    attachment_pixmap = attachment_pixmap.scaledToHeight(300, Qt.TransformationMode.SmoothTransformation)
-
-                attachment_label = QLabel()
-                attachment_label.setPixmap(attachment_pixmap)
-                right_layout.addWidget(attachment_label)
-            else:
-                failed_label = QLabel("Image failed to load.")
-                right_layout.addWidget(failed_label)
+            right_layout.addWidget(ImageAttachment(attachment))
 
         left_layout.addWidget(icon, alignment = Qt.AlignTop)
 
@@ -550,3 +540,33 @@ class JoinUserMessageWidget(QWidget):
         layout.addWidget(text)
         layout.addWidget(joined_time_label)
         layout.addStretch()
+
+class ImageAttachment(QLabel):
+    def __init__(self, image_bytes):
+        super().__init__()
+
+        pixmap = QPixmap()
+
+        if pixmap.loadFromData(image_bytes):
+            if pixmap.height() > 300:
+                pixmap = pixmap.scaledToHeight(300, Qt.TransformationMode.SmoothTransformation)
+
+            self.setPixmap(pixmap)
+        else:
+            self.setText("Image failed to load.")
+            return
+
+        self.download_button = QPushButton(self)
+        self.download_button.setFixedSize(30, 30)
+        self.download_button.setIcon(QIcon(f"{resource_path()}/client_pictures/update_white.png"))
+        self.download_button.setIconSize(QSize(30, 30))
+        self.download_button.move(self.width() - self.download_button.width() - 10, 10)
+        self.download_button.hide()
+
+    def enterEvent(self, event):
+        self.download_button.show()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self.download_button.hide()
+        super().leaveEvent(event)
