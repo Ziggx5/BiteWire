@@ -545,13 +545,16 @@ class ImageAttachment(QLabel):
     def __init__(self, image_bytes):
         super().__init__()
 
+        self.image_bytes = image_bytes
+
         pixmap = QPixmap()
 
         if pixmap.loadFromData(image_bytes):
             if pixmap.height() > 300:
-                pixmap = pixmap.scaledToHeight(300, Qt.TransformationMode.SmoothTransformation)
+                pixmap = pixmap.scaled(pixmap.width(), 300, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
 
             self.setPixmap(pixmap)
+            self.setFixedWidth(pixmap.width())
         else:
             self.setText("Image failed to load.")
             return
@@ -561,6 +564,7 @@ class ImageAttachment(QLabel):
         self.download_button.setIcon(QIcon(f"{resource_path()}/client_pictures/update_white.png"))
         self.download_button.setIconSize(QSize(30, 30))
         self.download_button.move(self.width() - self.download_button.width() - 10, 10)
+        self.download_button.clicked.connect(self.download_image)
         self.download_button.hide()
 
     def enterEvent(self, event):
@@ -570,3 +574,24 @@ class ImageAttachment(QLabel):
     def leaveEvent(self, event):
         self.download_button.hide()
         super().leaveEvent(event)
+
+    def download_image(self):
+        image_extension = self.get_image_extension(self.image_bytes)
+        download_folder = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation)
+        download_path = f"{download_folder}/image.{image_extension}"
+
+        path, _ = QFileDialog.getSaveFileName(self, "Save image", download_path, f"image (*.{image_extension})")
+
+        #Add image saving functionality
+
+    def get_image_extension(self, image_bytes):
+        if image_bytes.startswith(b"\x89PNG"):
+            return "png"
+        elif image_bytes.startswith(b"\xff\xd8\xff"):
+            return "jpg"
+        elif image_bytes.startswith(b"GIF8"):
+            return "gif"
+        elif image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP":
+            return "webp"
+
+        return "png"
