@@ -129,7 +129,8 @@ class ChatServer(QObject):
                 sender_username TEXT,
                 content TEXT,
                 created_at TEXT,
-                image_file TEXT
+                file_save_path TEXT,
+                image_name TEXT
             )
         """)
 
@@ -239,13 +240,14 @@ class ChatServer(QObject):
             content = data.get("content", "")
             image = data.get("image")
             extension = data.get("extension")
+            image_name = data.get("image_name")
 
-            filename = None
+            file_save_path = None
 
             if image is not None:
-                filename = self.save_image(image, extension)
+                file_save_path = self.save_image(image, extension)
 
-                if not filename:
+                if not file_save_path:
                     return
 
             if not isinstance(content, str):
@@ -256,7 +258,7 @@ class ChatServer(QObject):
 
             current_time = datetime.now().strftime("%l:%M %p, %m/%d/%y")
 
-            self.save_message_to_database("client", client.username, content, current_time, filename)
+            self.save_message_to_database("client", client.username, content, current_time, image_name, file_save_path)
 
             self.broadcast({
                 "type": "message",
@@ -264,7 +266,8 @@ class ChatServer(QObject):
                 "user": client.username,
                 "time": current_time,
                 "content": content,
-                "image": image
+                "image": image,
+                "image_name": image_name
             })
 
             self.message_count += 1
@@ -421,14 +424,14 @@ class ChatServer(QObject):
             self.uptime_signal.emit(hours, minutes, seconds)
             time.sleep(1)
 
-    def save_message_to_database(self, sender_type, username, content, sent_time, image_file = None):
+    def save_message_to_database(self, sender_type, username, content, sent_time, image_name, file_save_path = None):
         conn = sqlite3.connect(self.messages_database_path)
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO messages (sender_type, sender_username, content, created_at, image_file)
-            VALUES (?, ?, ?, ?, ?)
-        """, (sender_type, username, content, sent_time, image_file))
+            INSERT INTO messages (sender_type, sender_username, content, created_at, file_save_path, image_name)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (sender_type, username, content, sent_time, file_save_path, image_name))
 
         conn.commit()
         conn.close()
@@ -477,9 +480,9 @@ class ChatServer(QObject):
 
         else:
             cursor.execute("""
-                SELECT sender_type, sender_username, content, created_at, id, image_file
+                SELECT sender_type, sender_username, content, created_at, id, file_save_path, image_name
                 FROM (
-	                SELECT sender_type, sender_username, content, created_at, id, image_file
+	                SELECT sender_type, sender_username, content, created_at, id, file_save_path, image_name
 	                FROM messages
 	                ORDER BY id DESC
 	                LIMIT 20
@@ -492,7 +495,7 @@ class ChatServer(QObject):
             messages = []
 
             for message in result:
-                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3], "image": self.load_image(message[5])})
+                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3], "image": self.load_image(message[5]), "image_name": message[6]})
             
             client.send({"type": "first_message_history", "content": messages})
 
