@@ -5,11 +5,12 @@ import json
 import ssl
 from PySide6.QtCore import QObject, Signal, QFileInfo
 import struct
+import os
 
 class ChatHandler(QObject):
-    message_received = Signal(str, str, str, str, object)
+    message_received = Signal(str, str, str, str, object, str)
     history_message_received = Signal(list)
-    first_history_message_received = Signal(str, str, str, str, int, object)
+    first_history_message_received = Signal(str, str, str, str, int, object, str)
     users_received = Signal(list)
     server_status = Signal(str)
     users_count_signal = Signal(str)
@@ -78,8 +79,10 @@ class ChatHandler(QObject):
                     username = message['user']
                     content = message['content']
                     time = message['time']
+                    image_base64 = self.convert_base64_to_image(message.get("image"))
+                    image_name = message['image_name']
 
-                    self.message_received.emit(sender_type, username, content, time, self.convert_base64_to_image(message.get("image")))
+                    self.message_received.emit(sender_type, username, content, time, image_base64, image_name)
                     
                 elif message_type == "users_list":
                     users = message['content']
@@ -94,7 +97,7 @@ class ChatHandler(QObject):
                 
                 elif message_type == "first_message_history":
                     for content in message['content']:
-                        self.first_history_message_received.emit(content['sender_type'], content['sender_username'], content['content'], content['time'], content['id'], self.convert_base64_to_image(content['image']))
+                        self.first_history_message_received.emit(content['sender_type'], content['sender_username'], content['content'], content['time'], content['id'], self.convert_base64_to_image(content['image']), content['image_name'])
 
                 elif message_type == "message_history":
                     message = message['content']
@@ -174,16 +177,21 @@ class ChatHandler(QObject):
 
     def send_message(self, message, image_path = None):
         base64_image = None
-        picture_extension = None
+        image_extension = None
+        image_name = None
 
         if image_path:
-            base64_image, picture_extension = self.encode_file_into_base64(image_path)
+            base64_image, image_extension = self.encode_file_into_base64(image_path)
+            full_image_name = os.path.basename(image_path)
+            split_image_name = os.path.splitext(full_image_name)
+            image_name = split_image_name[0]
 
         self.send_json_message({
             "type": "message",
             "content": message,
             "image": base64_image,
-            "extension": picture_extension
+            "extension": image_extension,
+            "image_name": image_name
         })
     
     def handle_disconnect(self):

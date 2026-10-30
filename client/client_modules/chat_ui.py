@@ -246,19 +246,19 @@ class ChatUi(QWidget):
         self.message_input.clear()
         self.message_input.setFocus()
 
-    def create_message_widget(self, sender_type, username, content, sent_time, image_bytes):
+    def create_message_widget(self, sender_type, username, content, sent_time, image_bytes, image_name):
         if sender_type == "server":
             return JoinUserMessageWidget(username, sent_time, f"{self.root_path}/client_pictures/right_arrow.png")
         else:
             cached_picture = self.profile_cache.get(username, "message_profile_picture")
 
             if cached_picture:
-                return MessageWidget(username, content, sent_time, cached_picture, image_bytes)
+                return MessageWidget(username, content, sent_time, cached_picture, image_bytes, image_name)
             else:
-                return MessageWidget(username, content, sent_time, f"{self.root_path}/client_pictures/user_picture_placeholder.png", image_bytes)
+                return MessageWidget(username, content, sent_time, f"{self.root_path}/client_pictures/user_picture_placeholder.png", image_bytes, image_name)
 
-    def display_first_chat_history(self, sender_type, sender_username, content, sent_time, message_id, image_bytes):
-        message_widget = self.create_message_widget(sender_type, sender_username, content, sent_time, image_bytes)
+    def display_first_chat_history(self, sender_type, sender_username, content, sent_time, message_id, image_bytes, image_name):
+        message_widget = self.create_message_widget(sender_type, sender_username, content, sent_time, image_bytes, image_name)
 
         self.chat_layout.addWidget(message_widget)
 
@@ -298,9 +298,9 @@ class ChatUi(QWidget):
         
         self.loading_history = False
 
-    def display_new_message(self,sender_type, username, content, sent_time, image_bytes):
+    def display_new_message(self,sender_type, username, content, sent_time, image_bytes, image_name):
         self.tray.show_notification(username, content)
-        message_widget = self.create_message_widget(sender_type, username, content, sent_time, image_bytes)
+        message_widget = self.create_message_widget(sender_type, username, content, sent_time, image_bytes, image_name)
 
         self.chat_layout.addWidget(message_widget)
         
@@ -368,7 +368,7 @@ class ChatUi(QWidget):
         self.preview_picture.clear()
 
 class MessageWidget(QWidget):
-    def __init__(self, username, data, time, image, attachment):
+    def __init__(self, username, data, time, user_icon, attachment, image_name):
         super().__init__() 
         self.setObjectName("message_container")
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -388,7 +388,7 @@ class MessageWidget(QWidget):
         icon.setStyleSheet("background-color: transparent; border: none;")
         icon.setFixedSize(35, 35)
 
-        pixmap = QPixmap(image).scaled(35, 35, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+        pixmap = QPixmap(user_icon).scaled(35, 35, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
         mask = QBitmap(35, 35)
         mask.fill(Qt.color0)
 
@@ -424,7 +424,7 @@ class MessageWidget(QWidget):
             right_layout.addWidget(message)
 
         if attachment:
-            right_layout.addWidget(ImageAttachment(attachment))
+            right_layout.addWidget(ImageAttachment(attachment, image_name))
 
         left_layout.addWidget(icon, alignment = Qt.AlignTop)
 
@@ -542,10 +542,11 @@ class JoinUserMessageWidget(QWidget):
         layout.addStretch()
 
 class ImageAttachment(QLabel):
-    def __init__(self, image_bytes):
+    def __init__(self, image_bytes, image_name):
         super().__init__()
 
         self.image_bytes = image_bytes
+        self.image_name = image_name
 
         pixmap = QPixmap()
 
@@ -578,11 +579,15 @@ class ImageAttachment(QLabel):
     def download_image(self):
         image_extension = self.get_image_extension(self.image_bytes)
         download_folder = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation)
-        download_path = f"{download_folder}/image.{image_extension}"
+        download_path = f"{download_folder}/{self.image_name}.{image_extension}"
 
         path, _ = QFileDialog.getSaveFileName(self, "Save image", download_path, f"image (*.{image_extension})")
 
-        #Add image saving functionality
+        if not path:
+            return
+
+        with open(download_path, "wb") as f:
+            f.write(self.image_bytes)
 
     def get_image_extension(self, image_bytes):
         if image_bytes.startswith(b"\x89PNG"):
