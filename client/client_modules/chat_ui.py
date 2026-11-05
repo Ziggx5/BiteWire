@@ -550,6 +550,13 @@ class ImageAttachment(QLabel):
         self.image_name = image_name
         self.parent = parent
 
+        self.current_expanded_image = QLabel(self.parent)
+
+        self.dim_overlay = QWidget(self.parent)
+        self.dim_overlay.setStyleSheet("background-color: rgba(0, 0, 0, 200);")
+        self.dim_overlay.setGeometry(0, 0, self.parent.width(), self.parent.height())
+        self.dim_overlay.mousePressEvent = lambda event: self.close_expanded_image()
+
         pixmap = QPixmap()
 
         if pixmap.loadFromData(image_bytes):
@@ -612,17 +619,23 @@ class ImageAttachment(QLabel):
         return "png"
 
     def expand_image(self):
-        current_expanded_image = QLabel(self.parent)
         max_expanded_image_width = int(self.parent.width() * 0.6)
         max_expanded_image_height = int(self.parent.height() * 0.6)
         pixmap = QPixmap()
         pixmap.loadFromData(self.image_bytes)
 
+        self.dim_overlay.show()
+
         if pixmap.width() > max_expanded_image_width or pixmap.height() > max_expanded_image_height:
             pixmap = pixmap.scaled(max_expanded_image_width, max_expanded_image_height, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
 
-        current_expanded_image.setPixmap(pixmap)
-        current_expanded_image.setFixedSize(pixmap.size())
-        current_expanded_image.move((self.parent.width() - pixmap.width()) // 2, (self.parent.height() - pixmap.height()) // 2)
+        self.current_expanded_image.setPixmap(pixmap)
+        self.current_expanded_image.setFixedSize(pixmap.size())
+        self.current_expanded_image.move((self.parent.width() - pixmap.width()) // 2, (self.parent.height() - pixmap.height()) // 2)
+        self.current_expanded_image.raise_()
 
-        current_expanded_image.show()
+        self.current_expanded_image.show()
+
+    def close_expanded_image(self):
+        self.current_expanded_image.hide()
+        self.dim_overlay.hide()

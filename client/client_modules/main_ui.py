@@ -66,7 +66,7 @@ class MainUi(QWidget):
         self.active_servers = []
 
         self.overlay = QWidget(self)
-        self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
+        self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 200);")
         self.overlay.setGeometry(0, 0, self.width(), self.height())
         self.overlay.hide()
 
