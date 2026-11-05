@@ -5,10 +5,11 @@ from client_modules.path_finder import resource_path
 
 class ChatUi(QWidget):
     own_profile_picture = Signal(object)
-    def __init__(self, root_path, chat_handler, profile_cache, reset, tray):
+    def __init__(self, root_path, chat_handler, profile_cache, reset, tray, parent):
         super().__init__()
 
         self.root_path = root_path
+        self.parent = parent
         self.chat_handler = chat_handler
         self.profile_cache = profile_cache
         self.username = None
@@ -253,9 +254,9 @@ class ChatUi(QWidget):
             cached_picture = self.profile_cache.get(username, "message_profile_picture")
 
             if cached_picture:
-                return MessageWidget(username, content, sent_time, cached_picture, image_bytes, image_name)
+                return MessageWidget(username, content, sent_time, cached_picture, image_bytes, image_name, self.parent)
             else:
-                return MessageWidget(username, content, sent_time, f"{self.root_path}/client_pictures/user_picture_placeholder.png", image_bytes, image_name)
+                return MessageWidget(username, content, sent_time, f"{self.root_path}/client_pictures/user_picture_placeholder.png", image_bytes, image_name, self.parent)
 
     def display_first_chat_history(self, sender_type, sender_username, content, sent_time, message_id, image_bytes, image_name):
         message_widget = self.create_message_widget(sender_type, sender_username, content, sent_time, image_bytes, image_name)
@@ -368,7 +369,7 @@ class ChatUi(QWidget):
         self.preview_picture.clear()
 
 class MessageWidget(QWidget):
-    def __init__(self, username, data, time, user_icon, attachment, image_name):
+    def __init__(self, username, data, time, user_icon, attachment, image_name, parent):
         super().__init__() 
         self.setObjectName("message_container")
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -424,7 +425,7 @@ class MessageWidget(QWidget):
             right_layout.addWidget(message)
 
         if attachment:
-            right_layout.addWidget(ImageAttachment(attachment, image_name))
+            right_layout.addWidget(ImageAttachment(attachment, image_name, parent))
 
         left_layout.addWidget(icon, alignment = Qt.AlignTop)
 
@@ -542,11 +543,12 @@ class JoinUserMessageWidget(QWidget):
         layout.addStretch()
 
 class ImageAttachment(QLabel):
-    def __init__(self, image_bytes, image_name):
+    def __init__(self, image_bytes, image_name, parent):
         super().__init__()
 
         self.image_bytes = image_bytes
         self.image_name = image_name
+        self.parent = parent
 
         pixmap = QPixmap()
 
@@ -566,7 +568,10 @@ class ImageAttachment(QLabel):
         self.download_button.setIconSize(QSize(30, 30))
         self.download_button.move(self.width() - self.download_button.width() - 10, 10)
         self.download_button.clicked.connect(self.download_image)
+        self.download_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.download_button.hide()
+
+        self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def enterEvent(self, event):
         self.download_button.show()
@@ -575,6 +580,11 @@ class ImageAttachment(QLabel):
     def leaveEvent(self, event):
         self.download_button.hide()
         super().leaveEvent(event)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.expand_image()
+        super().mousePressEvent(event)
 
     def download_image(self):
         image_extension = self.get_image_extension(self.image_bytes)
@@ -586,7 +596,7 @@ class ImageAttachment(QLabel):
         if not path:
             return
 
-        with open(download_path, "wb") as f:
+        with open(path, "wb") as f:
             f.write(self.image_bytes)
 
     def get_image_extension(self, image_bytes):
@@ -600,3 +610,19 @@ class ImageAttachment(QLabel):
             return "webp"
 
         return "png"
+
+    def expand_image(self):
+        current_expanded_image = QLabel(self.parent)
+        max_expanded_image_width = int(self.parent.width() * 0.6)
+        max_expanded_image_height = int(self.parent.height() * 0.6)
+        pixmap = QPixmap()
+        pixmap.loadFromData(self.image_bytes)
+
+        if pixmap.width() > max_expanded_image_width or pixmap.height() > max_expanded_image_height:
+            pixmap = pixmap.scaled(max_expanded_image_width, max_expanded_image_height, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+
+        current_expanded_image.setPixmap(pixmap)
+        current_expanded_image.setFixedSize(pixmap.size())
+        current_expanded_image.move((self.parent.width() - pixmap.width()) // 2, (self.parent.height() - pixmap.height()) // 2)
+
+        current_expanded_image.show()
