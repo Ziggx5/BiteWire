@@ -237,15 +237,14 @@ class ChatServer(QObject):
             if not client.username:
                 return
 
-            content = data.get("content", "")
+            content = data.get("content")
             image = data.get("image")
-            extension = data.get("extension")
             image_name = data.get("image_name")
 
             file_save_path = None
 
             if image is not None:
-                file_save_path = self.save_image(image, extension)
+                file_save_path = self.save_image(image)
 
                 if not file_save_path:
                     return
@@ -424,7 +423,7 @@ class ChatServer(QObject):
             self.uptime_signal.emit(hours, minutes, seconds)
             time.sleep(1)
 
-    def save_message_to_database(self, sender_type, username, content, sent_time, image_name, file_save_path = None):
+    def save_message_to_database(self, sender_type, username, content, sent_time, image_name = None, file_save_path = None):
         conn = sqlite3.connect(self.messages_database_path)
         cursor = conn.cursor()
 
@@ -458,9 +457,9 @@ class ChatServer(QObject):
 
         if old_id:
             cursor.execute("""
-            SELECT sender_type, sender_username, content, created_at, id, image_file
+            SELECT sender_type, sender_username, content, created_at, id, file_save_path, image_name
             FROM (
-                SELECT sender_type, sender_username, content, created_at, id, image_file
+                SELECT sender_type, sender_username, content, created_at, id, file_save_path, image_name
                 FROM messages
                 WHERE id < ?
                 ORDER BY id DESC            
@@ -474,7 +473,7 @@ class ChatServer(QObject):
             messages = []
 
             for message in result:
-                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3]})
+                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3], "image": self.load_image(message[5]), "image_name": message[6]})
             
             client.send({"type": "message_history", "content": messages})
 
@@ -617,10 +616,10 @@ class ChatServer(QObject):
 
         return user_list
 
-    def save_image(self, base64_image, extension):
-        save_path = f"{self.images_path}/{uuid.uuid4().hex}.{extension}"
-
+    def save_image(self, base64_image):
         decoded_image = base64.b64decode(base64_image)
+        image_extension = self.get_image_extension(decoded_image)
+        save_path = f"{self.images_path}/{uuid.uuid4().hex}.{image_extension}"
 
         with open(save_path, "wb") as f:
             f.write(decoded_image)
@@ -628,9 +627,20 @@ class ChatServer(QObject):
         return save_path
 
     def load_image(self, file_path):
-        print(file_path)
         if not file_path:
             return None
 
         with open (file_path, "rb") as f:
             return base64.b64encode(f.read()).decode("utf-8")
+
+    def get_image_extension(self, image_bytes):
+        if image_bytes.startswith(b"\x89PNG"):
+            return "png"
+        elif image_bytes.startswith(b"\xff\xd8\xff"):
+            return "jpg"
+        elif image_bytes.startswith(b"GIF8"):
+            return "gif"
+        elif image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP":
+            return "webp"
+
+        return "png"
