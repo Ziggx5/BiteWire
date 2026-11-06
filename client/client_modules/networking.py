@@ -175,13 +175,12 @@ class ChatHandler(QObject):
 
         return response
 
-    def send_message(self, message, image_path = None):
+    def send_message(self, message, image_path):
         base64_image = None
-        image_extension = None
         image_name = None
 
         if image_path:
-            base64_image, image_extension = self.encode_file_into_base64(image_path)
+            base64_image = self.encode_file_into_base64(image_path)
             full_image_name = os.path.basename(image_path)
             split_image_name = os.path.splitext(full_image_name)
             image_name = split_image_name[0]
@@ -190,7 +189,6 @@ class ChatHandler(QObject):
             "type": "message",
             "content": message,
             "image": base64_image,
-            "extension": image_extension,
             "image_name": image_name
         })
     
@@ -217,14 +215,12 @@ class ChatHandler(QObject):
         self.send_json_message({"type": "get_profile_picture", "username": username})
 
     def encode_file_into_base64(self, file_path):
-        picture_extension = QFileInfo(file_path).suffix().lower()
-
         with open(file_path, 'rb') as f:
             image_bytes = f.read()
 
             base64_image = base64.b64encode(image_bytes).decode("utf-8")
 
-        return base64_image, picture_extension
+        return base64_image
 
     def convert_base64_to_image(self, base64_image):
         if not base64_image:

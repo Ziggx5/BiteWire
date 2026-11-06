@@ -66,7 +66,7 @@ class ChatUi(QWidget):
         chat_container = QFrame()
 
         self.chat_layout = QVBoxLayout(chat_container)
-        self.chat_layout.setSpacing(12)
+        self.chat_layout.setSpacing(0)
         self.chat_layout.setContentsMargins(0, 0, 0, 0)
         self.chat_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
