@@ -550,24 +550,23 @@ class ImageAttachment(QLabel):
         self.image_name = image_name
         self.parent = parent
 
+        self.movie = None
+
+        if self.image_bytes.startswith(b"GIF8"):
+            loaded = self.make_gif(self.image_bytes)
+        else:
+            loaded = self.make_static_image(self.image_bytes)
+
+        if not loaded:
+            self.setText("Image failed to load.")
+            return
+
         self.current_expanded_image = QLabel(self.parent)
 
         self.dim_overlay = QWidget(self.parent)
         self.dim_overlay.setStyleSheet("background-color: rgba(0, 0, 0, 200);")
         self.dim_overlay.setGeometry(0, 0, self.parent.width(), self.parent.height())
         self.dim_overlay.mousePressEvent = lambda event: self.close_expanded_image()
-
-        pixmap = QPixmap()
-
-        if pixmap.loadFromData(image_bytes):
-            if pixmap.height() > 300:
-                pixmap = pixmap.scaled(pixmap.width(), 300, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-
-            self.setPixmap(pixmap)
-            self.setFixedWidth(pixmap.width())
-        else:
-            self.setText("Image failed to load.")
-            return
 
         self.download_button = QPushButton(self)
         self.download_button.setFixedSize(30, 30)
@@ -639,3 +638,47 @@ class ImageAttachment(QLabel):
     def close_expanded_image(self):
         self.current_expanded_image.hide()
         self.dim_overlay.hide()
+
+    def make_gif(self, image_bytes):
+        self.data = QByteArray(image_bytes)
+        self.buffer = QBuffer(self.data)
+        self.buffer.open(QIODevice.OpenModeFlag.ReadOnly)
+
+        self.movie = QMovie(self.buffer, QByteArray(b"gif"))
+
+        self.movie.jumpToFrame(0)
+        original_size = self.movie.currentPixmap().size()
+
+        if original_size.isEmpty():
+            return False
+
+        resized_size = self.resize_image(original_size)
+        print(resized_size)
+
+        self.movie.setScaledSize(original_size)
+        self.setFixedSize(original_size)
+
+        self.setMovie(self.movie)
+        self.movie.start()
+        return True
+
+    def make_static_image(self, image_bytes):
+        pixmap = QPixmap()
+
+        if not pixmap.loadFromData(image_bytes):
+            return False
+
+        size = self.resize_image(pixmap.size())
+
+        pixmap = pixmap.scaled(size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+
+        self.setPixmap(pixmap)
+        self.setFixedSize(pixmap.size())
+        return True
+
+    def resize_image(self, size):
+        max_size = QSize(size.width(), 300)
+
+        if size.height() > max_size.height():
+            return size.scaled(max_size, Qt.AspectRatioMode.KeepAspectRatio)
+        return size

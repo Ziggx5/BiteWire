@@ -3,7 +3,7 @@ import socket
 import threading
 import json
 import ssl
-from PySide6.QtCore import QObject, Signal, QFileInfo
+from PySide6.QtCore import QObject, Signal
 import struct
 import os
 
@@ -28,7 +28,6 @@ class ChatHandler(QObject):
 
     def connect(self, ip_address, port = 50505):
         raw_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        raw_socket.settimeout(2)
         tls_socket = self.context.wrap_socket(raw_socket, server_hostname = ip_address)
         tls_socket.connect((ip_address, port))
         self.client = tls_socket
