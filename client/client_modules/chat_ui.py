@@ -543,14 +543,18 @@ class JoinUserMessageWidget(QWidget):
         layout.addStretch()
 
 class ImageAttachment(QLabel):
-    def __init__(self, image_bytes, image_name, parent):
+    def __init__(self, image_bytes, image_name, main_frame_parent):
         super().__init__()
 
         self.image_bytes = image_bytes
         self.image_name = image_name
-        self.parent = parent
+        self.main_frame_parent = main_frame_parent
 
+        self.image_type = None
         self.movie = None
+        self.data = None
+        self.buffer = None
+        self.download_button = None
 
         if self.image_bytes.startswith(b"GIF8"):
             loaded = self.make_gif(self.image_bytes)
@@ -560,13 +564,6 @@ class ImageAttachment(QLabel):
         if not loaded:
             self.setText("Image failed to load.")
             return
-
-        self.current_expanded_image = QLabel(self.parent)
-
-        self.dim_overlay = QWidget(self.parent)
-        self.dim_overlay.setStyleSheet("background-color: rgba(0, 0, 0, 200);")
-        self.dim_overlay.setGeometry(0, 0, self.parent.width(), self.parent.height())
-        self.dim_overlay.mousePressEvent = lambda event: self.close_expanded_image()
 
         self.download_button = QPushButton(self)
         self.download_button.setFixedSize(30, 30)
@@ -580,22 +577,29 @@ class ImageAttachment(QLabel):
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def enterEvent(self, event):
-        self.download_button.show()
+        if self.download_button:
+            self.download_button.show()
         super().enterEvent(event)
 
     def leaveEvent(self, event):
-        self.download_button.hide()
+        if self.download_button:
+            self.download_button.hide()
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton and self.download_button:
             self.expand_image()
         super().mousePressEvent(event)
 
     def download_image(self):
         image_extension = self.get_image_extension(self.image_bytes)
         download_folder = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation)
-        download_path = f"{download_folder}/{self.image_name}.{image_extension}"
+        image_name = self.image_name
+
+        if not self.image_name:
+            image_name = "Image"
+
+        download_path = f"{download_folder}/{image_name}.{image_extension}"
 
         path, _ = QFileDialog.getSaveFileName(self, "Save image", download_path, f"image (*.{image_extension})")
 
@@ -618,26 +622,58 @@ class ImageAttachment(QLabel):
         return "png"
 
     def expand_image(self):
-        max_expanded_image_width = int(self.parent.width() * 0.6)
-        max_expanded_image_height = int(self.parent.height() * 0.6)
-        pixmap = QPixmap()
-        pixmap.loadFromData(self.image_bytes)
+        max_expanded_image_width = int(self.main_frame_parent.width() * 0.6)
+        max_expanded_image_height = int(self.main_frame_parent.height() * 0.6)
+        self.expanded_buffer = None
+        self.expanded_movie = None
+
+        self.dim_overlay = QWidget(self.main_frame_parent)
+        self.dim_overlay.setStyleSheet("background-color: rgba(0, 0, 0, 200);")
+        self.dim_overlay.setGeometry(0, 0, self.main_frame_parent.width(), self.main_frame_parent.height())
+        self.dim_overlay.mousePressEvent = lambda event: self.close_expanded_image()
+
+        self.current_expanded_image = QLabel(self.dim_overlay)
+        self.current_expanded_image.setStyleSheet("background-color: transparent;")
+
+        if self.image_type == "gif":
+            self.expanded_buffer = QBuffer(self.data, self.dim_overlay)
+            self.expanded_buffer.open(QIODevice.OpenModeFlag.ReadOnly)
+
+            self.expanded_movie = QMovie(self.expanded_buffer, QByteArray(b"gif"), self.dim_overlay)
+            self.expanded_movie.jumpToFrame(0)
+
+            size = self.expanded_movie.currentPixmap().size()
+
+            if size.width() > max_expanded_image_width or size.height() > max_expanded_image_height:
+                size = size.scaled(max_expanded_image_width, max_expanded_image_height, Qt.AspectRatioMode.KeepAspectRatio)
+
+            self.expanded_movie.setScaledSize(size)
+            self.current_expanded_image.setFixedSize(size)
+            self.current_expanded_image.setMovie(self.expanded_movie)
+            self.expanded_movie.start()
+
+        else:
+            pixmap = QPixmap()
+            pixmap.loadFromData(self.image_bytes)
+
+            if pixmap.width() > max_expanded_image_width or pixmap.height() > max_expanded_image_height:
+                pixmap = pixmap.scaled(max_expanded_image_width, max_expanded_image_height, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+
+            size = pixmap.size()
+            self.current_expanded_image.setPixmap(pixmap)
+            self.current_expanded_image.setFixedSize(size)
 
         self.dim_overlay.show()
-
-        if pixmap.width() > max_expanded_image_width or pixmap.height() > max_expanded_image_height:
-            pixmap = pixmap.scaled(max_expanded_image_width, max_expanded_image_height, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-
-        self.current_expanded_image.setPixmap(pixmap)
-        self.current_expanded_image.setFixedSize(pixmap.size())
-        self.current_expanded_image.move((self.parent.width() - pixmap.width()) // 2, (self.parent.height() - pixmap.height()) // 2)
+        self.current_expanded_image.move((self.main_frame_parent.width() - size.width()) // 2, (self.main_frame_parent.height() - size.height()) // 2)
         self.current_expanded_image.raise_()
-
         self.current_expanded_image.show()
 
     def close_expanded_image(self):
-        self.current_expanded_image.hide()
+        if self.expanded_movie:
+            self.expanded_movie.stop()
+
         self.dim_overlay.hide()
+        self.dim_overlay.deleteLater()
 
     def make_gif(self, image_bytes):
         self.data = QByteArray(image_bytes)
@@ -653,13 +689,14 @@ class ImageAttachment(QLabel):
             return False
 
         resized_size = self.resize_image(original_size)
-        print(resized_size)
 
-        self.movie.setScaledSize(original_size)
-        self.setFixedSize(original_size)
+        self.movie.setScaledSize(resized_size)
+        self.setFixedSize(resized_size)
 
         self.setMovie(self.movie)
         self.movie.start()
+
+        self.image_type = "gif"
         return True
 
     def make_static_image(self, image_bytes):
@@ -674,11 +711,13 @@ class ImageAttachment(QLabel):
 
         self.setPixmap(pixmap)
         self.setFixedSize(pixmap.size())
+
+        self.image_type = "static"
         return True
 
     def resize_image(self, size):
-        max_size = QSize(size.width(), 300)
+        max_size = QSize(450, 300)
 
-        if size.height() > max_size.height():
+        if size.width() > max_size.width() or size.height() > max_size.height():
             return size.scaled(max_size, Qt.AspectRatioMode.KeepAspectRatio)
         return size
