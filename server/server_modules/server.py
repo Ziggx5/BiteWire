@@ -468,14 +468,7 @@ class ChatServer(QObject):
             ORDER BY id ASC
             """, (old_id,))
 
-            result = cursor.fetchall()
-
-            messages = []
-
-            for message in result:
-                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3], "image": self.load_image(message[5]), "image_name": message[6]})
-            
-            client.send({"type": "message_history", "content": messages})
+            history_type = "normal"
 
         else:
             cursor.execute("""
@@ -489,14 +482,16 @@ class ChatServer(QObject):
                 ORDER BY id ASC
             """)
 
-            result = cursor.fetchall()
+            history_type = "first"
 
-            messages = []
+        result = cursor.fetchall()
+        conn.close()
+        messages = []
 
-            for message in result:
-                messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3], "image": self.load_image(message[5]), "image_name": message[6]})
-            
-            client.send({"type": "first_message_history", "content": messages})
+        for message in result:
+            messages.append({"id": message[4], "sender_type": message[0], "sender_username": message[1], "content": message[2], "time": message[3], "image": self.load_image(message[5]), "image_name": message[6]})
+
+        client.send({"type": "message_history", "history_type": history_type, "content": messages})
 
     def send_profile_picture(self):
         data = []
