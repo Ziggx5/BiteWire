@@ -232,6 +232,7 @@ class ChatUi(QWidget):
 
         if scrollbar.value() < 60 and not self.loading_history:
             self.loading_history = True
+            print("scrollan")
 
             self.chat_handler.send_json_message({"type": "message_history", "content": self.old_message_id})
 
@@ -258,46 +259,43 @@ class ChatUi(QWidget):
             else:
                 return MessageWidget(username, content, sent_time, f"{self.root_path}/client_pictures/user_picture_placeholder.png", image_bytes, image_name, self.parent)
 
-    def display_first_chat_history(self, sender_type, sender_username, content, sent_time, message_id, image_bytes, image_name):
-        message_widget = self.create_message_widget(sender_type, sender_username, content, sent_time, image_bytes, image_name)
-
-        self.chat_layout.addWidget(message_widget)
-
-        if not self.old_message_id:
-            self.old_message_id = message_id
-        else:
-            self.old_message_id = min(self.old_message_id, message_id)
-        
-        self.chat_layout.update()
-        QApplication.processEvents()
-
-        QTimer.singleShot(0, lambda: self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
-
-    def display_old_chat_history (self, data):
+    def load_message_history(self, message_history, history_type):
         scrollbar = self.scroll.verticalScrollBar()
-
         old_value = scrollbar.value()
         old_max = scrollbar.maximum()
 
-        for message in reversed(data):
-            message_widget = self.create_message_widget(message['sender_type'], message['sender_username'], message['content'], message['time'], message['image'])
+        #if scroll is on top don't request another message history
 
-            self.chat_layout.insertWidget(0, message_widget)
+        if history_type == "normal":
+            messages = reversed(message_history)
+        else:
+            messages = message_history
+
+        for message in messages:
+            message_widget = self.create_message_widget(message['sender_type'], message['sender_username'], message['content'], message['time'], message['image'], message['image_name'])
+
+            if history_type == "normal":
+                self.chat_layout.insertWidget(0, message_widget)
+            else:
+                self.chat_layout.addWidget(message_widget)
 
             if not self.old_message_id:
                 self.old_message_id = message["id"]
             else:
                 self.old_message_id = min(self.old_message_id, message["id"])
 
-        self.chat_layout.invalidate()
-        self.chat_layout.activate()
-        QApplication.processEvents()
+        if  history_type == "normal":
+            self.chat_layout.activate()
+            QApplication.processEvents()
 
-        new_max = scrollbar.maximum()
-        
-        scrollbar.setValue(old_value + (new_max - old_max))
-        
-        self.loading_history = False
+            scrollbar.setValue(old_value + (scrollbar.maximum() - old_max))
+
+            self.loading_history = False
+        else:
+            self.chat_layout.update()
+            QApplication.processEvents()
+
+            QTimer.singleShot(0, lambda: self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum()))
 
     def display_new_message(self,sender_type, username, content, sent_time, image_bytes, image_name):
         self.tray.show_notification(username, content)
@@ -408,11 +406,11 @@ class MessageWidget(QWidget):
         top_row = QHBoxLayout()
 
         username = QLabel(username)
-        username.setStyleSheet("color: #58a6ff; font-weight: 500; font-size: 15px;")
+        username.setStyleSheet("color: #e6edf3; font-weight: 500; font-size: 15px;")
 
         time = QLabel(time)
         time.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        time.setStyleSheet("color: #58a6ff; font-weight: 500; font-size: 11px;")
+        time.setStyleSheet("color: #6b7280; font-size: 10px;")
 
         message = QLabel(data)
         message.setWordWrap(True)

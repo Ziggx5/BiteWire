@@ -15,6 +15,7 @@ class ChatHandler(QObject):
     server_status = Signal(str)
     users_count_signal = Signal(str)
     server_icon_signal = Signal(str)
+    message_history_received = Signal(list, str)
 
     def __init__(self, profile_cache = None):
         super().__init__()
@@ -78,7 +79,7 @@ class ChatHandler(QObject):
                     username = message['user']
                     content = message['content']
                     time = message['time']
-                    image_base64 = self.convert_base64_to_image(message.get("image"))
+                    image_base64 = self.convert_base64_to_bytes(message.get("image"))
                     image_name = message['image_name']
 
                     self.message_received.emit(sender_type, username, content, time, image_base64, image_name)
@@ -93,17 +94,13 @@ class ChatHandler(QObject):
                     
                 elif message_type == "ping":
                     self.send_json_message({"type": "pong"})
-                
-                elif message_type == "first_message_history":
-                    for content in message['content']:
-                        self.first_history_message_received.emit(content['sender_type'], content['sender_username'], content['content'], content['time'], content['id'], self.convert_base64_to_image(content['image']), content['image_name'])
 
                 elif message_type == "message_history":
-                    message = message['content']
-                    for item in message:
-                        item['image'] = self.convert_base64_to_image(item['image'])
-                    self.history_message_received.emit(message)
-                    
+                    message_history = message['content']
+                    for item in message_history:
+                        item['image'] = self.convert_base64_to_bytes(item['image'])
+                    self.message_history_received.emit(message_history, message['history_type'])
+
                 elif message_type == "profile_picture_data":
                     self.profile_cache.save(message['content'])
                 
@@ -221,7 +218,7 @@ class ChatHandler(QObject):
 
         return base64_image
 
-    def convert_base64_to_image(self, base64_image):
+    def convert_base64_to_bytes(self, base64_image):
         if not base64_image:
             return None
 

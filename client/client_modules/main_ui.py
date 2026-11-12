@@ -51,8 +51,7 @@ class MainUi(QWidget):
         self.custom_title_bar = CustomTitleBar(self)
         self.server_settings = ServerSettings(self.server_settings_show_main_ui, self.reload_servers)
 
-        self.chat_handler.history_message_received.connect(self.chat_ui.display_old_chat_history)
-        self.chat_handler.first_history_message_received.connect(self.chat_ui.display_first_chat_history)
+        self.chat_handler.message_history_received.connect(self.chat_ui.load_message_history)
         self.chat_handler.message_received.connect(self.chat_ui.display_new_message)
         self.chat_handler.users_received.connect(self.chat_ui.add_users)
         self.chat_handler.server_status.connect(self.server_close_message)
