@@ -587,10 +587,12 @@ class AppearancePage(QWidget):
         if self.theme_color_changed:
             change_server_color(self.new_theme_color, "theme_color", self.server_address)
             self.theme_color_widget.initial_color = self.new_theme_color
+            self.theme_color_changed = False
 
         if self.border_color_changed:
             change_server_color(self.new_border_color, "border_color", self.server_address)
             self.border_color_widget.initial_color = self.new_border_color
+            self.border_color_changed = False
 
         self.save_button.setEnabled(False)
 
@@ -622,7 +624,6 @@ class ThemeColors(QWidget):
         self.pink_button = self.create_color_button(None, "#D946A8", False)
         self.cyan_button = self.create_color_button(None, "#35C5E5", False)
         self.custom_button = self.create_color_button(None, custom_color, True)
-        self.custom_button.clicked.connect(self.open_color_picker)
 
         self.horizontal_layout.addWidget(self.transparent_button)
         self.horizontal_layout.addWidget(self.blue_button)
@@ -662,11 +663,13 @@ class ThemeColors(QWidget):
 
         if text:
             color_button.setText(text)
+
         if image:
             color_button.setIcon(QIcon(f"{resource_path()}/client_pictures/pen.png"))
             color_button.setIconSize(QSize(15, 15))
-
-        color_button.clicked.connect(lambda: self.select_color(color_button))
+            color_button.clicked.connect(lambda: self.open_color_picker())
+        else:
+            color_button.clicked.connect(lambda: self.select_color(color_button))
 
         return color_button
 
