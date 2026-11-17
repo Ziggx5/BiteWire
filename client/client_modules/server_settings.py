@@ -580,7 +580,6 @@ class AppearancePage(QWidget):
         self.new_border_color = color
 
     def update_save_button(self):
-        print(self.theme_color_changed or self.border_color_changed)
         self.save_button.setEnabled(self.theme_color_changed or self.border_color_changed)
 
     def save_changes(self):
