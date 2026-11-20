@@ -98,7 +98,7 @@ class MainUi(QWidget):
         left_container = QVBoxLayout()
 
         server_frame = QFrame(self)
-        server_frame.setStyleSheet("background-color: #111827; border: none;")
+        server_frame.setStyleSheet("background-color: #0a0d15; border-right: 1px solid rgba(255, 255, 255, 0.1);")
 
         self.server_layout = QVBoxLayout(server_frame)
         self.server_layout.setAlignment(Qt.AlignTop)
@@ -108,14 +108,14 @@ class MainUi(QWidget):
         user_frame.setObjectName("container")
         user_frame.setStyleSheet("""
             QFrame#container {
-                background: transparent;
-                border: 1px solid #30363d;
+                background-color: #0a0d15;
+                border-right: 1px solid rgba(255, 255, 255, 0.1);
             }
         """)
         self.user_frame_layout = QHBoxLayout(user_frame)
 
         main_frame = QFrame(self)
-        main_frame.setStyleSheet("background: transparent; border: none;")
+        main_frame.setStyleSheet("background: #0d111a; border: none;")
 
         self.main_layout_horizontal = QHBoxLayout(main_frame)
         self.main_layout_horizontal.setContentsMargins(0, 0, 0, 0)
@@ -125,12 +125,12 @@ class MainUi(QWidget):
         self.main_layout_horizontal.addLayout(self.main_layout_vertical)
 
         upper_frame = QFrame(self)
-        upper_frame.setStyleSheet("background-color: #111827; border-bottom: 1px solid rgba(255, 255, 255, 0.05);")
+        upper_frame.setStyleSheet("background-color: #0a0d15; border-right: 1px solid rgba(255, 255, 255, 0.1);")
 
         self.upper_layout = QHBoxLayout(upper_frame)
 
         logo_frame = QFrame(self)
-        logo_frame.setStyleSheet("background: #111827; border: none;")
+        logo_frame.setStyleSheet("background: #0a0d15; border-right: 1px solid rgba(255, 255, 255, 0.1);")
 
         self.logo_layout = QHBoxLayout(logo_frame)
 
@@ -139,28 +139,24 @@ class MainUi(QWidget):
 
         self.logo_layout.addWidget(self.BiteWire_label, alignment = Qt.AlignCenter)
 
-        self.add_server_label = QLabel("All servers")
-        self.add_server_label.setStyleSheet("color: white; border: none; font-size: 17px;")
+        self.add_server_label = QLabel("Servers")
+        self.add_server_label.setStyleSheet("color: rgba(255, 255, 255, 0.7); border: none; font-size: 15px;")
 
-        self.add_button = QPushButton()
-        self.add_button.setIcon(QIcon(f"{self.resource}/client_pictures/plus.png"))
-        self.add_button.setIconSize(QSize(15, 15))
+        self.add_button = QPushButton("+")
         self.add_button.setStyleSheet("""
             QPushButton {
-                background-color: #3b82f6;
-                border-radius: 8px;
-                border: 2px solid #ffffff;
+                border-radius: 5px;
+                border: none;
+                font-size: 20px;
             }
-            
             QPushButton:hover {
-                background-color: #2563eb;
+                background-color: rgba(255, 255, 255, 0.1);
             }
-
             QPushButton:pressed {
-                background-color: #1d4ed8;
+                background-color: rgba(255, 255, 255, 0.07);
             }
         """)
-        self.add_button.setFixedSize(35, 35)
+        self.add_button.setFixedSize(20, 20)
         self.add_button.clicked.connect(lambda: self.show_popup(self.add_server_window))
         self.add_button.setCursor(Qt.PointingHandCursor)
         self.reload_servers()
@@ -170,6 +166,7 @@ class MainUi(QWidget):
         self.upper_layout.addWidget(self.add_button)
 
         self.username_label = QLabel("User")
+        self.username_label.setStyleSheet("background-color: #0a0d15")
 
         self.settings_button = QPushButton()
         self.settings_button.setIcon(QIcon(f"{self.resource}/client_pictures/settings.png"))

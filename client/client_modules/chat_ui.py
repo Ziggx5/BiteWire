@@ -29,8 +29,8 @@ class ChatUi(QWidget):
         header.setObjectName("header_container")
         header.setStyleSheet("""
             QFrame#header_container {
-                background-color: #161b22;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                background-color: #0d111a;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);;
             }
         """)
         header.setFixedHeight(45)
@@ -47,9 +47,9 @@ class ChatUi(QWidget):
         self.connection_status_label = QLabel("Connected")
         self.connection_status_label.setStyleSheet("""
             QLabel {
-                color: #e6edf3;
-                font-size: 12px;
-                font-weight: 600;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 13px;
+                font-weight: 400;
             }
         """)
 
@@ -85,17 +85,17 @@ class ChatUi(QWidget):
         scroll_layout.addWidget(self.scroll)
 
         input_container = QFrame()
-        input_container.setFixedHeight(60)
+        input_container.setFixedHeight(50)
         input_container.setStyleSheet("""
             QFrame {
                     border-radius: 10px;
                     border: 1px solid #1e293b;
-                    background-color: #0f172a;
+                    background-color: #141a27;
             }
         """)
 
         input_layout = QHBoxLayout(input_container)
-        input_layout.setSpacing(5)
+        input_layout.setSpacing(10)
 
         self.message_input = QTextEdit()
         self.message_input.setFixedHeight(30)
@@ -111,22 +111,24 @@ class ChatUi(QWidget):
 
         file_button = QPushButton()
         file_button.setIcon(QIcon(f"{self.root_path}/client_pictures/paperclip.png"))
+        file_button.setStyleSheet("background-color: #141a27;")
         file_button.setIconSize(QSize(20, 20))
-        file_button.setFixedSize(40, 40)
+        file_button.setFixedSize(30, 30)
         file_button.setCursor(Qt.PointingHandCursor)
         file_button.clicked.connect(self.select_file)
         file_button.setToolTip("Send a file")
 
         emoji_button = QPushButton()
         emoji_button.setIcon(QIcon(f"{self.root_path}/client_pictures/emoji.png"))
+        emoji_button.setStyleSheet("background-color: #141a27;")
         emoji_button.setIconSize(QSize(25, 25))
-        emoji_button.setFixedSize(40, 40)
+        emoji_button.setFixedSize(30, 30)
         emoji_button.setCursor(Qt.PointingHandCursor)
         emoji_button.setToolTip("Currently not available.")
 
         send_button = QPushButton()
         send_button.setIcon(QIcon(f"{self.root_path}/client_pictures/send.png"))
-        send_button.setFixedSize(40, 40)
+        send_button.setFixedSize(30, 30)
         send_button.clicked.connect(self.client_send_message)
         send_button.setStyleSheet("""
             QPushButton {
@@ -181,24 +183,31 @@ class ChatUi(QWidget):
         chat_wrapper_layout.addWidget(scroll_container)
         chat_wrapper_layout.addWidget(self.preview_container)
         chat_wrapper_layout.addWidget(input_container)
+        chat_wrapper_layout.addSpacing(5)
 
         all_users_wrapper = QFrame()
         all_users_wrapper.setObjectName("all_users_wrapper")
         all_users_wrapper.setStyleSheet("""
             QFrame#all_users_wrapper {
-                border-left: 1px solid rgba(255, 255, 255, 0.05);
+                background-color: #0a0d15;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
             }
         """)
 
         all_users_wrapper_layout = QVBoxLayout(all_users_wrapper)
 
         all_users_container = QWidget()
+        all_users_container.setObjectName("all_users_container")
+        all_users_container.setStyleSheet("background-color: #0a0d15;")
+
 
         self.all_users_layout = QVBoxLayout(all_users_container)
         self.all_users_layout.setSpacing(5)
         self.all_users_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         all_users_label_container = QWidget()
+        all_users_label_container.setStyleSheet("background-color: #0a0d15;")
+
         all_users_label_layout = QHBoxLayout(all_users_label_container)
         all_users_label_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
@@ -209,12 +218,14 @@ class ChatUi(QWidget):
                 font-size: 11px;
                 font-weight: 600;
                 letter-spacing: 1px;
+                background-color: #0a0d15;
             }
         """)
 
         all_users_label_layout.addWidget(all_users_label)
 
         all_users_scroll = QScrollArea()
+
         all_users_scroll.setWidget(all_users_container)
         all_users_scroll.setWidgetResizable(True)
 
@@ -373,7 +384,6 @@ class MessageWidget(QWidget):
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet("""
             QWidget#message_container {
-                background-color: transparent;
                 border-radius: 12px;
             }
             QWidget#message_container:hover {
@@ -405,17 +415,17 @@ class MessageWidget(QWidget):
 
         top_row = QHBoxLayout()
 
-        username = QLabel(username)
-        username.setStyleSheet("color: #e6edf3; font-weight: 500; font-size: 15px;")
+        username_label = QLabel(username)
+        username_label.setStyleSheet("background-color: transparent; font-weight: 500; font-size: 13px;")
 
         time = QLabel(time)
         time.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        time.setStyleSheet("color: #6b7280; font-size: 10px;")
+        time.setStyleSheet("color: #6b7280; font-size: 11px; background-color: transparent;")
 
         message = QLabel(data)
         message.setWordWrap(True)
         message.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        message.setStyleSheet("color: #e6edf3;")
+        message.setStyleSheet("color: #e6edf3; background-color: transparent; font-size: 13px;")
 
         right_layout.addLayout(top_row)
 
@@ -427,7 +437,7 @@ class MessageWidget(QWidget):
 
         left_layout.addWidget(icon, alignment = Qt.AlignTop)
 
-        top_row.addWidget(username, alignment = Qt.AlignmentFlag.AlignCenter)
+        top_row.addWidget(username_label, alignment = Qt.AlignmentFlag.AlignCenter)
         top_row.addWidget(time, alignment = Qt.AlignmentFlag.AlignCenter)
         top_row.addStretch()
 
@@ -484,9 +494,10 @@ class UserWidget(QWidget):
         self.icon.setPixmap(pixmap)
 
         username_label = QLabel(self.username)
-        username_label.setStyleSheet("font-size: 15px; border: none;")
+        username_label.setStyleSheet("font-size: 15px; border: none; background-color: transparent;")
 
         status_label = QLabel(status)
+        status_label.setStyleSheet("background-color: transparent;")
 
         text_layout.addWidget(username_label)
         text_layout.addWidget(status_label)
@@ -518,12 +529,15 @@ class JoinUserMessageWidget(QWidget):
 
         arrow_icon = QLabel()
         arrow_icon.setPixmap(QPixmap(image).scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        arrow_icon.setStyleSheet("background-color: transparent;")
 
         text = QLabel(f"{username} has joined the server!")
         text.setStyleSheet("""
             QLabel {
                 color: #e6edf3;
                 font-weight: 600;
+                font-size: 13px;
+                background-color: transparent;
             }
         """)
 
@@ -531,7 +545,8 @@ class JoinUserMessageWidget(QWidget):
         joined_time_label.setStyleSheet("""
             QLabel {
                 color: #6b7280;
-                font-size: 10px;
+                font-size: 11px;
+                background-color: transparent;
             }
         """)
 
